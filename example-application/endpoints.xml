@@ -1,0 +1,112 @@
+  <endpoint-folder multiple-value-separator=",">
+      
+    <endpoint-folder>
+  
+      <!-- to make the hash -->
+      <parameter name="param-in-hash"/>
+      
+      <!-- other params supplied by the client e.g. a <form> -->
+      <parameter name="invoice-number" default-value="123"/>
+      <parameter name="email-address" default-value=""/>
+  
+      <!-- other params -->
+      <parameter name="withouthyphen" default-value="abc"/>
+      <parameter name="catalogue" default-value="example-catalogue"/>
+  
+      <endpoint name="send-email">
+        <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
+        <parameter name="dont-send" default-value="false"/>
+        <task class="endpoints.task.EmailTask" if="${dont-send}" notequals="true">
+          <from>endpoints@example.com</from>
+          <to>${email-address}</to>
+          <to>${email-address}</to>
+          <subject>Email from Endpoints to: ${email-address}</subject>
+          <body-transformation name="produce-text"/>
+          <body-transformation name="produce-html"/>
+          <attachment-static filename="static-subdirectory/spheres.png"/>
+          <attachment-transformation name="produce-pdf" if="foo" equals="foo" filename="invoice-${invoice-number}.pdf"/>
+          <attachment-transformation name="produce-pdf" if="foo" equals="bar" filename="DO-NOT-INCLUDE-${invoice-number}.pdf"/>
+          <attachments-from-request-file-uploads/>
+        </task>
+      </endpoint>
+      
+      <endpoint name="redirect">
+        <include-in-hash/>
+        <success>
+          <redirect-to>http://${email-address}/</redirect-to>
+          <redirect-prefix-whitelist-entry>http://www.google.com</redirect-prefix-whitelist-entry>         
+        </success>
+      </endpoint>
+  
+      <endpoint name="http-request">
+        <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
+        <task class="endpoints.task.HttpRequestTask">
+          <url>https://www.databasesandlife.com/endpoints-HttpRequestTask</url>
+        </task>
+      </endpoint>
+  
+      <endpoint name="json">
+        <parameter name="written-to-by-parameter-transformation-output" default-value="from-endpoints-xml"/>
+        <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
+        <parameter-transformation xslt="add-one-param.xslt">
+          <xml-from-application file="xml-subdirectory/spheres.fo"/>
+          <literal-xml><this-is-some-literal-xml/></literal-xml>
+        </parameter-transformation>
+        <task class="endpoints.task.LogToDatabaseTask">
+          <jdbc-connection-string>jdbc:mysql://localhost/example_application?user=root&amp;password=root&amp;useUnicode=true&amp;characterEncoding=UTF-8</jdbc-connection-string>
+          <table>log_to_database</table>
+          <column name="invoice_number">Invoice number: ${invoice-number}</column>
+          <column name="withouthyphen"/>
+        </task>
+        <task class="endpoints.task.HttpRequestTask" ignore-if-error="true">
+          <url>https://www.this-task-url-doesnt-exist/</url>
+        </task>
+        <success>
+          <response-transformation name="produce-json"/>
+        </success>
+        <error>
+          <response-transformation name="produce-html"/>
+        </error>
+      </endpoint>
+      
+      <endpoint name="pdf">
+        <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
+        <success>
+          <response-transformation download-filename="invoice-${invoice-number}.pdf" name="produce-pdf"/>
+        </success>
+        <error>
+          <response-transformation name="produce-html"/>
+        </error>
+        <task class="endpoints.task.EmailTask" if="${email-address}" notequals="">
+          <from>endpoints@example.com</from>
+          <to>${email-address}</to>
+          <to>${email-address}</to>
+          <subject>Email from Endpoints to: ${email-address}</subject>
+          <body-transformation name="produce-text"/>
+          <body-transformation name="produce-html"/>
+          <attachment-static filename="static-subdirectory/spheres.png"/>
+          <attachment-transformation name="produce-pdf" if="foo" equals="foo" filename="invoice-${invoice-number}.pdf"/>
+          <attachment-transformation name="produce-pdf" if="foo" equals="bar" filename="DO-NOT-INCLUDE-${invoice-number}.pdf"/>
+          <attachments-from-request-file-uploads/>
+        </task>
+      </endpoint>
+    </endpoint-folder>
+      
+    <endpoint name="html-content">
+      <success>
+        <response-transformation name="produce-html"/>
+      </success>
+      <error>
+        <response-transformation name="produce-html"/>
+      </error>
+    </endpoint>
+       
+    <endpoint name="form">
+      <success>
+        <response-transformation name="produce-form"/>
+      </success>
+      <error>
+        <response-transformation name="produce-html"/>
+      </error>
+    </endpoint>
+ </endpoint-folder>

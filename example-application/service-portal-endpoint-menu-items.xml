@@ -1,0 +1,7 @@
+<service-portal-endpoint-menu-items>
+    <menu-folder menu-item-name="Custom Items">
+        <content menu-item-name="Custom Content Foo" endpoint="html-content"/>
+        <form menu-item-name="Custom Form" form-endpoint="form" result-endpoint="pdf"/>
+    </menu-folder>
+    <content menu-item-name="Custom Content Bar" endpoint="html-content"/>
+</service-portal-endpoint-menu-items>

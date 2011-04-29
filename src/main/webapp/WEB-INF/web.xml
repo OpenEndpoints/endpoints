@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee">
+  <context-param>
+    <param-name>configuration</param-name>
+    <param-value>deployment</param-value>
+  </context-param>
+
+  <servlet>
+    <servlet-name>endpoint</servlet-name>
+    <servlet-class>endpoints.EndpointServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <multipart-config/>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>endpoint</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>health-check</servlet-name>
+    <servlet-class>endpoints.HealthCheckServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>health-check</servlet-name>
+    <url-pattern>/health-check</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>service-portal</servlet-name>
+    <servlet-class>org.apache.wicket.protocol.http.WicketServlet</servlet-class>
+    <init-param>
+      <param-name>applicationClassName</param-name>
+      <param-value>endpoints.serviceportal.wicket.ServicePortalApplication</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
+    <multipart-config>
+      <max-request-size>10000000</max-request-size> <!-- 10MB total request size -->
+    </multipart-config>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>service-portal</servlet-name>
+    <url-pattern>/service-portal/*</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/error.html</url-pattern>
+  </servlet-mapping>
+
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>/favicon.ico</url-pattern>  <!-- Otherwise there are errors from our software -->
+  </servlet-mapping>
+
+  <session-config>
+    <session-timeout>480</session-timeout>           <!-- 8 hours, i.e. whole working day -->
+  </session-config>
+
+  <error-page>
+    <exception-type>java.lang.Throwable</exception-type>
+    <location>/error.html</location>
+  </error-page>
+
+</web-app>

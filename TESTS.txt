@@ -1,0 +1,2 @@
+- RuntimeException occurs processing the request after application determined, <error> used
+- RuntimeException occurs outside of the applicaiton processing, web.xml general error used

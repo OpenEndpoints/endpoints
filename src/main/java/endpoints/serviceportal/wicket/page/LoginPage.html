@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html class="uk-height-1-1 uk-notouch" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
+<head>
+
+  <title>Endpoints Service Portal</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- UIkit CSS -->
+  <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.offerready.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Khula:300,400">
+  <!-- UIkit JS -->
+  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
+  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons-offerready.min.js"></script>
+  <!-- FAVICON -->
+  <link rel="icon" href="https://commons.offer-ready.com/brand/favicon.ico">
+
+</head>
+
+
+<body class="uk-height-1-1">
+  <div class="uk-flex uk-flex-center uk-flex-top uk-margin-large-top uk-height-viewport">
+    <div class="uk-width-medium uk-padding-small">
+      <div><img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/></div>
+      <form wicket:id="form" method="post" class="uk-form">
+        <fieldset class="uk-fieldset">
+
+          <legend class="uk-legend">Service Portal</legend>
+          <wicket:container wicket:id="feedback" id="x"/>
+          <div class="uk-margin">
+            <div class="uk-inline uk-width-1-1">
+              <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: user"></span>
+              <input wicket:id="username" class="uk-input" required placeholder="Username" type="text" name="username">
+            </div>
+          </div>
+          <div class="uk-margin">
+            <div class="uk-inline uk-width-1-1">
+              <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: lock"></span>
+              <input wicket:id="password" class="uk-input" required placeholder="Password" type="password" name="password">
+            </div>
+          </div>
+
+          <div class="uk-margin">
+            <button type="submit" class="uk-button uk-button-primary uk-button-primary uk-width-1-1">LOG IN</button>
+          </div>
+        </fieldset>
+      </form>
+
+    </div>
+    <!-- FOOTER -->
+    <div class="uk-position-bottom-center uk-position-small uk-visible@m">
+      <div class="uk-text-center uk-text-small uk-text-muted">
+      Offer-Ready Service Portal <span wicket:enclosure="">(<span wicket:id="environment">AWS PROD</span>)</span><br/>
+      (C) Offer-Ready IT-Services & Consulting GmbH <span wicket:id="year">2018</span>. All Rights Reserved.<br/>
+      <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

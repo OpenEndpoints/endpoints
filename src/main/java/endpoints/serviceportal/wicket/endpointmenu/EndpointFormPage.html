@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html class="uk-height-1-1 uk-notouch" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
+<head>
+
+  <title>Endpoints Service Portal</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- UIkit CSS -->
+  <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.min.css" />
+
+  <!-- UIkit JS -->
+  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
+  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons.min.js"></script>
+
+  <link rel="icon" type="image/png" href="https://commons.offer-ready.com/brand/favicon.ico">
+
+</head>
+<body>
+
+<!-- OFF CANVAS MENU (Viewport Small)   -->
+  <div id="offcanvas-nav" uk-offcanvas>
+    <div class="uk-offcanvas-bar">
+
+      <ul class="uk-nav uk-nav-default uk-padding" uk-nav>
+        <li><a href="home.html">Home</a></li>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="publish.html">Publish</a></li>
+        <li class="uk-parent">
+          <a href="#">Security</a>
+          <ul class="uk-nav-sub">
+            <li><a href="hash-generator.html">Hash Calculator</a></li>
+            <li><a href="secret-key.html">Secret Key</a></li>
+            <li><a href="change-password.html">Change Password</a></li>
+          </ul>
+        </li>
+        <li><a href="EndpointContentPage.html">Custom Content</a></li>
+        <li class="uk-active"><a href="EndpointFormPage.html">Custom Form and Result</a></li>
+        <li class="uk-nav-divider"></li>
+        <li><a>Log Out</a></li>
+      </ul>
+    </div>
+  </div>
+
+
+  <div class="uk-container uk-container-medium">
+    <!-- Mobile View -->
+    <nav class="uk-navbar-container uk-navbar-transparent uk-hidden@s" uk-navbar>
+      <div class="uk-navbar-left">
+        <div class="uk-navbar-item">
+          <img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/>
+        </div>
+      </div>
+      <div class="uk-navbar-right">
+        <div class="uk-navbar-item"><a href="" class="uk-button" uk-toggle="target: #offcanvas-nav"><span uk-icon="icon: menu; ratio: 2"></span></a></div>
+      </div>
+    </nav>
+    <div class="uk-hidden@s uk-margin-small-top uk-margin-small-left"><span uk-icon="album" class="uk-margin-small-right"></span><b>offerready_com</b> | <span uk-icon="user" class="uk-margin-small-right"></span><b>admin</b></div>
+
+
+    <!-- Regular View -->
+    <nav  class="uk-navbar-container uk-navbar-transparent uk-visible@s" uk-navbar>
+      <div class="uk-navbar-left">
+        <div class="uk-navbar-item">
+          <img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/>
+        </div>
+        <!-- <div class="uk-navbar-item">
+          <button class="uk-button uk-button-link" type="button" uk-toggle="target: #toggle-nav"><span uk-icon="icon: menu; ratio: 2"></span></button>
+        </div> -->
+      </div>
+      <div class="uk-navbar-right">
+        <div class="uk-navbar-item uk-visible@m"><span uk-icon="location" class="uk-margin-small-right"></span>SERVICE PORTAL</div>
+        <div class="uk-navbar-item"><span uk-icon="album" class="uk-margin-small-right"></span>offerready_com</div>
+        <div class="uk-navbar-item"><span uk-icon="user" class="uk-margin-small-right"></span>admin</div>
+        <div class="uk-navbar-item"><span uk-icon="lock" class="uk-margin-small-right"></span><a href="#">Log Out</a></div>
+      </div>
+    </nav>
+
+
+    <div uk-grid class="uk-margin-large-top">
+
+      <div class="uk-width-1-4  uk-visible@s">
+        <ul class="uk-nav uk-nav-primary uk-padding" uk-nav>
+          <li><a href="home.html">Home</a></li>
+          <li><a href="dashboard.html">Dashboard</a></li>
+          <li><a href="publish.html">Publish</a></li>
+          <li class="uk-parent">
+            <a href="#">Security</a>
+            <ul class="uk-nav-sub">
+              <li><a href="hash-generator.html">Hash Calculator</a></li>
+              <li><a href="secret-key.html">Secret Key</a></li>
+              <li><a href="change-password.html">Change Password</a></li>
+            </ul>
+          </li>
+          <li><a href="EndpointContentPage.html">Custom Content</a></li>
+          <li class="uk-active"><a href="EndpointFormPage.html">Custom Form and Result</a></li>
+        </ul>
+      </div>
+      <div class="uk-width-expand">
+        <wicket:extend>
+        <div uk-grid class="uk-grid-small">
+
+          <div class="uk-width-1-1"><h1 class="uk-heading-primary uk-heading-bullet" wicket:id="name">{Name of the Menu Item}</h1></div>
+          <form wicket:id="environmentForm">
+            <select wicket:id="environment" class="uk-select uk-form-small uk-form-width-medium" onchange="submit()"><option>Live Environment</option><option>Preview Environment</option></select>
+            <input style="display:none" type="submit"/>
+          </form>
+          <div class="uk-width-1-1">
+            
+            
+            <ul class="uk-tab" id="form-tab-navigation" data-uk-tab="{connect:'#custom-form-and-response'}">
+                <li class="uk-active"><a href="">Form</a></li>
+                <li id="responseTab" class="uk-hidden"><a href="">Response</a></li>
+              </ul>
+
+              <ul id="custom-form-and-response" class="uk-switcher">
+                <li>
+                   <form wicket:id="form">
+                      <div id="custom-form-input" wicket:id="formContents">
+                          <p><input type="text" name="foo"></p>
+                          <p><input type="date" name="foo2"></p>
+                      </div>
+
+                      <div>
+                        <button wicket:id="submit" class="uk-button uk-button-primary uk-margin-medium-right">Submit</button>
+                        <button type="reset" class="uk-button uk-button-default">Reset</button>
+                      </div>
+
+                  </form>
+                </li>
+                <li id="tab-result">
+                <div id="custom-results" wicket:id="results">
+                  <p style="color:red;">html sniplet delivered from endpoint in response to form submit</p>
+                </div>
+              </li>
+              </ul>
+          </div>
+        </div>
+        </wicket:extend>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- FOOTER -->
+  <div class="uk-position-bottom-center uk-position-small uk-visible@m">
+    <div class="uk-text-center uk-text-small uk-text-muted">
+    Offer-Ready Service Portal (AWS PROD)<br/>
+    (C) Offer-Ready IT-Services & Consulting GmbH 2018. All Rights Reserved.<br/>
+    <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
+    </div>
+  </div>
+
+</body>
+</html>

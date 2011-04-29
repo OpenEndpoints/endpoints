@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html class="uk-height-1-1 uk-notouch" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
+<head>
+
+    <title>Endpoints Service Portal</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- UIkit CSS -->
+    <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.offerready.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Khula:300,400">
+    <!-- UIkit JS -->
+    <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
+    <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons-offerready.min.js"></script>
+    <!-- FAVICON -->
+    <link rel="icon" href="https://commons.offer-ready.com/brand/favicon.ico">
+    <wicket:head>
+        <script>
+            $(function() {
+                $(".filter-dropdown").change(function() {
+                    $(this).parents("form").submit();
+                    $(".filter-dropdown").prop('disabled', true);
+                });
+            });
+        </script>
+    </wicket:head>
+</head>
+<body>
+
+<!-- OFF CANVAS MENU (Viewport Small)   -->
+<div id="offcanvas-nav" uk-offcanvas>
+    <div class="uk-offcanvas-bar">
+
+        <ul class="uk-nav uk-nav-default uk-padding" uk-nav>
+            <li><a href="home.html">Home</a></li>
+            <li class="uk-active"><a href="DashboardPage.html">Dashboard</a></li>
+            <li><a href="PublishPage.html">Publish</a></li>
+            <li class="uk-parent">
+                <a href="#">Security</a>
+                <ul class="uk-nav-sub">
+                    <li><a href="CalculateHashPage.html">Hash Calculator</a></li>
+                    <li><a href="GenerateNewSecretKeyPage.html">Secret Key</a></li>
+                    <li><a href="ChangePasswordPage.html">Change Password</a></li>
+                </ul>
+            </li>
+            <li><a href="custom-content.html">Custom Content</a></li>
+            <li><a href="custom-form-and-result.html">Custom Form and Result</a></li>
+            <li class="uk-nav-divider"></li>
+            <li><a>Log Out</a></li>
+        </ul>
+    </div>
+</div>
+
+
+<div class="uk-container uk-container-medium">
+    <!-- Mobile View -->
+    <nav class="uk-navbar-container uk-navbar-transparent uk-hidden@s" uk-navbar>
+        <div class="uk-navbar-left">
+            <div class="uk-navbar-item">
+                <img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/>
+            </div>
+        </div>
+        <div class="uk-navbar-right">
+            <div class="uk-navbar-item"><a href="" class="uk-button" uk-toggle="target: #offcanvas-nav"><span uk-icon="icon: menu; ratio: 2"></span></a></div>
+        </div>
+    </nav>
+    <div class="uk-hidden@s uk-margin-small-top uk-margin-small-left"><span uk-icon="album" class="uk-margin-small-right"></span><b>offerready_com</b> | <span uk-icon="user" class="uk-margin-small-right"></span><b>admin</b></div>
+
+
+    <!-- Regular View -->
+    <nav  class="uk-navbar-container uk-navbar-transparent uk-visible@s" uk-navbar>
+        <div class="uk-navbar-left">
+            <div class="uk-navbar-item">
+                <img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/>
+            </div>
+            <!-- <div class="uk-navbar-item">
+            <button class="uk-button uk-button-link" type="button" uk-toggle="target: #toggle-nav"><span uk-icon="icon: menu; ratio: 2"></span></button>
+          </div> -->
+        </div>
+        <div class="uk-navbar-right">
+            <div class="uk-navbar-item uk-visible@m"><span uk-icon="location" class="uk-margin-small-right"></span>SERVICE PORTAL</div>
+            <div class="uk-navbar-item"><span uk-icon="album" class="uk-margin-small-right"></span>offerready_com</div>
+            <div class="uk-navbar-item"><span uk-icon="user" class="uk-margin-small-right"></span>admin</div>
+            <div class="uk-navbar-item"><span uk-icon="lock" class="uk-margin-small-right"></span><a href="#">Log Out</a></div>
+        </div>
+    </nav>
+
+
+    <div uk-grid class="uk-margin-large-top">
+
+        <div class="uk-width-1-4  uk-visible@s">
+            <ul class="uk-nav uk-nav-primary uk-padding" uk-nav>
+                <li><a href="home.html">Home</a></li>
+                <li class="uk-active"><a href="DashboardPage.html">Dashboard</a></li>
+                <li><a href="PublishPage.html">Publish</a></li>
+                <li class="uk-parent">
+                    <a href="#">Security</a>
+                    <ul class="uk-nav-sub">
+                        <li><a href="CalculateHashPage.html">Hash Calculator</a></li>
+                        <li><a href="GenerateNewSecretKeyPage.html">Secret Key</a></li>
+                        <li><a href="ChangePasswordPage.html">Change Password</a></li>
+                    </ul>
+                </li>
+                <li><a href="custom-content.html">Custom Content</a></li>
+                <li><a href="custom-form-and-result.html">Custom Form and Result</a></li>
+            </ul>
+        </div>
+        <div class="uk-width-expand">
+            <wicket:extend>
+            <div uk-grid class="uk-grid-small">
+                <div class="uk-width-1-1"><h1 class="uk-heading-primary uk-heading-bullet">Dashboard</h1></div>
+
+                <div class="uk-width-1-1 uk-margin-small-top uk-visible@s">
+                    <button class="uk-button uk-button-link" uk-toggle="target: #what-this-is-about; cls: uk-hidden"><span uk-icon="icon: question" class="uk-margin-small-right"></span>What is this about?</button>
+                    <div id="what-this-is-about" class="uk-hidden">
+                        <ul>
+                            <li>"Transactions Today", "Transactions Last 7 Days" and "Transactions This Month" refer to the <strong>Live Environment</strong> only.</li>
+                            <li>"Transactions This Month" is based on UTC Date/Time.</li>
+                            <li>Requests to the Preview Environment will <strong>not</strong> count against the number of included transactions per month.</li>
+                            <li>Status code 200 corresponds to "No Error". All other status codes indicate a problem or invalid data rejected by the data validation rules.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="uk-width-1-1 uk-margin-small-top uk-hidden@s">
+                    This is the mobile view of the dashboard. Details are available on the desktop view only.
+                </div>
+
+                <div>
+                    
+                    <div class="uk-width-1-1">
+                        <div  class="uk-grid-match" uk-grid>
+                            <div class="uk-width-1-3@s">
+                                <div class="uk-card-body uk-card-secondary uk-card-small uk-text-center" uk-tooltip="title: Live Environment Only">
+                                    <div class="uk-text-large uk-text-bold" wicket:id="transactionsToday">57</div>
+                                    <div class="uk-text-bold">Today</div>
+                                </div>
+                            </div>
+                            <div class="uk-width-1-3@s">
+                                <div class="uk-card-body uk-card-secondary uk-card-small uk-text-center" uk-tooltip="title: Live Environment Only">
+                                    <div class="uk-text-large uk-text-bold" wicket:id="transactionsLast7Days">497</div>
+                                    <div class="uk-text-bold">Last 7 Days</div>
+                                </div>
+                            </div>
+                            <div class="uk-width-1-3@s">
+                                <div class="uk-card-body uk-card-secondary uk-card-small uk-text-center" uk-tooltip="title: Live Environment Only">
+                                    <div class="uk-text-large uk-text-bold" wicket:id="transactionsThisMonth">153</div>
+                                    <div class="uk-text-bold">This Month</div>
+                                    <div class="uk-text-small" wicket:enclosure="">(<span wicket:id="includedRequestsPerMonth">5000</span> / Month included)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form class="uk-form  uk-visible@s" wicket:id="filter">
+                        <div class="uk-width-1-1 uk-card uk-card-small uk-margin-top">
+                            <div class="uk-flex uk-flex-between">
+                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="environment"><option>Last 30 days</option></select>
+                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="dateRange"><option>Live Environment</option></select>
+                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="endpoint"><option>All Endpoints</option></select>
+                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium" wicket:id="statusCode"><option>All Status Codes</option></select>
+                            </div>
+                        </div>
+                    </form>
+
+                    <div class="uk-width-1-1" wicket:id="results">
+                        <table class="uk-table uk-table-divider uk-table-small uk-table-justify uk-margin-small-top uk-visible@s">
+                            <thead>
+                            <tr>
+                              <th width="19%">Date (UTC) <span uk-icon="icon: arrow-down"></span></th>
+                              <th width="19%">Endpoint</th>
+                              <th width="19%">Status Code</th>
+                              <th width="19%"><div uk-tooltip="title: per Endpoint">Incremental ID</div></th>
+                              <th width="19%">Random ID</th>
+                              <th width="5%">Details</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <wicket:container wicket:id="row" id="x">
+                            <tr wicket:id="tableRow">
+                                <td wicket:id="dateTimeShortUtc">26 Nov 2018, 07:26</td>
+                                <td wicket:id="endpoint">json</td>
+                                <td wicket:id="statusCode">200</td>
+                                <td wicket:id="incrementalIdPerEndpoint">22</td>
+                                <td wicket:id="randomIdPerApplication">8009389471</td>
+                                <td><a wicket:id="toggle"><span wicket:id="text">Show</span></a></td>
+                            </tr>
+                            <tr wicket:id="details" style="border-top:none;">
+                                <td colspan="6">
+                                    <dl class="uk-description-list uk-margin-medium-left">
+                                        <dt>UTC Date/Time:</dt>
+                                        <dd wicket:id="dateTimeUtc">15 November 2018, 15:28:26.697, UTC</dd>
+                                        <dt>User Agent:</dt>
+                                        <dd wicket:id="userAgent">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</dd>
+                                        <wicket:enclosure child="exceptionMessage">
+                                            <dt>Exception Message:</dt>
+                                            <dd wicket:id="exceptionMessage">Expected hash &#039;de02cbb9130e18d3d08af76b0a2ecf952e7c2d78126ed52af42273f049ca5751&#039; (won&#039;t be displayed on live system)</dd>
+                                        </wicket:enclosure>
+                                        <wicket:enclosure child="httpRequestFailedUrl">
+                                            <dt>Underlying Failed HTTP Request: URL:</dt>
+                                            <dd wicket:id="httpRequestFailedUrl">http://www.uboot.com/</dd>
+                                        </wicket:enclosure>
+                                        <wicket:enclosure child="httpRequestFailedStatusCode">
+                                            <dt>Underlying Failed HTTP Request: Status Code:</dt>
+                                            <dd wicket:id="httpRequestFailedStatusCode">404</dd>
+                                        </wicket:enclosure>
+                                        <wicket:enclosure child="xsltParameterErrorMessage">
+                                            <dt>XSLT Parameter Processing: Error Message:</dt>
+                                            <dd wicket:id="xsltParameterErrorMessage">Param 'foo' not found</dd>
+                                        </wicket:enclosure>
+                                    </dl>
+                                </td>
+                            </tr>
+                            </wicket:container>
+                            <wicket:remove>
+                            <tr>
+                              <td>26 Nov 2018, 07:26</td>
+                              <td>json</td>
+                              <td class="">200</td>
+                              <td>22</td>
+                              <td>8009389471</td>
+                              <td>
+                                <a id="id456" uk-toggle="target: #id456; cls: uk-hidden">Show</a>
+                                <a id="id456" class="uk-hidden" uk-toggle="target: #id456; cls: uk-hidden">Hide</a>
+                              </td>
+                            </tr>
+                            <tr id="id456" class="uk-hidden" style="border-top:none;">
+                              <td colspan="6">
+                                <dl class="uk-description-list uk-margin-medium-left">
+                                  <dt>UTC Date/Time:</dt>
+                                  <dd>15 November 2018, 15:28:26.697, UTC</dd>
+                                  <dt>CET Date/Time:</dt>
+                                  <dd>15 November 2018, 16:28:26.697, UTC</dd>
+                                  <dt>User Agent:</dt>
+                                  <dd>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</dd>
+                                  <dt>Exception Message:</dt>
+                                  <dd>Expected hash &#039;de02cbb9130e18d3d08af76b0a2ecf952e7c2d78126ed52af42273f049ca5751&#039; (won&#039;t be displayed on live system)</dd>
+                                </dl>
+                              </td>
+                            </tr>
+                            </wicket:remove>
+                            </tbody>
+                        </table>
+                        
+                        <div wicket:enclosure="" class="uk-width-1-1 uk-margin uk-visible@s">
+                            <strong>Plus <span wicket:id="extraRowCount">3000</span> more rows</strong>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+            </wicket:extend>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- FOOTER -->
+<div class="uk-section uk-section-default uk-section-large">
+    <div class="uk-container">
+      <div class="uk-text-center uk-text-small uk-text-muted">
+      Offer-Ready Service Portal (AWS PROD)<br/>
+      (C) Offer-Ready IT-Services & Consulting GmbH 2018. All Rights Reserved.<br/>
+      <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
+      </div>
+    </div>
+</div>
+
+</body>
+</html>
