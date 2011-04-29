@@ -1,0 +1,2 @@
+ALTER TABLE application_config
+ADD included_requests_per_month INTEGER NULL;

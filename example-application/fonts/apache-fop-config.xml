@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<fop>
+    <renderers>
+        <renderer mime="application/pdf">
+            <fonts>
+                <font kerning="yes" embed-url="LiberationMono-Bold.ttf">
+                    <font-triplet name="Liberation Mono" style="normal" weight="normal" />
+                </font>
+            </fonts>
+        </renderer>
+    </renderers>
+</fop>

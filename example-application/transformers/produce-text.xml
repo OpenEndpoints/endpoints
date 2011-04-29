@@ -1,0 +1,4 @@
+<transformer data-source="text">
+    <xslt-file name="extract-text.xslt"/>
+    <content-type type="text/plain"/>
+</transformer>

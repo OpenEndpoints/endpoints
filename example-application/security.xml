@@ -1,0 +1,3 @@
+<security>
+  <secret-key>foo</secret-key>
+</security>

@@ -1,0 +1,9 @@
+  <data-source>
+    <literal-xml>
+      <html>
+        <body>
+          This is HTML.
+        </body>
+      </html>
+    </literal-xml>
+  </data-source>

@@ -1,0 +1,3549 @@
+#LyX 2.3 created this file. For more info see http://www.lyx.org/
+\lyxformat 544
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "Richard"
+\font_sans "default" "ModernGothicNo2"
+\font_typewriter "default" "Typewriter"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts true
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 90 90
+\use_microtype false
+\use_dash_ligatures true
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize a4paper
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification false
+\use_refstyle 1
+\use_minted 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 3.4cm
+\topmargin 3cm
+\rightmargin 4.4cm
+\bottommargin 3cm
+\secnumdepth 2
+\tocdepth 2
+\paragraph_separation indent
+\paragraph_indentation default
+\is_math_indent 0
+\math_numbering_side default
+\quotes_style english
+\dynamic_quotes 0
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Endpoints
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Usage"
+
+\end_inset
+
+Usage
+\end_layout
+
+\begin_layout Standard
+Request are sent to 
+\family typewriter
+/<application>/<endpoint>
+\family default
+.
+ The following types of requests may be sent:
+\end_layout
+
+\begin_layout Description
+GET
+\begin_inset space ~
+\end_inset
+
+Request with parameters URL-encoded
+\end_layout
+
+\begin_layout Description
+POST
+\begin_inset space ~
+\end_inset
+
+Request:
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+application/x-www-form-urlencoded
+\family default
+ containing parameters.
+ This is the default when an HTML 
+\family typewriter
+<form>
+\family default
+ is used.
+\end_layout
+
+\begin_layout Description
+POST
+\begin_inset space ~
+\end_inset
+
+Request:
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+multipart/form-data
+\family default
+ Contains parameters and any number of files uploads.
+\end_layout
+
+\begin_layout Description
+POST
+\begin_inset space ~
+\end_inset
+
+Request:
+\begin_inset space ~
+\end_inset
+
+
+\family typewriter
+application/xml
+\family default
+ In this case arbitrary XML is supplied, which is passed to the parameter
+ transformation structure, inside the 
+\family typewriter
+<input-from-request>
+\family default
+ element instead of the normal 
+\family typewriter
+<parameter>
+\family default
+ elements.
+\end_layout
+
+\begin_layout Standard
+There are the following special parameters.
+ They are supplied along with the normal parameters, apart from in the case
+ of a POST request application/xml in which case these special parameters
+ are passed as GET parameters
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+hash
+\family default
+ Mandatory.
+ See section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:Hash"
+
+\end_inset
+
+ for more information.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+environment
+\family default
+ Optional.
+ Can take the values of 
+\family typewriter
+live
+\family default
+ (default) or 
+\family typewriter
+preview
+\family default
+.
+\end_layout
+
+\begin_layout Section
+Format of an Application
+\end_layout
+
+\begin_layout Standard
+The term "application" is used to describe a piece of configuration.
+ The system can serve multiple applications simultaneously.
+\end_layout
+
+\begin_layout Standard
+An application is configured with a directory full of files.
+ The rest of this section describes what files may be present, and what
+ their syntax is.
+\end_layout
+
+\begin_layout Standard
+Any additional files which are present in the directory, but not described
+ here, are silently ignored.
+\end_layout
+
+\begin_layout Subsection
+Example Application
+\end_layout
+
+\begin_layout Standard
+Take a look at the 
+\family typewriter
+example-application
+\family default
+ directory in the code.
+ All features described below are present in an example form in that application.
+ It might be helpful to have the example customer open when reading the
+ explanations below.
+\end_layout
+
+\begin_layout Subsection
+
+\family typewriter
+endpoints.xml
+\end_layout
+
+\begin_layout Subsubsection
+
+\family typewriter
+<endpoint>
+\family default
+ and 
+\family typewriter
+<endpoint-folder>
+\end_layout
+
+\begin_layout Standard
+An application contains comprises of multiple endpoints; each has a name
+ which is used in the URL.Which endpoints is requested is specified when
+ the user calls the application, see section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:Usage"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Although the endpoints must all have a unique name (for the URL), they are
+ arranged in a hierarchy so that certain aspects may be defined once and
+ inherited to all children.
+ The structure is thus a mandatory root 
+\family typewriter
+<endpoint-folder>
+\family default
+ which may contain any number of children 
+\family typewriter
+<endpoint-folder>
+\family default
+ and 
+\family typewriter
+<endpoint>
+\family default
+ elements.
+\end_layout
+
+\begin_layout Subsubsection
+
+\family typewriter
+<success>
+\family default
+ and 
+\family typewriter
+<error>
+\end_layout
+
+\begin_layout Standard
+Each 
+\family typewriter
+<endpoint>
+\family default
+, being available to be called as a web request, has two optional sub-sections,
+ 
+\family typewriter
+<success>
+\family default
+ and 
+\family typewriter
+<error>
+\family default
+.
+ They take the same format:
+\end_layout
+
+\begin_layout Itemize
+If the tag (
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+) is missing, this means the server returns an empty 200 OK in the success
+ case and 400 error in the case of failure.
+ This can be useful if the request should simply perform some tasks e.g.
+\begin_inset space \space{}
+\end_inset
+
+send emails.
+\end_layout
+
+\begin_layout Itemize
+If the tag (
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+) contains 
+\family typewriter
+<redirect-to>
+\family default
+ then that specifies a redirect that should be performed.
+ The body of the 
+\family typewriter
+<redirect-to>
+\family default
+ specifies where.
+ Variables, if present, are replaced, in the body.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+To prevent a malicious request redirecting somewhere wrong, there are optional
+ tags like 
+\family typewriter
+<redirect-prefix-whitelist-entry>
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+http://www.google.com
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+</redirect-prefix-whitelist-entry>
+\family default
+.
+ If no such tag is present, redirect to any URL is allowed.
+ If one or more are present, the URL being redirected to must start with
+ the prefix of one of them; otherwise this is an error.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+If the tag (
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+) contains 
+\family typewriter
+<response-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+transformation name="a-transformation"/>
+\family default
+ then the transformation named in the attribute is performed, and its contents
+ are returned to the client in the HTTP response.
+ See below for how transformers are defined.
+ For example, the transformation might produce HTML to be displayed in the
+ browser, or a PDF to be downloaded.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+If the attribute 
+\family typewriter
+<response-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+transformation ..
+ download-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+filename="
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+invoice-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+${invoice-number}.pdf">
+\family default
+ is present, then the header in the HTTP response is set indicating that
+ the file should be downloaded as opposed to displayed in the browser window.
+ Variables are replaced.
+\end_layout
+
+\end_deeper
+\begin_layout Subsubsection
+Parameters
+\end_layout
+
+\begin_layout Standard
+A request contains any number of GET or POST parameters.
+\end_layout
+
+\begin_layout Standard
+The values supplied by the user for these parameters are used in various
+ places.
+ For example, if you are fetching XML from a URL, parts of the whole of
+ the URL may be the value of a parameter.
+ See below for the various configuration elements where parameter replacement
+ occurs.
+\end_layout
+
+\begin_layout Standard
+The syntax for this is 
+\family typewriter
+${param}
+\family default
+.
+ The braces are, in contrast to many other systems, mandatory.
+\end_layout
+
+\begin_layout Standard
+Parameter names are case-sensitive.
+\end_layout
+
+\begin_layout Standard
+Which parameters the user may supply must be defined in the 
+\family typewriter
+endpoints.xml
+\family default
+ file; any parameter sent to the server which is not defined there is an
+ error.
+\end_layout
+
+\begin_layout Standard
+Parameters are defined, in the simplest case, directly under the root 
+\family typewriter
+<endpoint-folder>
+\family default
+ node of 
+\family typewriter
+endpoints.xml
+\family default
+.
+ This means they are available for all endpoints defined in the file.
+\end_layout
+
+\begin_layout Standard
+The simplest form of parameter is 
+\family typewriter
+<parameter name="foo">
+\family default
+.
+ This means the user must supply a value that parameter as a GET or POST
+ parameter like 
+\family typewriter
+foo=value
+\family default
+ in the request; not doing so is an error.
+\end_layout
+
+\begin_layout Standard
+To use a default value, if the user hasn't supplied anything, and thereby
+ make the parameter optional, use 
+\family typewriter
+<parameter name="foo" default-value="a-value"/>
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+The HTTP standard allows multiple GET parameters to be supplied with the
+ same name, like 
+\family typewriter
+?param=foo&param=bar
+\family default
+.
+ In this case, all those GET values are concatenated into the parameter.
+ The default separator is two pipe characters 
+\family typewriter
+||
+\family default
+.
+ This can be overridden with the 
+\family typewriter
+multiple-value-separator=','
+\family default
+ attribute on an 
+\family typewriter
+<endpoint>
+\family default
+ or 
+\family typewriter
+<endpoint-folder>
+\family default
+ (e.g.
+\begin_inset space \space{}
+\end_inset
+
+the root element of the file).
+\end_layout
+
+\begin_layout Subsubsection
+Parameter transformation
+\end_layout
+
+\begin_layout Standard
+The parameters can be optionally transformed by XSLT.
+ An 
+\family typewriter
+<endpoint>
+\family default
+ in 
+\family typewriter
+endpoints.xml
+\family default
+ may have an optional configuration element like:
+\end_layout
+
+\begin_layout LyX-Code
+<parameter-transformation xslt="special.xslt">
+\end_layout
+
+\begin_layout LyX-Code
+  <!-- Any data source commands -->
+\end_layout
+
+\begin_layout LyX-Code
+  <xml-from-application file="stunden-und-preise.xml"/>
+\end_layout
+
+\begin_layout LyX-Code
+</parameter-transformation>
+\end_layout
+
+\begin_layout Standard
+If this element is present, then an additional processing step is performed.
+\end_layout
+
+\begin_layout Enumerate
+If the request is a GET/POST with parameters then all parameters are taken
+ and 
+\family typewriter
+<parameter name="x" value="y"/>
+\family default
+ elements are created.
+ (no matter if declared 
+\family typewriter
+<endpoints.xml>
+\family default
+ or not).
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+If the request is a POST with an XML body then the XML is taken as is.
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+They are placed into an XML into the 
+\family typewriter
+<input-from-request>
+\family default
+ element.
+ The format of the element is shown in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:Parameter-Transformation-Input"
+
+\end_inset
+
+.
+ 
+\begin_inset Float figure
+wide false
+sideways true
+status open
+
+\begin_layout LyX-Code
+<parameter-transformation-input>
+\end_layout
+
+\begin_layout LyX-Code
+  <input-from-request>
+\end_layout
+
+\begin_layout LyX-Code
+    <parameter name="language" value="foo"/>
+\end_layout
+
+\begin_layout LyX-Code
+    <parameter name="system" value="unknown"/>
+\end_layout
+
+\begin_layout LyX-Code
+    <parameter name="url" value=""/>
+\end_layout
+
+\begin_layout LyX-Code
+    <parameter name="filter" value=""/>
+\end_layout
+
+\begin_layout LyX-Code
+    <parameter name="name" value="Martin Schmidt"/>
+\end_layout
+
+\begin_layout LyX-Code
+  </input-from-request>
+\end_layout
+
+\begin_layout LyX-Code
+  <input-from-application>
+\end_layout
+
+\begin_layout LyX-Code
+    <application>application-name</application>
+\end_layout
+
+\begin_layout LyX-Code
+    <application-display-name>The Application</application-display-name>
+\end_layout
+
+\begin_layout LyX-Code
+    <included-requests-per-month>1000</included-requests-per-month>   <!--
+ optional -->
+\end_layout
+
+\begin_layout LyX-Code
+    <secret-key>foo</secret-key>
+\end_layout
+
+\begin_layout LyX-Code
+    <incremental-id-per-endpoint>1345</incremental-id-per-endpoint>
+\end_layout
+
+\begin_layout LyX-Code
+    <random-id-per-application>8764598230</random-id-per-application>
+\end_layout
+
+\begin_layout LyX-Code
+    <http-header-user-agent>Mozilla/1.0N (Windows)</http-header-user-agent>
+\end_layout
+
+\begin_layout LyX-Code
+  </input-from-application>
+\end_layout
+
+\begin_layout LyX-Code
+  <!-- results of any data sources commands -->
+\end_layout
+
+\begin_layout LyX-Code
+  <whatever-the-data-source-command-returns/>
+\end_layout
+
+\begin_layout LyX-Code
+</parameter-transformation-input>
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Parameter-Transformation-Input"
+
+\end_inset
+
+Parameter Transformation Input
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Enumerate
+This document is transformed via the XSLT.
+ It produces a structure like:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<parameter-transformation-output>
+\end_layout
+
+\begin_layout LyX-Code
+  <error>Something wrong wrong</error> <!-- optional -->
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="language" value="foo"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="system" value="unknown"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="url" value=""/>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="filter" value=""/>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="name" value="Martin Schmidt"/>
+\end_layout
+
+\begin_layout LyX-Code
+</parameter-transformation-output>
+\end_layout
+
+\begin_layout Standard
+The XSLT is taken from the directory 
+\family typewriter
+parameter-xslt
+\family default
+.
+ (The name "transformer" is not used in this directory name, in order to
+ differentiate it from the directory 
+\family typewriter
+transformer
+\family default
+, which has a different meaning.)
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+If the result of the transformation includes 
+\family typewriter
+<error>Param 'x' must be an integer</error>
+\family default
+, this error message is returned to the user, and no further processing
+ is performed.
+ The absence of an error tag is considered a success (i.e.
+\begin_inset space \space{}
+\end_inset
+
+there is no 
+\begin_inset Quotes eld
+\end_inset
+
+success
+\begin_inset Quotes erd
+\end_inset
+
+ tag or similar).
+\end_layout
+
+\begin_layout Enumerate
+Parameters are extracted from the result of the transformation.
+\end_layout
+
+\begin_layout Enumerate
+Normal parameter processing steps are taken (default values are applied,
+ an error if values are missing, etc.).
+\end_layout
+
+\begin_layout Subsubsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Hash"
+
+\end_inset
+
+Hash
+\end_layout
+
+\begin_layout Standard
+We wish to restrict which users may use the software.
+ There is a mandatory GET or POST parameter, which the user must supply,
+ called 
+\family typewriter
+hash
+\family default
+.
+ There is a file 
+\family typewriter
+security.xml
+\family default
+ in the root of the application which has the following structure.
+\end_layout
+
+\begin_layout LyX-Code
+<security>
+\end_layout
+
+\begin_layout LyX-Code
+  <secret-key>key1</secret-key>
+\end_layout
+
+\begin_layout LyX-Code
+  <secret-key>key2</secret-key>
+\end_layout
+
+\begin_layout LyX-Code
+</security>
+\end_layout
+
+\begin_layout Standard
+An 
+\family typewriter
+<endpoint>
+\family default
+ may optionally have the following block:
+\end_layout
+
+\begin_layout LyX-Code
+<include-in-hash>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="foo"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="bar"/>
+\end_layout
+
+\begin_layout LyX-Code
+</include-in-hash>
+\end_layout
+
+\begin_layout Standard
+The server calculates the expected value of the user-supplied 
+\family typewriter
+hash
+\family default
+ parameter as an SHA-256 hex hash.
+ The source of the hash is the string concatenation of all the following
+ things:
+\end_layout
+
+\begin_layout Enumerate
+Name of the endpoint
+\end_layout
+
+\begin_layout Enumerate
+The values of all the parameters listed in the 
+\family typewriter
+<include-in-hash>
+\family default
+ block, in the order in which they are listed there.
+ (If there is no 
+\family typewriter
+<include-in-hash>
+\family default
+ section, or there is but it's empty, then no parameters are added to the
+ hash's source string for this step.)
+\end_layout
+
+\begin_layout Enumerate
+Any key from the 
+\family typewriter
+security.xml
+\family default
+ file
+\end_layout
+
+\begin_layout Standard
+The idea behind there being multiple keys is the following: There might
+ be multiple users, and they might have access to the same endpoint with
+ the same parameters.
+ By giving them different hashes based on different keys, if one users leaves,
+ it's possible to invalidate only their hashes (by removing their key),
+ without affecting other users.
+\end_layout
+
+\begin_layout Standard
+Example: If the application has an endpoint 
+\family typewriter
+endpoint
+\family default
+, the 
+\family typewriter
+security.xml
+\family default
+ is as above, and the user sends a GET request with the parameters 
+\family typewriter
+?foo=foovalue
+\family default
+
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+
+\family typewriter
+&bar=barvalue
+\family default
+, then an acceptable value of the 
+\family typewriter
+hash
+\family default
+ parameter is 
+\family typewriter
+sha256hex(
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+"endpoint
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+foovalue
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+barvalue
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+key1")
+\family default
+ which is 
+\family typewriter
+b8dc
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+b
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+1
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+f
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+b
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+3
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+e
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+9
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+e
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+9
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+7
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+f
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+7
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+f
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+b
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+a
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+c
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+8
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+9
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+4
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+3
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+4
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+6
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+1
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+a
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+a
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+8
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+0
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+9
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+b
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+7
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+e
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+4
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+0
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+a
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+9
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+0
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+6
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+0
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+d
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+f
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+e
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+7
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+7
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+0
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+8
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+a
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+3
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+2
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+2
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+5bcf2
+\family default
+.
+\end_layout
+
+\begin_layout Subsection
+Executing Tasks
+\end_layout
+
+\begin_layout Standard
+An 
+\family typewriter
+<endpoint>
+\family default
+ contains zero or more 
+\family typewriter
+<task>
+\family default
+s.
+ The task does an action such as sending an email or writing to a database.
+ It is like a "side-effect" of accessing the endpoint.
+\end_layout
+
+\begin_layout Subsubsection
+Executing Tasks Optionally
+\end_layout
+
+\begin_layout Standard
+A 
+\family typewriter
+<task>
+\family default
+ may have the optional attributes 
+\family typewriter
+if
+\family default
+ and 
+\family typewriter
+equals
+\family default
+, or 
+\family typewriter
+if
+\family default
+ and 
+\family typewriter
+notequals
+\family default
+.
+ If present, these attributes have their variables expanded, and are compared.
+ Only if they are equal (or not equal) does the task get executed.
+\end_layout
+
+\begin_layout Standard
+For example 
+\family typewriter
+<task ...
+ if="${foo}" equals="bar">
+\family default
+ gets executed only if the 
+\family typewriter
+${foo}
+\family default
+ variable is equal to the value 
+\family typewriter
+bar
+\family default
+.
+\end_layout
+
+\begin_layout Subsubsection
+Sending an Email
+\end_layout
+
+\begin_layout Standard
+The task 
+\family typewriter
+<task class="endpoints.task.EmailTask">
+\family default
+ sends an email.
+ It has the following sub-elements configuring it:
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<from>
+\family default
+ is mandatory (variables are expanded)
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<to>
+\family default
+ is mandatory (variables are expanded).
+ There may be multiple 
+\family typewriter
+<to>
+\family default
+ elements.
+ Each 
+\family typewriter
+<to>
+\family default
+ sends a separate email, to just this recipient.
+ Per 
+\family typewriter
+<to>
+\family default
+, only one recipient address is allowed
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<subject>
+\family default
+ is mandatory (variables are expanded)
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<body-transformation name="a-transformation"/>
+\family default
+ is mandatory, and can appear multiple times.
+ This references a transformation (see below).
+ All the different results are placed into a "multipart/alternative" email
+ part.
+ It would be normal for one referenced transformation to produce HTML and
+ the other plain text.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<attachment-static name="path/foo.pdf">
+\family default
+ takes the 
+\family typewriter
+foo.pdf
+\family default
+ file out of the 
+\family typewriter
+static
+\family default
+ directory and includes it as an attachment in the email.
+ Variables are not allowed in the "name" attribute.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<attachment-transformation name="a-transformation" filename="invoice-${invoice-n
+umber}.pdf"/>
+\family default
+.
+ For each of the elements, the transformation is executed, and the resulting
+ bytes are attached as a file to the sent email.
+ The name of the file is specified in the 
+\family typewriter
+filename
+\family default
+ attribute, variables are expanded.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<attachments-from-request-file-uploads/>
+\family default
+.
+ This includes as attachments all file uploads that have been uploaded to
+ this request.
+\end_layout
+
+\begin_layout Standard
+Any attachment may (optionally) have attributes such as 
+\family typewriter
+if="${foo}" equals="bar"
+\family default
+.
+ See the section "Executing tasks optionally" for the syntax.
+\end_layout
+
+\begin_layout Standard
+If your application has one or more email tasks, there also needs to be
+ application-wide configuration about the email server.
+ This is the file 
+\family typewriter
+email-sending-configuration.xml
+\family default
+ in the root of the application.
+ See the example application for an example of this file.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Inserting a Row Into a Database Table
+\end_layout
+
+\begin_layout Standard
+The task can write into any database table, with any number of columns.
+ By default it uses the main database connection of the endpoints software
+ to write into; however any JDBC URL can be specified if another database
+ should be used.
+\end_layout
+
+\begin_layout Standard
+It is up to the administrator who installs endpoints to make sure that the
+ database table exists with the specified columns.
+ (Endpoints does not auto-create tables based on the description in the
+ task.)
+\end_layout
+
+\begin_layout Standard
+The configuration of the task looks like:
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.LogToDatabaseTask">
+\end_layout
+
+\begin_layout LyX-Code
+  <jdbc-connect-string>jdbc:mysql://localhost/
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+database_name?
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+user=root&
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+password=root&
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+useUnicode=true&
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+characterEncoding=UTF-8
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+</jdbc-connect-string>
+\end_layout
+
+\begin_layout LyX-Code
+  <table>my_table</table>
+\end_layout
+
+\begin_layout LyX-Code
+  <column name="foo"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <column name="bar">
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+This is the value of bar: ${bar}</column>
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+<jdbc-connect-string>
+\family default
+ element is optional; if it is missing the main endpoints database is used.
+\end_layout
+
+\begin_layout Standard
+Currently only MySQL is supported.
+\end_layout
+
+\begin_layout Standard
+There must be one or more 
+\family typewriter
+<column>
+\family default
+ element to specify what columns will be written.
+ If the XML element is empty then the endpoints variable of the same name
+ will be written into the column.
+ Otherwise, the contents of the tag will be written into the column, with
+ variables expanded.
+\end_layout
+
+\begin_layout Subsubsection
+Making an HTTP Request
+\end_layout
+
+\begin_layout Standard
+The configuration of the task looks like:
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.HttpRequestTask">
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- mandatory -->
+\end_layout
+
+\begin_layout LyX-Code
+  <url>http://www.google.com/foo/${variable}</url>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- optional, default GET -->
+\end_layout
+
+\begin_layout LyX-Code
+  <method name="POST"/>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- zero or more -->
+\end_layout
+
+\begin_layout LyX-Code
+  <get-parameter name="foo">${variable}</get-parameter>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- zero or more -->
+\end_layout
+
+\begin_layout LyX-Code
+  <request-header name="foo">${variable}</request-header>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- optional -->
+\end_layout
+
+\begin_layout LyX-Code
+  <basic-access-authentication
+\end_layout
+
+\begin_layout LyX-Code
+    username="${variable}" password="${variable}">
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- either one <xml-body>, or <json-body>, or neither -->
+\end_layout
+
+\begin_layout LyX-Code
+  <xml-body
+\family typewriter
+ upload-files="true"
+\family default
+>
+\end_layout
+
+\begin_layout LyX-Code
+    <your-tag>${variable}</your-tag>
+\end_layout
+
+\begin_layout LyX-Code
+  </xml-body>
+\end_layout
+
+\begin_layout LyX-Code
+  <xml-body xslt-file="foo.xslt" 
+\family typewriter
+upload-files="true"
+\family default
+/>
+\end_layout
+
+\begin_layout LyX-Code
+  <json-body>
+\end_layout
+
+\begin_layout LyX-Code
+    { "key": "${variable}" }
+\end_layout
+
+\begin_layout LyX-Code
+  </json-body>
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout Standard
+This task performs an HTTP request, checks the response is a 2xx OK, and
+ ignores the response body.
+\end_layout
+
+\begin_layout Standard
+Redirects are not followed.
+\end_layout
+
+\begin_layout Standard
+Note that tasks are executed in parallel.
+ So if one HTTP request depends on another previous one having completed
+ first, that will not work.
+\end_layout
+
+\begin_layout Standard
+The attribute 
+\family typewriter
+ignore-if-error="true"
+\family default
+ may be present on the <task> element to indicate that if an error occurs
+ (e.g.
+\begin_inset space \space{}
+\end_inset
+
+server not found, non-2xx response, etc.)
+\begin_inset space \space{}
+\end_inset
+
+this error is ignored.
+ By default, the error aborts the processing of the endpoint.
+\end_layout
+
+\begin_layout Standard
+If 
+\family typewriter
+<xml-body>
+\family default
+ is present then either it must have a fixed body (with variables which
+ will be expanded) or it must have the 
+\family typewriter
+xslt-file="foo.xslt"
+\family default
+ attribute.
+ 
+\end_layout
+
+\begin_layout Standard
+If the latter, the file is taken from the 
+\family typewriter
+http-xslt
+\family default
+ directory.
+ 
+\end_layout
+
+\begin_layout Standard
+The XSLT takes a 
+\family typewriter
+<parameters>
+\family default
+ as its input document; see the 
+\family typewriter
+<parameters/>
+\family default
+ section in data sources in section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "<parameters/>"
+
+\end_inset
+
+ for more information on the format.
+\end_layout
+
+\begin_layout Standard
+This XSLT does not have access to the results of any other data sources.
+ The reason is, that the same syntax is used from HTTP data sources, and
+ data sources cannot use data produced by another data source.
+\end_layout
+
+\begin_layout Standard
+If the 
+\family typewriter
+<xml-body upload-files="true">
+\family default
+ is present then any element like 
+\family typewriter
+<foo upload-field-name="foo" encoding="base64">
+\family default
+ is filled in with the contents of the uploaded file with that filename
+ in that encoding, and acquires the attribute 
+\family typewriter
+filename
+\family default
+.
+ The encoding is always base64, no other encodings are supported.
+\end_layout
+
+\begin_layout Subsubsection
+Custom Task
+\end_layout
+
+\begin_layout Standard
+You may define your own Java classes which extend the 
+\family typewriter
+Task
+\family default
+ superclass, and reference it in the 
+\family typewriter
+class
+\family default
+ attribute of the task element.
+\end_layout
+
+\begin_layout Subsection
+Transformers
+\end_layout
+
+\begin_layout Standard
+In the 
+\family typewriter
+transformers
+\family default
+ directory under the application, there are zero or more files, each describing
+ a transformation.
+ In the examples in the previous section referenced a transformation 
+\family typewriter
+a-transformation
+\family default
+, in which case there must be a file 
+\family typewriter
+a-transformation.xml
+\family default
+ under the 
+\family typewriter
+transformers
+\family default
+ directory.
+\end_layout
+
+\begin_layout Standard
+The root element of each transformer file is 
+\family typewriter
+<transformer data-source="ds">
+\family default
+.
+ The attribute specifies what the XML input for the transformation should
+ be (see below for how to configure a data source).
+\end_layout
+
+\begin_layout Standard
+See the section 
+\begin_inset Quotes eld
+\end_inset
+
+Transformers
+\begin_inset Quotes erd
+\end_inset
+
+ in the 
+\begin_inset Quotes eld
+\end_inset
+
+Offer Ready XSLT Library
+\begin_inset Quotes erd
+\end_inset
+
+ definition for more info on the contents of this file, at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/Offer-Ready/xslt-library
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
+Data Sources
+\end_layout
+
+\begin_layout Standard
+Each transformation references a data source.
+ A data source produces XML which the transformer may transform.
+\end_layout
+
+\begin_layout Standard
+If a transformer references a data source like 
+\family typewriter
+<transformer data-source="ds">
+\family default
+ then there must be a file 
+\family typewriter
+ds.xml
+\family default
+ in the 
+\family typewriter
+data-sources
+\family default
+ directory of the application.
+\end_layout
+
+\begin_layout Standard
+A data source is a list of commands (e.g.
+ fetch XML from URL).
+ Each data source is executed, and the results are appended into an XML
+ document (e.g.
+ fetch XML from two URLs, then the result of the data source will be an
+ XML document with two child elements, which are the XML fetched from the
+ two URLs).
+\end_layout
+
+\begin_layout Standard
+The resulting XML document has the root tag 
+\family typewriter
+<transformation-input>
+\family default
+.
+ The results of the command are appended, in order, directly underneath
+ this tag.
+\end_layout
+
+\begin_layout Standard
+The data source file contains the 
+\family typewriter
+<data-source>
+\family default
+ root element then any number of the following elements in any order:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+\begin_inset CommandInset label
+LatexCommand label
+name "<parameters/>"
+
+\end_inset
+
+<parameters/>
+\family default
+ Produces an XML structure listing all parameters of the current request,
+ in a format like:
+\end_layout
+
+\begin_layout LyX-Code
+<parameters>
+\end_layout
+
+\begin_layout LyX-Code
+  <parameter name="offer-id" value="OA-00023"/>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
+</parameters>
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<on-demand-incrementing-number
+\begin_inset space ~
+\end_inset
+
+type="month"/>
+\family default
+ This command fetches a new auto-increment value.
+ The value is only 
+\begin_inset Quotes eld
+\end_inset
+
+consumed
+\begin_inset Quotes erd
+\end_inset
+
+ if the endpoints request is successful; if the request is not succesful
+ the number is again made available to future requests.
+ The numbers do not have any “holes” or missed-out numbers, so are suitable
+ for use in invoice numbers.
+ The term “on-demand” refers to the fact the number does not get consumed
+ unless it is requested.
+ The numbers are unique within the application.
+ The type attribute may take the values 
+\family typewriter
+perpetual
+\family default
+, 
+\family typewriter
+year
+\family default
+ or 
+\family typewriter
+month
+\family default
+.
+ If one value (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+month
+\family default
+) is consumed, other values (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+year
+\family default
+) are not consumed.
+ If the data source is used twice within the same request, they both see
+ the same number.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<application-introspection/>
+\family default
+ The data source command XML element is empty.
+ It produces as its output an 
+\family typewriter
+<application-introspection>
+\family default
+ element, which describes the entire application directory structure, containing
+:
+\end_layout
+
+\begin_deeper
+\begin_layout Description
+
+\family typewriter
+<directory
+\begin_inset space ~
+\end_inset
+
+name="x"> 
+\family default
+Contains sub-elements of these three types.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<file
+\begin_inset space ~
+\end_inset
+
+name="x"/> 
+\family default
+For files not called 
+\family typewriter
+*.xml
+\family default
+, empty element.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<xml-file
+\begin_inset space ~
+\end_inset
+
+name="x"> 
+\family default
+For files called 
+\family typewriter
+*.xml
+\family default
+.
+ The XML contents of the file is placed inside this element.
+ Parameters like 
+\family typewriter
+${foo}
+\family default
+ found in the file are not expanded.
+ If a file named 
+\family typewriter
+*.xml
+\family default
+ does not in fact contain XML, this is an error.
+ 
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
+<literal-xml>
+\family default
+ The contents of the element are placed in the output.
+ Variables are expanded in the bodies of elements, and in all attributes.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<xml-from-url>
+\family default
+ This will fetch content from a URL.
+ The data source command has sub-elements with the same format as the HttpReques
+tTask described above.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+The optional 
+\family typewriter
+ignore-if-error="true"
+\family default
+ attribute, as described in the task, may be present on the 
+\family typewriter
+<xml-from-url>
+\family default
+ tag.
+\end_layout
+
+\begin_layout Standard
+If XML is received then that XML is the result of this data source.
+ If JSON is received then it is converted to JSON with a root element 
+\family typewriter
+<response>
+\family default
+.
+ If no content is received then 
+\family typewriter
+<empty-response/>
+\family default
+ is the result of this data source.
+ Otherwise, error.
+\end_layout
+
+\begin_layout Standard
+Variables are expanded in the bodies of fetched elements, and in all attributes.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
+<xml-from-database
+\begin_inset space ~
+\end_inset
+
+tag="x">
+\family default
+ The optional attribute 
+\begin_inset Quotes eld
+\end_inset
+
+tag
+\begin_inset Quotes erd
+\end_inset
+
+ specifies what the tag in the output XML should be called; by default this
+ is 
+\family typewriter
+<xml-from-database>
+\family default
+.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+The command may have the following child elements:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<jdbc-connection-string>
+\family default
+ Optional, specifies how to connect to the database to perform the query:
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+If not present, the same database context as the application itself is used.
+\end_layout
+
+\begin_layout Itemize
+If it is present with no attributes, the body of the tab specifies the JDBC
+ URL
+\end_layout
+
+\begin_layout Itemize
+If it is has an attribute like 
+\family typewriter
+from-environment-variable="foo"
+\family default
+ then the environment variable with that name is read and should contain
+ the JDBC URL.
+\end_layout
+
+\begin_layout Standard
+Note that variables are NOT expanded (security).
+\end_layout
+
+\begin_layout Standard
+Currently MySQL and PostgreSQL are supported.
+ Other databases would require other client JARs that are not provided.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
+<sql>
+\family default
+ Mandatory whose body is the SQL to execute e.g.
+ 
+\family typewriter
+SELECT * FROM foo WHERE id=?
+\family default
+.
+ Variables are NOT expanded as that would allow SQL injection attacks.
+ For PostgreSQL, for non-string parameters, 
+\family typewriter
+?::int
+\family default
+ or 
+\family typewriter
+?::uuid
+\family default
+ are necessary to cast the string supplied by Endpoints into the right type
+ for PostgreSQL.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<param>
+\family default
+ Zero or more 
+\family typewriter
+<param>
+\family default
+ elements, whose body are the contents of any "?" in the 
+\family typewriter
+<sql>
+\family default
+ element.
+ Here, variables ARE expanded.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
+<xml-from-application
+\begin_inset space ~
+\end_inset
+
+file="path/to/file/x.xml"/>
+\family default
+ This looks in the directory 
+\family typewriter
+xml-from-application
+\family default
+ in the application.
+ Variables are expanded in the bodies of elements, and in all attributes.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+The optional attribute 
+\family typewriter
+ignore-if-not-found="true"
+\family default
+ may be present to indicate that if the file is not found, the data source
+ command is ignored.
+ By default, the file not being found is an error.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
+<md5
+\begin_inset space ~
+\end_inset
+
+id="x"
+\begin_inset space ~
+\end_inset
+
+message-string="x"/>
+\family default
+ This takes the message string (variables are expanded) and performs an
+ MD5 Hex hash on it.
+ The result is written to a 
+\family typewriter
+<hash>
+\family default
+ element whose body is the hash.
+ The optional attribute 
+\family typewriter
+id
+\family default
+ on the command is written into the output element, with variables expanded.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+<command
+\begin_inset space ~
+\end_inset
+
+class="x">
+\family default
+ Any Java class you wish to write, which can produce XML.
+ It should extend the Java class 
+\family typewriter
+DataSourceCommand
+\family default
+.
+ 
+\end_layout
+
+\begin_layout Subsection
+
+\family typewriter
+email-sending-configuration.xml
+\end_layout
+
+\begin_layout Standard
+The file has the root element 
+\family typewriter
+<email-sending-configuration>
+\family default
+ and have 
+\emph on
+one
+\emph default
+ of the following sets of sub-elements:
+\end_layout
+
+\begin_layout Itemize
+Only 
+\family typewriter
+<mx-address>
+\family default
+ containing an address for MX DNS lookup.
+ The resulting host is connected to on the standard email port, without
+ TLS.
+\end_layout
+
+\begin_layout Itemize
+Only 
+\family typewriter
+<server>
+\family default
+ containing the hostname to connect to.
+ Optional 
+\family typewriter
+<port>
+\family default
+ element.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
+<server>
+\family default
+, 
+\family typewriter
+<username>
+\family default
+, 
+\family typewriter
+<password>
+\family default
+ in which case TLS is used.
+ Optional 
+\family typewriter
+<port>
+\family default
+ element.
+\end_layout
+
+\begin_layout Standard
+In addition, the root element may contain zero or more 
+\family typewriter
+<header name='foo'>
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+value
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+</header>
+\family default
+ elements.
+ These are extra headers which are written into every email sent via SMTP,
+ for example authorization headers for a commercial email sending service.
+\end_layout
+
+\begin_layout Subsection
+
+\family typewriter
+service-portal-endpoint-menu-items.xml
+\end_layout
+
+\begin_layout Standard
+The Service Portal may have additional per-application menu items.
+\end_layout
+
+\begin_layout LyX-Code
+<
+\family typewriter
+service-portal-endpoint-menu-items
+\family default
+>
+\end_layout
+
+\begin_layout LyX-Code
+  <menu-folder menu-item-name="A Folder">
+\end_layout
+
+\begin_layout LyX-Code
+    <form menu-item-name="A Form"
+\end_layout
+
+\begin_layout LyX-Code
+        form-endpoint="form-endpoint" 
+\end_layout
+
+\begin_layout LyX-Code
+        result-endpoint="processing"/> 
+\end_layout
+
+\begin_layout LyX-Code
+    <content menu-item-name="Some Content" 
+\end_layout
+
+\begin_layout LyX-Code
+        endpoint="content-endpoint"> 
+\end_layout
+
+\begin_layout LyX-Code
+      <environment name="preview"/>
+\end_layout
+
+\begin_layout LyX-Code
+    </content>
+\end_layout
+
+\begin_layout LyX-Code
+  </menu-folder>
+\end_layout
+
+\begin_layout LyX-Code
+  <content menu-item-name="Some Content Outside a Folder" 
+\end_layout
+
+\begin_layout LyX-Code
+      endpoint="content-endpoint"/>
+\end_layout
+
+\begin_layout LyX-Code
+<
+\family typewriter
+/service-portal-endpoint-menu-items
+\family default
+>
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Standard
+The menu items may be arranged in a hierarchy of folders and leaf nodes.
+ Each menu item has a name (displayed in the navigation).
+ Each menu item is one of the following:
+\end_layout
+
+\begin_layout Description
+Content An endpoint renders content, which is displayed in the body of the
+ page.
+\end_layout
+
+\begin_layout Description
+Form An endpoint renders a form, which is displayed.
+ The user fills out fields in the form, presses submit, and a second endpoint
+ renders a result.
+ The form may include file uploads.
+\end_layout
+
+\begin_layout Standard
+As some items do not make sense to be displayed on preview and live (for
+ example, an endpoint which simply queries a database), it is possible to
+ mark an endpoint as being only available on preview or live with an element
+ like 
+\family typewriter
+<environment name="preview"/>
+\family default
+.
+ If no such element is present, the menu item is available on all environments.
+ Either folders or leaf nodes may be so marked.
+\end_layout
+
+\begin_layout Standard
+Regarding the content that an endpoint displays:
+\end_layout
+
+\begin_layout Itemize
+The content displayed by the endpoint referenced by a 
+\family typewriter
+<content>
+\family default
+ must be a HTML snippet or a download.
+ The 
+\family typewriter
+result-endpoint
+\family default
+ of a 
+\family typewriter
+<form>
+\family default
+ must also be an HTML snippet or a download.
+ The 
+\family typewriter
+form-endpoint
+\family default
+ of a 
+\family typewriter
+<form>
+\family default
+ must be a HTML snippet.
+\end_layout
+
+\begin_layout Itemize
+The HTML snippet for the form should not include the HTML 
+\family typewriter
+<form>
+\family default
+ tag nor any kind of button.
+ It should just contain HTML and 
+\family typewriter
+<input>
+\family default
+ elements.
+ The HTML form, and the submit button, are rendered by Wicket.
+\end_layout
+
+\begin_layout Itemize
+The HTML must be returned as UTF-8 and this must be explicitly marked in
+ the content type, such as 
+\begin_inset Quotes eld
+\end_inset
+
+text/html; charset=utf-8
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Itemize
+Redirects and 
+\begin_inset Quotes eld
+\end_inset
+
+default
+\begin_inset Quotes erd
+\end_inset
+
+ responses (where the 
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+ tag are missing from the endpoint's definition) are not supported.
+\end_layout
+
+\begin_layout Itemize
+Any other display format, for example JSON or plain text, is not supported.
+\end_layout
+
+\begin_layout Standard
+No hash calculations are performed.
+\end_layout
+
+\begin_layout Standard
+In order to make the display and execution of an endpoint by the service
+ portal as similar as possible to the normal execution of an endpoint, increment
+al IDs are assigned, request log entries are written, tasks are executed,
+ and if 
+\family typewriter
+<success>
+\family default
+ is not successful, the 
+\family typewriter
+<error>
+\family default
+ is executed and displayed.
+\end_layout
+
+\begin_layout Standard
+In the case that the result of an endpoint is a download, a download button
+ is displayed (the download is not immediately triggered).
+ This is because it would be strange to click on a left navigation item
+ in a piece of software and have a download immediately triggered (the user
+ expects a page when they click on a navigation point).
+ Because it's not possible to determine in advance whether the endpoint
+ will display content or a download (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+<success>
+\family default
+ could be a download, 
+\family typewriter
+<error>
+\family default
+ could be content), in the case of a download the resulting file is cached
+ by Wicket; when the user clicks the [download] button the content is downloaded.
+ (An alternative would be, determine that the endpoint returns a download,
+ display the button, then when the user clicks it run the endpoint again
+ to generate the content.
+ But that would cause multiple request-log entries.)
+\end_layout
+
+\begin_layout Section
+Installation
+\end_layout
+
+\begin_layout Subsection
+Memory
+\end_layout
+
+\begin_layout Standard
+According to AWS, 162MB is used after Endpoints starts with a sample application.
+ It would seem reasonable to allocate at least 250MB to the application.
+\end_layout
+
+\begin_layout Standard
+Test your workload with 
+\family typewriter
+-verbose:gc
+\family default
+ enabled to see if your workload requires more memory to avoid frequent
+ GCs.
+\end_layout
+
+\begin_layout Subsection
+Environment variables
+\end_layout
+
+\begin_layout Standard
+The following are mandatory:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_JDBC_URL
+\family default
+ Points to a PostgreSQL database.
+ For example 
+\family typewriter
+jdbc:
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+postgresql
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+://
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+localhost/
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+endpoints?
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+user=postgres&
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+password=postgres
+\family default
+.
+ PostgreSQL 9.6 and upwards are supported; perhaps previous versions will
+ work as well?
+\end_layout
+
+\begin_layout Standard
+The following are optional:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_CHECK_HASH
+\family default
+ Default true.
+ Can be "false".
+ If this is set to "false", no hash checking is done.
+ This is useful when Endpoints is not world-visible, for example part of
+ a multi-image Kubernetes Hub, etc.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_DISPLAY_EXPECTED_HASH
+\family default
+ For debugging, set this to "true" in order to display the expected value
+ of security hashes.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_LOG_PARAMETER_TRANSFORMATION
+\family default
+ Default false.
+ For debugging, display the input and output to the parameter transformation
+ XSLT in the logfile.
+ 
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+JAVA_OPTIONS
+\family default
+ things such as Java heap size.
+ By default, Java takes care of assigning the right amount of memory for
+ the Docker container.
+\end_layout
+
+\begin_layout Standard
+If you are using the software with service portal and publishing, then the
+ following variables are also mandatory:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY
+\family default
+ A directory where published applications are stored, usually under 
+\family typewriter
+/var
+\family default
+.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN
+\family default
+ Either a HTTPS URL, or pipe-separated 
+\begin_inset Quotes eld
+\end_inset
+
+url|
+\family typewriter
+
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+
+\family default
+user|
+\family typewriter
+
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+
+\family default
+password
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The string must use 
+\family typewriter
+${applicationName}
+\family default
+ to specify the application's name.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME
+\family default
+ For example "Production Environment", for the login screen of the Service
+ Portal.
+\end_layout
+
+\begin_layout Standard
+Any application may reside in its own Git repository by setting the environment
+ variable 
+\family typewriter
+\series bold
+ENDPOINTS_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+GIT_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+REPOSITORY_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+OVERRIDE_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+
+\emph on
+FOO
+\family default
+\series default
+\emph default
+ where 
+\family typewriter
+
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+
+\emph on
+FOO
+\family default
+\emph default
+ is the name of the application.
+ The application's name is converted to uppercase, with any sequence of
+ symbols replaced with a single underscore.
+ Any leading and trailing underscores are removed.
+ For example 
+\family typewriter
+bar-abc123--baz
+\family default
+ would be specified in the environment variable 
+\family typewriter
+ENDPOINTS_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+GIT_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+REPOSITORY_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+OVERRIDE_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+BAR_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+ABC123_
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+BAZ
+\family default
+.
+ The value may also use 
+\family typewriter
+${application
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+Name}
+\family default
+ to specify the application's name.
+\end_layout
+
+\begin_layout Subsection
+Via Docker, with a Single Application
+\end_layout
+
+\begin_layout Standard
+Rather than using the 
+\begin_inset Quotes eld
+\end_inset
+
+publish
+\begin_inset Quotes erd
+\end_inset
+
+ mechanism, it is possible to create a Docker image which already contains
+ a single application, and into which no further publish is possible.
+ (Philosophically, there is no need for Endpoints to provide a publish mechanism
+ as the Docker image mechanism does this job.)
+\end_layout
+
+\begin_layout Standard
+The database is still needed, for example for the request log.
+\end_layout
+
+\begin_layout Standard
+You need a Dockerfile like:
+\end_layout
+
+\begin_layout LyX-Code
+FROM offerready/endpoints-he
+\end_layout
+
+\begin_layout LyX-Code
+COPY application /var/endpoints/fixed-application
+\end_layout
+
+\begin_layout Section
+Software Architecture
+\end_layout
+
+\begin_layout Standard
+To serve an endpoints request, the 
+\family typewriter
+EndpointsServlet
+\family default
+ is called.
+ As an endpoints request takes parameters and produces arbitrary bytes,
+ it is not a traditional 
+\begin_inset Quotes eld
+\end_inset
+
+web application
+\begin_inset Quotes erd
+\end_inset
+
+ nor a traditional 
+\begin_inset Quotes eld
+\end_inset
+
+REST API service
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Therefore no web framework is used.
+\end_layout
+
+\begin_layout Subsection
+Service Portal is Not a Separate Application
+\end_layout
+
+\begin_layout Standard
+The Service Portal software is mounted at the URL
+\family typewriter
+/service-portal
+\family default
+.
+ This is done via an entry in 
+\family typewriter
+web.xml
+\family default
+.
+ 
+\end_layout
+
+\begin_layout Standard
+Features such as the publishing process require much of the main software
+ (to check that the newly-published application is without errors).
+ It is thus simpler to create one piece of software, than a 
+\begin_inset Quotes eld
+\end_inset
+
+library
+\begin_inset Quotes erd
+\end_inset
+
+ Maven Module and two web applications.
+ Therefore:
+\end_layout
+
+\begin_layout Itemize
+The Service Portal shares the Git repository with the rest of the software
+\end_layout
+
+\begin_layout Itemize
+The Service Portal is deployed together with the main software in a single
+ Docker image
+\end_layout
+
+\begin_layout Itemize
+Service Portal database migration scripts are stored in the same directory
+ as database migration scripts for the rest of the software.
+\end_layout
+
+\begin_layout Subsection
+Stack
+\end_layout
+
+\begin_layout Itemize
+Maven is used for compilation, this is the current industry standard for
+ compiling Java software.
+\end_layout
+
+\begin_layout Itemize
+Editor is either Eclipse (free) or IntelliJ (not free), at the developers
+ discretion.
+ Creation of a project is done from the Maven files: IDE files are not checked
+ in, to avoid redundancy, and to avoid the possibility one developer changes
+ something in IntelliJ and does not check that the Eclipse project still
+ works.
+\end_layout
+
+\begin_layout Itemize
+FindBugs static analysis tool is used to reduce bugs.
+\end_layout
+
+\begin_layout Itemize
+Java 10's 
+\family typewriter
+var
+\family default
+ is used everywhere.
+\end_layout
+
+\begin_layout Itemize
+Lombok's 
+\family typewriter
+@SneakyThrows
+\family default
+ is preferred to re-throwing checked exceptions as 
+\family typewriter
+RuntimeException.
+\end_layout
+
+\begin_layout Itemize
+Nullability is annotated with 
+\family typewriter
+@Nonnull
+\family default
+ and 
+\family typewriter
+@CheckForNull
+\family default
+ to reduce 
+\family typewriter
+NullPointerException
+\family default
+ errors.
+\end_layout
+
+\begin_layout Itemize
+Vagrant is used to simulate the deployment environment on the developer's
+ workstation.
+\end_layout
+
+\begin_layout Itemize
+To test, run 
+\family typewriter
+jetty:run
+\family default
+ in Maven.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Itemize
+This is preferred over using a Jetty installed via Debian and symlinking
+ the WAR file, as it's easier to stop and free the port, which is necessary
+ for when testing with Docker.
+\end_layout
+
+\begin_layout Itemize
+Also, there is no danger of forgetting to restart Jetty, and it's easier
+ to see the logfile as it's on stdout.
+\end_layout
+
+\begin_layout Itemize
+Note that 
+\family typewriter
+jetty:run
+\family default
+ is very slow, it takes 1-2 seconds on my workstation to process every click,
+ even if the click doesn't do anything.
+ However, this is due to the Maven plugin's reloading.
+ On the live server (or by using a Standard Jetty within the Vagrant VM)
+ the application is fast.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+Git information and the Java source is added to the generated WAR file,
+ to help with debugging live system problems, in case only the WAR is available.
+\end_layout
+
+\begin_layout Itemize
+Flyway is used for automated database migrations.
+\end_layout
+
+\begin_layout Itemize
+Database is PostgreSQL.
+\end_layout
+
+\begin_layout Itemize
+Terraform is used to provision the software on AWS.
+ The Terraform file and Terraform state is checked in to Git.
+\end_layout
+
+\begin_layout Subsection
+Service Portal
+\end_layout
+
+\begin_layout Itemize
+The software is written in Java, and not Javascript, due to better type-checking
+ and thus maintainability.
+\end_layout
+
+\begin_layout Itemize
+The software is written in Apache Wicket, which is a standard client-server
+ (non-SPA) Java web framework.
+ See 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://wicket.apache.org/
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+CSS and other static resources are checked in together with the HTML code
+ and referenced via 
+\family typewriter
+<wicket:link>
+\family default
+.
+ (Alternative options would be to store the files in the 
+\begin_inset Quotes eld
+\end_inset
+
+web
+\begin_inset Quotes erd
+\end_inset
+
+ directory and have them served by Jetty, or store them somewhere else and
+ have them served by a proxy such as Apache or nginx.) This is chosen so
+ that the HTML files can still be clicked on without Wicket or Vagrant.
+ This has the disadvantage that all Wicket page classes must be in the same
+ package (no sub-packages) but there are currently not many pages, so this
+ is an acceptable disadvantage.
+\end_layout
+
+\begin_layout Itemize
+Wicket IDs are camel case with initial lowercase like 
+\family typewriter
+fooBar
+\family default
+ because that's the way attributes are in Java, therefore those Wicket elements
+ which are mapped to Java attributes are consistent with the rest of the
+ Wicket IDs.
+\end_layout
+
+\begin_layout Section
+Saxon-HE and Saxon-PE
+\end_layout
+
+\begin_layout Standard
+There are two version of the Saxon XSLT processor.
+ There is the open source and free Saxon-HE (Home Edition) and the commercial
+ per-server-cost edition Saxon-PE (Professional Edition).
+ For our purposes, the difference is, that Saxon-PE can allow XSLT code
+ to access Java functions such as 
+\begin_inset Quotes eld
+\end_inset
+
+create new UUID
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Each installation must have its own Saxon-PE file.
+ By default, Saxon-HE is used.
+ To use Saxon-PE:
+\end_layout
+
+\begin_layout Enumerate
+Get access to the Saxon-PE JAR.
+ You can do this by purchasing it from 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://www.saxonica.com/shop/shop.html#!/Individual-Licenses/c/905991
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+
+\family typewriter
+mvn install:install-file -Dfile=saxon-9.7.0.18-pe.jar -DgroupId=net.sf.saxon -Dartifac
+tId=Saxon-PE -Dversion=9.7.0.18 -Dpackaging=jar
+\end_layout
+
+\begin_layout Enumerate
+Create the file 
+\family typewriter
+saxon-pe/saxon-license.lic
+\family default
+ with the license you have acquired during the purchase process.
+\end_layout
+
+\begin_layout Enumerate
+Compile the source using 
+\family typewriter
+mvn ...
+ -DSaxon=PE
+\end_layout
+
+\begin_layout Section
+Database
+\end_layout
+
+\begin_layout Standard
+For brevity, only database tables containing noteworthy or non-obvious propertie
+s are listed in this section.
+ Tables are listed in alphabetical order.
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+config
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+ and 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+publish
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+ Tables
+\end_layout
+
+\begin_layout Standard
+For a 
+\begin_inset Quotes eld
+\end_inset
+
+single application deployment
+\begin_inset Quotes erd
+\end_inset
+
+, both these tables are ignored.
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+config
+\family default
+ table stores information that an administrator might update, for example
+ to note that the application exists, whether it is locked (e.g.
+\begin_inset space \space{}
+\end_inset
+
+if the customer does not pay, etc.) The 
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+publish
+\family default
+ table stores information on which applications have been published and
+ in what revisions they are published.
+ 
+\end_layout
+
+\begin_layout Standard
+The tables are different to clearly differentiate between the facts that
+ a human can alter (the 
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+config
+\family default
+ table) and the facts that the publishing process creates (the 
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+publish
+\family default
+ table).
+\end_layout
+
+\begin_layout Standard
+In addition, applications can be published to multiple environments, but
+ configured once.
+ So for an application published to two environments, there is one row in
+ 
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+config
+\family default
+ but two rows in 
+\family typewriter
+application_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+publish
+\family default
+ (one row per environment).
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+timezone
+\family default
+ field specifies the time zone of the application such as 
+\begin_inset Quotes eld
+\end_inset
+
+Europe/Berlin
+\begin_inset Quotes erd
+\end_inset
+
+, which is relevant for creating unique auto-increment IDs per month or
+ year.
+\end_layout
+
+\begin_layout Subsection
+The Service Portal Login Tables
+\end_layout
+
+\begin_layout Standard
+Which users may log into the service portal are stored in the 
+\family typewriter
+service_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+portal_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+login
+\family default
+ table.
+\end_layout
+
+\begin_layout Standard
+After the user has logged in, they have access to a certain number of applicatio
+ns.
+ Which applications a service portal user has access to is stored in the
+ 
+\family typewriter
+service_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+portal_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+login_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+application
+\family default
+ table.
+\end_layout
+
+\begin_layout Standard
+The intention is that both these tables are updated manually.
+ The service portal reads from these tables but, currently, no software
+ writes to these tables.
+\end_layout
+
+\begin_layout Standard
+Note that only bcrypt passwords starting 
+\family typewriter
+$2a$
+\family default
+ are accepted (for example, ones 
+\family typewriter
+$2y$
+\family default
+ do not work).
+ Hashes generated at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://www.browserling.com/tools/bcrypt
+\end_layout
+
+\end_inset
+
+ are known to work.
+\end_layout
+
+\begin_layout Subsection
+The 
+\begin_inset Quotes eld
+\end_inset
+
+
+\family typewriter
+flyway_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+schema_
+\begin_inset space \hspace{}
+\length 0cm
+\end_inset
+
+history
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+ Table
+\end_layout
+
+\begin_layout Standard
+Table used by the automated migration system Flyway.
+\end_layout
+
+\end_body
+\end_document

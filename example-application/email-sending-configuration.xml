@@ -1,0 +1,17 @@
+<email-sending-configuration>
+  <server>localhost</server>
+  <header name="X-Endpoints-Header">Header Value</header>
+  
+  <!-- 
+     <mx-address>gmail.com</mx-address> 
+  -->
+  
+  <!-- 
+     <port>123</port> 
+  -->
+  
+  <!--
+     <username>foo</username>
+     <password>foo</password>
+  -->
+</email-sending-configuration>

@@ -1,0 +1,1 @@
+ALTER TABLE application RENAME TO application_publish;

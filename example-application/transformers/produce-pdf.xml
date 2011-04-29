@@ -1,0 +1,4 @@
+  <transformer data-source="fo">
+    <xslt-file name="extract-fo.xslt"/>
+    <convert-output-xsl-fo-to-pdf/>
+  </transformer>

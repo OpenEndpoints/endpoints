@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-source>
+  <parameters/>
+  <on-demand-incrementing-number type="month"/>
+  <application-introspection/>
+  <literal-xml>
+    <tag>email-address is ${email-address}, invoice number is ${invoice-number}</tag>
+    <accents>Some accents to prove UTF-8 is used: äöü €</accents>
+  </literal-xml>
+  <md5 id="i-am-an-md5" message-string="foo"/>
+  <xml-from-url><url>https://www.w3schools.com/xml/note.xml</url></xml-from-url>
+  <xml-from-application file="xml-subdirectory/spheres.fo"/>
+  <xml-from-application file="xml-subdirectory/doesnt-exist.fo" ignore-if-not-found="true"/>
+  <xml-from-database>
+    <sql>SELECT * FROM application_publish WHERE application_name=?</sql>
+    <param>example-application</param>
+  </xml-from-database>
+  <xml-from-database tag="from-mysql">
+    <jdbc-connection-string from-environment-variable="EXAMPLE_APPLICATION_MYSQL_JDBC"/>
+    <sql>SELECT * FROM data_source WHERE i=? AND str=?</sql>
+    <param>2</param>
+    <param>foo</param>
+  </xml-from-database>
+  <xml-from-database tag="from-postgresql">
+    <jdbc-connection-string from-environment-variable="EXAMPLE_APPLICATION_POSTGRESQL_JDBC"/>
+    <sql>SELECT * FROM data_source WHERE i=?::int and l=?::bigint and u=?::uuid and str=?</sql>
+    <param>2</param>
+    <param>2</param>
+    <param>d1fd12ff-5628-4857-868b-a6004f119c47</param>
+    <param>foo</param>
+  </xml-from-database>
+  <xml-from-url ignore-if-error="true">
+    <url>https://calculator.offer-ready.com/</url> <!-- URL is currently offline -->
+    <method name="POST"/>
+    <xml-body>
+      <profile-input xmlns="http://xsd.offerready.com/profile-input-v1.xsd" profile-id="TestServlet">
+        <catalogue name="example-catalogue"/>
+        <privilege name="privilege"/>
+        <security hash="f0e107cc60f3c14ba9c0527af8d8b87a"/>
+
+        <non-calculation-data/>
+
+        <global-variable-list/>
+        <item-group id="item" item-count="1">
+          <user-filter name="abc-user-filter"/>
+          <variable name="input_a" value="5"/>
+        </item-group>
+        <item-group id="no-variation-found" item-count="1">
+          <user-filter name="doesnt-exit"/>
+          <variable name="input_a" value="5"/>
+        </item-group>
+      </profile-input>
+    </xml-body>
+  </xml-from-url>
+  <xml-from-url ignore-if-error="true">
+    <url>https://www.google.com/</url>  <!-- this is not XML -->
+  </xml-from-url>
+</data-source>

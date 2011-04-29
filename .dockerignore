@@ -1,0 +1,8 @@
+.settings
+.idea
+.git
+/doc
+target
+!target/endpoints
+src
+example-application
