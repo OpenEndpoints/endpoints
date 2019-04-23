@@ -69,6 +69,11 @@ public class EndpointServlet extends HttpServlet {
     @Override
     protected void doPost(@Nonnull HttpServletRequest req, @Nonnull HttpServletResponse resp)
     throws IOException {
+
+        // CORS
+        if (StringUtils.isNotEmpty(req.getHeader("Origin")))
+            resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
+
         try (var ignored = new Timer(getClass().getSimpleName())) {
             var path = req.getRequestURI().substring(req.getContextPath().length());
             var m = Pattern.compile("/([\\w-]+)/([\\w-]+)").matcher(path);
@@ -122,10 +127,6 @@ public class EndpointServlet extends HttpServlet {
             };
                 
             var suppliedHash = req.getParameter("hash");
-
-            // CORS
-            if (StringUtils.isNotEmpty(req.getHeader("Origin")))
-                resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
 
             new EndpointExecutor().execute(environment, applicationName, application, endpoint, transform, 
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
