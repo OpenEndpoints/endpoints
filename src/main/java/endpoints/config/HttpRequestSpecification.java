@@ -27,14 +27,12 @@ import org.json.JSONTokener;
 import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.AttributesImpl;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -46,7 +44,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
@@ -56,9 +53,7 @@ import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.datasource.ParametersCommand.createParametersElement;
 import static java.lang.Boolean.parseBoolean;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Collectors.*;
 
 public class HttpRequestSpecification {
 
@@ -74,8 +69,9 @@ public class HttpRequestSpecification {
     protected @CheckForNull String usernamePatternOrNull, passwordPatternOrNull;
     protected @CheckForNull Element requestBodyXmlTemplate;
     protected @CheckForNull WeaklyCachedXsltTransformer requestBodyXmlTransformer;
-    protected @CheckForNull boolean replaceXmlElementWithFileUploads;
+    protected boolean replaceXmlElementWithFileUploads;
     protected @CheckForNull JsonNode requestBodyJsonTemplate;
+    protected @CheckForNull WeaklyCachedXsltTransformer requestBodyJsonTransformer;
 
     public static class HttpRequestFailedException extends Exception {
         public final @Nonnull String url;
@@ -199,9 +195,26 @@ public class HttpRequestSpecification {
 
         var requestBodyJsonElement = getOptionalSingleSubElement(command, "json-body");
         if (requestBodyJsonElement != null) {
-            try { requestBodyJsonTemplate = new ObjectMapper().readTree(requestBodyJsonElement.getTextContent()); }
-            catch (JsonProcessingException e) { throw new ConfigurationException("<json-body>", e); }
-            catch (IOException e) { throw new RuntimeException(e); }
+            var fixedJsonBody = requestBodyJsonElement.getTextContent();
+            if ( ! fixedJsonBody.isEmpty()) {
+                try { requestBodyJsonTemplate = new ObjectMapper().readTree(fixedJsonBody); }
+                catch (JsonProcessingException e) { throw new ConfigurationException("<json-body>", e); }
+                catch (IOException e) { throw new RuntimeException(e); }
+            }
+
+            var xsltFileName = getOptionalAttribute(requestBodyJsonElement, "xslt-file");
+            if (xsltFileName != null) {
+                var xsltFile = new File(httpXsltDirectory, xsltFileName);
+                if ( ! xsltFile.exists()) throw new ConfigurationException("<json-body xslt-file='"+xsltFileName+"'>: " +
+                    "File '" + httpXsltDirectory.getName()+"/"+xsltFileName+"' not found");
+                requestBodyJsonTransformer = getTransformerOrScheduleCompilation(threads, xsltFile.getAbsolutePath(),
+                    new StyleVisionXslt(xsltFile));
+            }
+            
+            if (requestBodyJsonTemplate != null && requestBodyJsonTransformer != null)
+                throw new ConfigurationException("<json-body>: must have xslt-file='x.xslt' attr, or a fixed body");
+            if (requestBodyJsonTemplate == null && requestBodyJsonTransformer == null)
+                throw new ConfigurationException("<json-body>: must have xslt-file='x.xslt' attr, or a fixed body");
         }
 
         if (requestBodyXmlTemplate != null && requestBodyJsonTemplate != null)
@@ -275,7 +288,7 @@ public class HttpRequestSpecification {
                                 new DOMSource(parametersXml.getOwnerDocument()), bodyDocument);
                             body = (Document) bodyDocument.getNode();
                         } else {
-                            throw new RuntimeException("Unreachable: Neither requestBodyXmlTemplate nor requestBodyXmlTransformer set");
+                            throw new RuntimeException("Unreachable");
                         }
                         
                         // Add base64 uploaded files if necessary
@@ -287,14 +300,22 @@ public class HttpRequestSpecification {
                     }
                     catch (VariableNotFoundException e) { throw new RuntimeException(e); }
                 }
-    
-                if (requestBodyJsonTemplate != null) {
+
+                if (requestBodyJsonTemplate != null || requestBodyJsonTransformer != null) {
                     if ( ! requestHeaderPatterns.keySet().stream().map(x -> x.toLowerCase()).collect(toSet()).contains("content-type"))
                         urlConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                     urlConnection.setDoOutput(true);
                     try (var o = urlConnection.getOutputStream()) {
-                        var body = expandJson(params, requestBodyJsonTemplate);
-                        new ObjectMapper().writeValue(o, body);
+                        if (requestBodyJsonTemplate != null) {
+                            var body = expandJson(params, requestBodyJsonTemplate);
+                            new ObjectMapper().writeValue(o, body);
+                        } else if (requestBodyJsonTransformer != null) {
+                            var parametersXml = createParametersElement("parameters", params);
+                            requestBodyJsonTransformer.newTransformer().transform(
+                                new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(o));
+                        } else {
+                            throw new RuntimeException("Unreachable");
+                        }
                     }
                     catch (VariableNotFoundException e) { throw new RuntimeException(e); }
                 }
