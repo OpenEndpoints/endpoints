@@ -55,4 +55,14 @@
   <xml-from-url ignore-if-error="true">
     <url>https://www.google.com/</url>  <!-- this is not XML -->
   </xml-from-url>
+  <xml-from-url>
+    <url>https://jsonplaceholder.typicode.com/posts/1</url>
+    <method name="PUT"/>  
+    <json-body xslt-file="json.xslt"/>  
+  </xml-from-url>
+  <xml-from-url>
+    <url>https://jsonplaceholder.typicode.com/posts/1</url>
+    <method name="PUT"/>
+    <json-body>{"title":"${invoice-number}"}</json-body>
+  </xml-from-url>
 </data-source>

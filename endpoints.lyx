@@ -1822,7 +1822,11 @@ The XSLT file is taken from the
 http-xslt
 \family default
  directory.
- The optional attribute 
+ 
+\end_layout
+
+\begin_layout Standard
+The optional attribute 
 \family typewriter
 upload-files="true"
 \family default
@@ -1896,6 +1900,73 @@ The JSON is expressed as text within the XML.
 Variables may be present in string elements in the JSON; they are expanded.
  They are expanded within the string context of JSON, that is to say that
  no concern about escaping is necessary.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+JSON
+\begin_inset space ~
+\end_inset
+
+whose
+\begin_inset space ~
+\end_inset
+
+contents
+\begin_inset space ~
+\end_inset
+
+are
+\begin_inset space ~
+\end_inset
+
+result
+\begin_inset space ~
+\end_inset
+
+of
+\begin_inset space ~
+\end_inset
+
+XSLT An element like the following may be present inside the 
+\family typewriter
+<task>:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<json-body xslt-file="foo.xslt"/>
+\end_layout
+
+\begin_layout Standard
+The XSLT file is taken from the 
+\family typewriter
+http-xslt
+\family default
+ directory.
+ 
+\end_layout
+
+\begin_layout Standard
+The XSLT file must produce text with 
+\family typewriter
+<xsl:output method="text"/>
+\family default
+.
+ The text is interpreted as JSON.
+ Be careful with including variables; they must be escaped to be valid JSON
+ syntax.
+ Ideally replace backslash with two backslahes, then replace double-quotes
+ with backslash then double-quote.
+\end_layout
+
+\begin_layout Standard
+As with the XML from XSLT, the XSLT takes a 
+\family typewriter
+<parameters>
+\family default
+ as its input document, and this XSLT does not have access to the results
+ of any other data sources.
 \end_layout
 
 \end_deeper
