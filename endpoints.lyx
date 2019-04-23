@@ -61,7 +61,7 @@
 \topmargin 3cm
 \rightmargin 4.4cm
 \bottommargin 3cm
-\secnumdepth 2
+\secnumdepth 3
 \tocdepth 2
 \paragraph_separation indent
 \paragraph_indentation default
@@ -1665,39 +1665,7 @@ The configuration of the task looks like:
 \end_layout
 
 \begin_layout LyX-Code
-  <xml-body
-\family typewriter
- upload-files="true"
-\family default
->
-\end_layout
-
-\begin_layout LyX-Code
-    <your-tag>${variable}</your-tag>
-\end_layout
-
-\begin_layout LyX-Code
-  </xml-body>
-\end_layout
-
-\begin_layout LyX-Code
-  <xml-body xslt-file="foo.xslt" 
-\family typewriter
-upload-files="true"
-\family default
-/>
-\end_layout
-
-\begin_layout LyX-Code
-  <json-body>
-\end_layout
-
-\begin_layout LyX-Code
-    { "key": "${variable}" }
-\end_layout
-
-\begin_layout LyX-Code
-  </json-body>
+  <!-- see below -->
 \end_layout
 
 \begin_layout LyX-Code
@@ -1738,26 +1706,127 @@ this error is ignored.
 \end_layout
 
 \begin_layout Standard
-If 
+One of the following body tags may be present:
+\end_layout
+
+\begin_layout Description
+No
+\begin_inset space ~
+\end_inset
+
+content
+\begin_inset space ~
+\end_inset
+
+tag In which case an empty request is sent
+\end_layout
+
+\begin_layout Description
+XML
+\begin_inset space ~
+\end_inset
+
+with
+\begin_inset space ~
+\end_inset
+
+inline
+\begin_inset space ~
+\end_inset
+
+contents An element like the following may be present inside the 
 \family typewriter
-<xml-body>
+<task>
 \family default
- is present then either it must have a fixed body (with variables which
- will be expanded) or it must have the 
+: 
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<xml-body
 \family typewriter
-xslt-file="foo.xslt"
+ upload-files="true"
 \family default
- attribute.
- 
+>
+\end_layout
+
+\begin_layout LyX-Code
+  <your-tag>${variable}</your-tag>
+\end_layout
+
+\begin_layout LyX-Code
+</xml-body>
 \end_layout
 
 \begin_layout Standard
-If the latter, the file is taken from the 
+Variables will be expanded.
+\end_layout
+
+\begin_layout Standard
+The optional attribute 
+\family typewriter
+upload-files="true"
+\family default
+ indicates that any element with attributes such as 
+\family typewriter
+<foo upload-field-name="foo" encoding="base64">
+\family default
+ is filled in with the contents of the uploaded file with that filename
+ in that encoding, and acquires the attribute 
+\family typewriter
+filename
+\family default
+.
+ The encoding is always base64, no other encodings are supported.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+XML
+\begin_inset space ~
+\end_inset
+
+whose
+\begin_inset space ~
+\end_inset
+
+contents
+\begin_inset space ~
+\end_inset
+
+are
+\begin_inset space ~
+\end_inset
+
+result
+\begin_inset space ~
+\end_inset
+
+of
+\begin_inset space ~
+\end_inset
+
+XSLT An element like the following may be present inside the 
+\family typewriter
+<task>:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<xml-body xslt-file="foo.xslt" upload-files="true"/>
+\end_layout
+
+\begin_layout Standard
+The XSLT file is taken from the 
 \family typewriter
 http-xslt
 \family default
  directory.
- 
+ The optional attribute 
+\family typewriter
+upload-files="true"
+\family default
+ may be present as above.
 \end_layout
 
 \begin_layout Standard
@@ -1785,24 +1854,51 @@ This XSLT does not have access to the results of any other data sources.
  data sources cannot use data produced by another data source.
 \end_layout
 
-\begin_layout Standard
-If the 
+\end_deeper
+\begin_layout Description
+JSON
+\begin_inset space ~
+\end_inset
+
+with
+\begin_inset space ~
+\end_inset
+
+inline
+\begin_inset space ~
+\end_inset
+
+content The following element may be present inside the 
 \family typewriter
-<xml-body upload-files="true">
+<task>
 \family default
- is present then any element like 
-\family typewriter
-<foo upload-field-name="foo" encoding="base64">
-\family default
- is filled in with the contents of the uploaded file with that filename
- in that encoding, and acquires the attribute 
-\family typewriter
-filename
-\family default
-.
- The encoding is always base64, no other encodings are supported.
+:
 \end_layout
 
+\begin_deeper
+\begin_layout LyX-Code
+<json-body>
+\end_layout
+
+\begin_layout LyX-Code
+   { "key": "${variable}" }
+\end_layout
+
+\begin_layout LyX-Code
+</json-body>
+\end_layout
+
+\begin_layout Standard
+The JSON is expressed as text within the XML.
+\end_layout
+
+\begin_layout Standard
+Variables may be present in string elements in the JSON; they are expanded.
+ They are expanded within the string context of JSON, that is to say that
+ no concern about escaping is necessary.
+\end_layout
+
+\end_deeper
 \begin_layout Subsubsection
 Custom Task
 \end_layout
@@ -1988,7 +2084,7 @@ consumed
 \begin_inset Quotes erd
 \end_inset
 
- if the endpoints request is successful; if the request is not succesful
+ if the endpoints request is successful; if the request is not successful
  the number is again made available to future requests.
  The numbers do not have any “holes” or missed-out numbers, so are suitable
  for use in invoice numbers.
