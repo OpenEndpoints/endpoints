@@ -85,7 +85,7 @@ public class GitApplicationRepository {
         @Nonnull ApplicationName application, @Nonnull GitRevision revision, @Nonnull File destination
     ) throws RepositoryCommandFailedException {
         var tmpDir = newTemporaryDirectory(destination, "git-" + application.name + "-" + revision.sha256Hex);
-        try (var ignored = new Timer("Git checkout of " + application)) {
+        try (var ignored = new Timer("Git checkout of application '" + application.name + "'")) {
             Git.cloneRepository()
                 .setURI(info)
                 .setDirectory(tmpDir)
