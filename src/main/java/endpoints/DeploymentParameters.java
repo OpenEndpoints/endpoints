@@ -32,7 +32,7 @@ public class DeploymentParameters {
 
     public final @Nonnull String jdbcUrl;
     public final @Nonnull File publishedApplicationsDirectory;
-    public final boolean checkHash, displayExpectedHash, logParameterTransformation;
+    public final boolean checkHash, displayExpectedHash, xsltDebugLog;
     public final @CheckForNull String gitRepositoryDefaultPattern;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
     
@@ -70,7 +70,7 @@ public class DeploymentParameters {
         publishedApplicationsDirectory = getOptionalFileParameterOrNull("ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY");
         checkHash = Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_CHECK_HASH", "true"));
         displayExpectedHash = Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_DISPLAY_EXPECTED_HASH", "false"));
-        logParameterTransformation = Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_LOG_PARAMETER_TRANSFORMATION", "false"));
+        xsltDebugLog = Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_XSLT_DEBUG_LOG", "false"));
         gitRepositoryDefaultPattern = getOptionalParameterOrNull("ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN");
         servicePortalEnvironmentDisplayName = getOptionalParameterOrNull("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME");
     }

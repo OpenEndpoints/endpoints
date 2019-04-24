@@ -62,7 +62,7 @@ Vagrant.configure(2) do |config|
     echo 'export ENDPOINTS_JDBC_URL='"'"'jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
-    echo 'export ENDPOINTS_LOG_PARAMETER_TRANSFORMATION=true' >> /etc/environment
+    echo 'export ENDPOINTS_XSLT_DEBUG_LOG=true' >> /etc/environment
     echo 'export ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN=/var/endpoints/application-git-repositories/${applicationName}' >> /etc/environment
     echo 'export ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME='"'"'VAGRANT ENVIRONMENT'"'" >> /etc/environment
     echo 'export EXAMPLE_APPLICATION_POSTGRESQL_JDBC='"'"'jdbc:postgresql://localhost/example_application?user=postgres&password=postgres'"'" >> /etc/environment
@@ -73,7 +73,7 @@ Vagrant.configure(2) do |config|
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_LOG_PARAMETER_TRANSFORMATION=true' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN=/var/endpoints/application-git-repositories/${applicationName}' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=VAGRANT ENVIRONMENT (DOCKER)' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_POSTGRESQL_JDBC=jdbc:postgresql://localhost/example_application?user=postgres&password=postgres' >> /home/vagrant/docker-env
