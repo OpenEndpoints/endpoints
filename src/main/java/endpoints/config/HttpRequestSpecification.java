@@ -301,7 +301,6 @@ public class HttpRequestSpecification {
                         // Stream to HTTP connection
                         TransformerFactory.newInstance().newTransformer().transform(new DOMSource(body), new StreamResult(o));
                     }
-                    catch (VariableNotFoundException e) { throw new RuntimeException(e); }
                 }
 
                 if (requestBodyJsonTemplate != null || requestBodyJsonTransformer != null) {
@@ -324,7 +323,6 @@ public class HttpRequestSpecification {
                             throw new RuntimeException("Unreachable");
                         }
                     }
-                    catch (VariableNotFoundException e) { throw new RuntimeException(e); }
                 }
     
                 if (urlConnection.getResponseCode() < 200 || urlConnection.getResponseCode() >= 300) {
