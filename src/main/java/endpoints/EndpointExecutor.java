@@ -163,14 +163,16 @@ public class EndpointExecutor {
     }
 
     @SneakyThrows
-    protected void prettyPrintLog(@Nonnull String msg, @Nonnull Document x) {
+    public static void logXmlForDebugging(@Nonnull Class<?> logClass, @Nonnull String msg, @Nonnull Document x) {
+        if ( ! DeploymentParameters.get().xsltDebugLog) return;
+
         StringWriter result = new StringWriter();
         StreamResult xmlOutput = new StreamResult(result);
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
         Transformer t2 = transformerFactory.newTransformer();
         t2.setOutputProperty(OutputKeys.INDENT, "yes");
         t2.transform(new DOMSource(x), xmlOutput);
-        Logger.getLogger(getClass()).info(msg + "\n" + result);
+        Logger.getLogger(logClass).info(msg + "\n" + result);
     }
 
     @SneakyThrows({DocumentTemplateInvalidException.class, TransformerException.class})
@@ -212,13 +214,11 @@ public class EndpointExecutor {
                     inputParametersDocument.getDocumentElement().appendChild(inputParametersDocument.importNode(element, true));
 
             // Transform
-            if (DeploymentParameters.get().logParameterTransformation)
-                prettyPrintLog("Input to parameter transformation", inputParametersDocument);
+            logXmlForDebugging(getClass(), "Input to parameter transformation", inputParametersDocument);
             var outputParametersDocument = new DOMResult();
             parameterTransformation.xslt.newTransformer()
                 .transform(new DOMSource(inputParametersDocument), outputParametersDocument);
-            if (DeploymentParameters.get().logParameterTransformation)
-                prettyPrintLog("Output from parameter transformation", (Document) outputParametersDocument.getNode());
+            logXmlForDebugging(getClass(), "Output from parameter transformation", (Document) outputParametersDocument.getNode());
 
             // Parse and return output
             var outputParametersRoot = ((Document) outputParametersDocument.getNode()).getDocumentElement();

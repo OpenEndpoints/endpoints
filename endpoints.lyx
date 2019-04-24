@@ -2923,12 +2923,12 @@ ENDPOINTS_DISPLAY_EXPECTED_HASH
 \begin_layout Description
 
 \family typewriter
-ENDPOINTS_LOG_PARAMETER_TRANSFORMATION
+ENDPOINTS_XSLT_DEBUG_LOG
 \family default
  Default false.
  For debugging, display the input and output to the parameter transformation
- XSLT in the logfile.
- 
+ XSLT in the logfile, and also bodies produced by XSLT which will be sent
+ to HTTP servers.
 \end_layout
 
 \begin_layout Description

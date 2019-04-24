@@ -15,6 +15,7 @@ import com.offerready.xslt.DocumentGenerator.StyleVisionXslt;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.DeploymentParameters;
 import endpoints.EndpointExecutor.RequestInvalidException;
 import endpoints.EndpointExecutor.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
@@ -49,6 +50,7 @@ import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
+import static endpoints.EndpointExecutor.logXmlForDebugging;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.datasource.ParametersCommand.createParametersElement;
 import static java.lang.Boolean.parseBoolean;
@@ -287,6 +289,7 @@ public class HttpRequestSpecification {
                             requestBodyXmlTransformer.newTransformer().transform(
                                 new DOMSource(parametersXml.getOwnerDocument()), bodyDocument);
                             body = (Document) bodyDocument.getNode();
+                            logXmlForDebugging(getClass(), "Result of XSLT, to send to '" + baseUrl + "'", body);
                         } else {
                             throw new RuntimeException("Unreachable");
                         }
@@ -311,8 +314,12 @@ public class HttpRequestSpecification {
                             new ObjectMapper().writeValue(o, body);
                         } else if (requestBodyJsonTransformer != null) {
                             var parametersXml = createParametersElement("parameters", params);
+                            StringWriter json = new StringWriter();
                             requestBodyJsonTransformer.newTransformer().transform(
-                                new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(o));
+                                new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
+                            if (DeploymentParameters.get().xsltDebugLog)
+                                Logger.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
+                            IOUtils.write(json.toString(), o, UTF_8.name());
                         } else {
                             throw new RuntimeException("Unreachable");
                         }
