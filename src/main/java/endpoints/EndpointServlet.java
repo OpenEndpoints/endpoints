@@ -11,6 +11,8 @@ import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.flywaydb.core.Flyway;
@@ -22,12 +24,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
@@ -65,10 +65,56 @@ public class EndpointServlet extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
         resp.flushBuffer();
     }
+    
+    @SneakyThrows(IOException.class)
+    protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull EndpointExecutor.Request request) {
+        if ( ! DeploymentParameters.get().xsltDebugLog) return;
+        
+        var log = Logger.getLogger(getClass());
+        
+        log.info("Request class: " + servletRequest.getClass());
+        log.info("Part class: " + request.getUploadedFiles().stream()
+            .map(x -> ((ServletUploadedFile)x).part.getClass().toString()).findAny().orElse("(no uploads)"));
+        log.info("Request class loader: " + servletRequest.getClass().getClassLoader().getName());
+        
+        for (var e : request.getParameters().entrySet())
+            for (var v : e.getValue())
+                log.info(String.format(Locale.ENGLISH, "Parameter: key='%s', length %,d chars, (escaped) = \"%s\"",
+                    e.getKey().name, v.length(), StringEscapeUtils.escapeJava(v.substring(0, Math.min(1000, v.length())))));
+
+        for (var e : request.getUploadedFiles()) {
+            var bytesStream = new ByteArrayOutputStream();
+            IOUtils.copy(e.getInputStream(), bytesStream);
+            var bytes = bytesStream.toByteArray();
+
+            var hexString = new StringBuilder();
+            int length = bytes.length;
+            if (length > 10) length = 10;
+            for (int i=0;i<length;i++) {
+                String x = "0" + Integer.toHexString(0xFF & bytes[i]);
+                hexString.append(x.substring(x.length() - 2));
+            }
+
+            log.info(String.format(Locale.ENGLISH, "Uploaded file: field='%s', size %,d bytes, first bytes (hex) = %s",
+                e.getFieldName(), bytes.length, hexString.toString()));
+        }
+    }
 
     @Override
     protected void doPost(@Nonnull HttpServletRequest req, @Nonnull HttpServletResponse resp)
     throws IOException {
+//        System.out.println("***********************");
+//        System.out.println("REQUEST BODY:");
+//        var byteStream = new ByteArrayOutputStream();
+//        IOUtils.copy(req.getInputStream(), byteStream);
+//        var bytes = byteStream.toByteArray();
+//        StringBuffer hexString = new StringBuffer();
+//        for (int i=0;i<bytes.length;i++) {
+//            String x = "0" + Integer.toHexString(0xFF & bytes[i]);
+//            hexString.append(x.substring(x.length() - 2));
+//        }
+//        System.out.println(hexString.toString());
+//        System.out.println("***********************");
 
         // CORS
         if (StringUtils.isNotEmpty(req.getHeader("Origin")))
@@ -125,6 +171,8 @@ public class EndpointServlet extends HttpServlet {
                     catch (IOException e) { throw new EndpointExecutionFailedException(400, "I/O problem reading request", e); }
                 }
             };
+            
+            logParamsForDebugging(req, request);
                 
             var suppliedHash = req.getParameter("hash");
 
