@@ -172,7 +172,11 @@ public class EndpointExecutor {
         Transformer t2 = transformerFactory.newTransformer();
         t2.setOutputProperty(OutputKeys.INDENT, "yes");
         t2.transform(new DOMSource(x), xmlOutput);
-        Logger.getLogger(logClass).info(msg + "\n" + result);
+        
+        var str = result.toString();
+        if (str.length() > 20_000) str = str.substring(0, 10_000) + "[...truncated...]" + str.substring(str.length() - 10_000);
+        
+        Logger.getLogger(logClass).info(msg + "\n" + str);
     }
 
     @SneakyThrows({DocumentTemplateInvalidException.class, TransformerException.class})
