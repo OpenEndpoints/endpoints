@@ -101,8 +101,8 @@ public class EndpointPanel extends Panel {
                 @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
             };
             new EndpointExecutor().execute(environment, applicationName,
-                DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment), endpoint, 
-                true, null, request, 
+                DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment), endpoint,
+                null, request, 
                 responseContent -> {
                     downloadFileName = responseContent.getFilenameOrNull();
                     contentType = responseContent.getContentType();

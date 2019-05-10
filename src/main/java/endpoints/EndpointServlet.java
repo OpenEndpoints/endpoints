@@ -127,7 +127,6 @@ public class EndpointServlet extends HttpServlet {
             @CheckForNull var envName = req.getParameter("environment");
             var applicationName = new ApplicationName(m.group(1));
             var endpointName = new NodeName(m.group(2));
-            boolean transform = ! "false".equals(req.getParameter("xslt"));
         
             final PublishEnvironment environment;
             final Application application;
@@ -176,7 +175,7 @@ public class EndpointServlet extends HttpServlet {
                 
             var suppliedHash = req.getParameter("hash");
 
-            new EndpointExecutor().execute(environment, applicationName, application, endpoint, transform, 
+            new EndpointExecutor().execute(environment, applicationName, application, endpoint,
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
         }
         catch (RequestInvalidException e) {
