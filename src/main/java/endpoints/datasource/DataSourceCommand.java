@@ -3,10 +3,7 @@ package endpoints.datasource;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
+import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
@@ -15,8 +12,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 
@@ -69,9 +64,6 @@ public abstract class DataSourceCommand {
      * A future is returned here, so that all data source commands (for example fetching various URLs) can execute in parallel
      * @return parameters have been expanded in resulting XML if necessary
      */
-    abstract public @Nonnull DataSourceCommandResult execute(
-        @Nonnull ApplicationTransaction tx, 
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    );
+    abstract public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) 
+    throws TransformationFailedException;
 }

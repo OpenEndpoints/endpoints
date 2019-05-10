@@ -1,7 +1,6 @@
 package endpoints;
 
 import com.databasesandlife.util.DomParser;
-import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
@@ -9,6 +8,7 @@ import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.config.*;
+import endpoints.datasource.DataSourceCommandResult;
 import endpoints.datasource.ParametersCommand;
 import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
@@ -52,7 +52,6 @@ import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang.RandomStringUtils.random;
 import static org.apache.commons.lang.RandomStringUtils.randomNumeric;
@@ -211,10 +210,13 @@ public class EndpointExecutor {
             appendTextElement(inputFromApplicationElement, "http-header-user-agent", req.getUserAgent());
 
             // Add data sources e.g. <xml-from-application>
-            var futures = parameterTransformation.dataSourceCommands.stream()
-                .map(c -> c.execute(tx, emptyMap(), req.getUploadedFiles(), autoInc)).collect(toList());
-            for (var r : futures)
-                for (var element : r.getOrThrow())
+            var context = new TransformationContext(tx, emptyMap(), req.getUploadedFiles(), autoInc);
+            var dataSourceResults = new ArrayList<DataSourceCommandResult>();
+            for (var c : parameterTransformation.dataSourceCommands)
+                dataSourceResults.add(c.scheduleExecution(context));
+            context.threads.execute();
+            for (var r : dataSourceResults)
+                for (var element : r.get())
                     inputParametersDocument.getDocumentElement().appendChild(inputParametersDocument.importNode(element, true));
 
             // Transform
@@ -247,6 +249,14 @@ public class EndpointExecutor {
             return result;
         }
         catch (ConfigurationException e) { throw new RequestInvalidException("While processing result of parameter transformation", e); }
+        catch (RuntimeException e) { // from tasks.execute
+            if (e.getCause() instanceof RequestInvalidException)
+                throw (RequestInvalidException) e.getCause();
+            else if (e.getCause() instanceof TransformationFailedException)
+                throw (TransformationFailedException) e.getCause();
+            else
+                throw e;
+        }
     }
 
     protected @Nonnull Map<ParameterName, String> getParameters(
@@ -327,11 +337,10 @@ public class EndpointExecutor {
      * response has already been streamed to the client. 
      * @return response which must still be delivered to the user, or null if it has already been delivered.
      */
-    @SneakyThrows({IOException.class, DocumentTemplateInvalidException.class})
-    protected @Nonnull BufferedHttpResponseDocumentGenerationDestination generateResponse(
-        @Nonnull ApplicationTransaction tx, @Nonnull ResponseConfiguration config,
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, boolean success, boolean transform
+    @SneakyThrows({IOException.class})
+    protected @Nonnull BufferedHttpResponseDocumentGenerationDestination scheduleResponseGeneration(
+        @Nonnull TransformationContext context, 
+        @Nonnull ResponseConfiguration config, boolean success, boolean transform
     ) throws RequestInvalidException, TransformationFailedException {
         var dest = new BufferedHttpResponseDocumentGenerationDestination();
 
@@ -341,7 +350,7 @@ public class EndpointExecutor {
             dest.setStatusCode(statusCode);
         }
         else if (config instanceof RedirectResponseConfiguration) {
-            var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).url, params);
+            var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).url, context.params);
             if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
                 throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
             dest.setRedirectUrl(new URL(url));
@@ -349,9 +358,9 @@ public class EndpointExecutor {
         else if (config instanceof TransformationResponseConfiguration) {
             var r = (TransformationResponseConfiguration) config;
             dest.setStatusCode(statusCode);
-            r.transformer.execute(tx, dest, params, fileUploads, autoInc, transform);
+            r.transformer.scheduleExecution(context, dest, transform);
             if (r.downloadFilenamePatternOrNull != null)
-                dest.setContentDispositionToDownload(replacePlainTextParameters(r.downloadFilenamePatternOrNull, params));
+                dest.setContentDispositionToDownload(replacePlainTextParameters(r.downloadFilenamePatternOrNull, context.params));
         }
         else throw new IllegalStateException("Unexpected config: " + config);
 
@@ -410,27 +419,14 @@ public class EndpointExecutor {
 
                 final BufferedHttpResponseDocumentGenerationDestination responseContent;
                 try (var ignored3 = new Timer("Execute <task>s and generate response")) {
-                    var taskThreads = new ThreadPool();
-                    taskThreads.setThreadNamePrefix("Execute <task>s and generate response");
+                    var context = new TransformationContext(tx, parameters, req.getUploadedFiles(), autoInc);
 
-                    class ResponseCreation implements Runnable {
-                        BufferedHttpResponseDocumentGenerationDestination responseContent;
-
-                        @Override public void run() {
-                            try { 
-                                responseContent = generateResponse(tx, endpoint.success, 
-                                    parameters, req.getUploadedFiles(), autoInc, true, transform);
-                            }
-                            catch (RequestInvalidException | TransformationFailedException e) { throw new RuntimeException(e); }
-                        }
-                    }
-                    var responseCreationTask = new ResponseCreation();
-                    taskThreads.addTask(responseCreationTask);
+                    responseContent = scheduleResponseGeneration(context, endpoint.success, true, transform);
 
                     for (var task : endpoint.tasks)
-                        task.scheduleTaskExecution(tx, taskThreads, parameters, req.getUploadedFiles(), autoInc);
+                        task.scheduleTaskExecution(context);
 
-                    try { taskThreads.execute(); }
+                    try { context.threads.execute(); }
                     catch (RuntimeException e) {
                         if (e.getCause() instanceof RequestInvalidException)
                             throw (RequestInvalidException) e.getCause();
@@ -441,8 +437,6 @@ public class EndpointExecutor {
                         else
                             throw e;
                     }
-
-                    responseContent = responseCreationTask.responseContent;
                 }
 
                 var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, autoInc, responseContent);
@@ -459,8 +453,18 @@ public class EndpointExecutor {
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
                     var autoInc = newLazyNumbers(applicationName, environment, now);
-                    var errorResponseContent = generateResponse(tx, endpoint.error, new HashMap<>(), emptyList(), autoInc,
-                        false, transform);
+                    var context = new TransformationContext(tx, new HashMap<>(), emptyList(), autoInc);
+                    var errorResponseContent = scheduleResponseGeneration(context, endpoint.error, false, transform);
+                    
+                    try { context.threads.execute(); }
+                    catch (RuntimeException e2) {
+                        if (e2.getCause() instanceof RequestInvalidException)
+                            throw (RequestInvalidException) e2.getCause();
+                        else if (e2.getCause() instanceof TransformationFailedException)
+                            throw (TransformationFailedException) e2.getCause();
+                        else
+                            throw e2;
+                    }
 
                     var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, autoInc, errorResponseContent);
                     r.setExceptionMessage(e.getMessage());

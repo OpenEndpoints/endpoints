@@ -3,20 +3,14 @@ package endpoints.datasource;
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
-import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
+import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public class ParametersCommand extends DataSourceCommand {
@@ -50,17 +44,15 @@ public class ParametersCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult execute(
-        @Nonnull ApplicationTransaction tx,
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) {
-        return new DataSourceCommandResult() {
+    public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+        var result = new DataSourceCommandResult() {
             @Override protected @Nonnull Element[] populateOrThrow() {
                 return new Element[] {
-                    createParametersElement("parameters", params)
+                    createParametersElement("parameters", context.params)
                 };
             }
         };
+        context.threads.addTask(result);
+        return result;
     }
 }

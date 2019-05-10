@@ -1,20 +1,15 @@
 package endpoints.task;
 
-import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
+import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -47,11 +42,8 @@ public abstract class Task {
     
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
     
-    protected abstract @Nonnull void scheduleTaskExecutionUnconditionally(
-        @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
-        @Nonnull Map<ParameterName, String> parameters, @Nonnull List<? extends EndpointExecutor.UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) throws TaskExecutionFailedException;
+    protected abstract @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) 
+    throws TaskExecutionFailedException;
     
     /**
      * Starts execution of this task, and creates a runnable which will complete execution of this task.
@@ -65,12 +57,8 @@ public abstract class Task {
      * <li>Shutdown the {@link ExecutorService}
      * </ol>
      */
-    public @Nonnull void scheduleTaskExecution(
-        @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
-        @Nonnull Map<ParameterName, String> parameters, @Nonnull List<? extends EndpointExecutor.UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) throws TaskExecutionFailedException {
-        if (condition.evaluate(parameters))
-            scheduleTaskExecutionUnconditionally(tx, threads, parameters, fileUploads, autoInc);
+    public @Nonnull void scheduleTaskExecution(@Nonnull TransformationContext context) throws TaskExecutionFailedException {
+        if (condition.evaluate(context.params))
+            scheduleTaskExecutionUnconditionally(context);
     }
 }

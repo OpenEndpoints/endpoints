@@ -1,18 +1,12 @@
 package endpoints.task;
 
-import com.databasesandlife.util.ThreadPool;
-import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.EmailPartDocumentDestination;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
 import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.PlaintextParameterReplacer;
+import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
@@ -31,7 +25,10 @@ import javax.mail.Part;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 
 import static com.databasesandlife.util.DomParser.*;
@@ -168,11 +165,8 @@ public class EmailTask extends Task {
     
     @Override
     @SneakyThrows({MessagingException.class, IOException.class})
-    public @Nonnull void scheduleTaskExecutionUnconditionally(
-        @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) {
+    public @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) 
+    throws TaskExecutionFailedException {
         // It would be possible to do this "creation" work in a task in the ThreadPool as well, but it takes 0.000 seconds
         // by my measurement, so there's no need to introduce that complexity.
 
@@ -186,19 +180,14 @@ public class EmailTask extends Task {
         for (var bodyTransformer : alternativeBodies) {
             var bodyDestination = new EmailPartDocumentDestination();
             body.addBodyPart(bodyDestination.getBodyPart());
-            partTasks.add(() -> {
-                try (var ignored = new Timer("Email body transformation")) {
-                    bodyTransformer.execute(tx, bodyDestination, params, fileUploads, autoInc, true);
-                }
-                catch (DocumentTemplateInvalidException e) { throw new RuntimeException("unreachable"); }
-                catch (TransformationFailedException e) {
-                    throw new RuntimeException(new TaskExecutionFailedException("Email body", e));
-                }
-            });
+            try {
+                partTasks.add(bodyTransformer.scheduleExecution(context, bodyDestination, true));
+            }
+            catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Email body", e); }
         }
 
         for (var at : attachments) {
-            if ( ! at.condition.evaluate(params)) continue;
+            if ( ! at.condition.evaluate(context.params)) continue;
 
             if (at instanceof AttachmentStatic) {
                 var attachmentPart = new MimeBodyPart();
@@ -210,19 +199,14 @@ public class EmailTask extends Task {
                 AttachmentTransformation a = (AttachmentTransformation) at;
                 var dest = new EmailPartDocumentDestination();
                 mainPart.addBodyPart(dest.getBodyPart());
-                dest.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, params));
-                partTasks.add(() -> {
-                    try (var ignored = new Timer("Email attachment '"+a.filenamePattern+"' transformation")) {
-                        a.contents.execute(tx, dest, params, fileUploads, autoInc, true);
-                    }
-                    catch (DocumentTemplateInvalidException e) { throw new RuntimeException("unreachable"); }
-                    catch (TransformationFailedException e) {
-                        throw new RuntimeException(new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e));
-                    }
-                });
+                dest.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, context.params));
+                try {
+                    partTasks.add(a.contents.scheduleExecution(context, dest, true));
+                }
+                catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e); }
             }
             else if (at instanceof AttachmentsFromRequestFileUploads) {
-                for (var upload : fileUploads) {
+                for (var upload : context.fileUploads) {
                     var filePart = new MimeBodyPart();
                     filePart.setDataHandler(new DataHandler(new UploadedFileDataSource(upload)));
                     filePart.setFileName(upload.getSubmittedFileName());
@@ -233,20 +217,19 @@ public class EmailTask extends Task {
             else throw new RuntimeException(at.getClass().getName());
         }
 
-        threads.addTasks(partTasks);
-        threads.addTaskWithDependencies(partTasks, () -> {
+        context.threads.addTaskWithDependencies(partTasks, () -> {
             try {
-                assert tx.email != null; // because requiresEmailServer() returns true
-                synchronized (tx.email) {
+                assert context.tx.email != null; // because requiresEmailServer() returns true
+                synchronized (context.tx.email) {
                     for (var toPattern : toPatterns) {
-                        var msg = tx.email.newMimeMessage();
-                        msg.setFrom(new InternetAddress(replacePlainTextParameters(fromPattern, params)));
-                        msg.addRecipient(RecipientType.TO, new InternetAddress(replacePlainTextParameters(toPattern, params)));
-                        msg.setSubject(replacePlainTextParameters(subjectPattern, params));
+                        var msg = context.tx.email.newMimeMessage();
+                        msg.setFrom(new InternetAddress(replacePlainTextParameters(fromPattern, context.params)));
+                        msg.addRecipient(RecipientType.TO, new InternetAddress(replacePlainTextParameters(toPattern, context.params)));
+                        msg.setSubject(replacePlainTextParameters(subjectPattern, context.params));
                         msg.setContent(mainPart);
                         msg.setSentDate(new Date());
 
-                        tx.email.send(msg);
+                        context.tx.email.send(msg);
                     }
                 }
             }
