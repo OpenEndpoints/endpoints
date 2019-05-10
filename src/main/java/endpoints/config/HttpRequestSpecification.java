@@ -19,6 +19,8 @@ import endpoints.DeploymentParameters;
 import endpoints.EndpointExecutor.RequestInvalidException;
 import endpoints.EndpointExecutor.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
+import endpoints.TransformationContext;
+import endpoints.datasource.TransformationFailedException;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -45,6 +47,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
@@ -245,138 +248,169 @@ public class HttpRequestSpecification {
         catch (VariableNotFoundException e) { throw new ConfigurationException(e); }
     }
 
-    /** @return null if an error occurred and this request is set to ignore errors */
-    @SneakyThrows({TransformerConfigurationException.class, TransformerException.class, DocumentTemplateInvalidException.class})
-    public @CheckForNull URLConnection executeAndAssertNoError(
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads
-    ) throws HttpRequestFailedException {
-        try {
-            var baseUrl = replacePlainTextParameters(urlPattern, params); // without ?x=y parameters
-            try (var ignored = new Timer("Execute HTTP request to '" + baseUrl + "'")) {
-                var getParameters = new HashMap<String, String>();
-                for (var e : getParameterPatterns.entrySet())
-                    getParameters.put(e.getKey(), replacePlainTextParameters(e.getValue(), params));
-                var urlAndParams = getParameterPatterns.isEmpty()
-                    ? baseUrl
-                    : baseUrl + "?" + WebEncodingUtils.encodeGetParameters(getParameters);
-    
-                var urlConnection = (HttpURLConnection) new URL(urlAndParams).openConnection();
-                urlConnection.setRequestMethod(method.name());
-    
-                for (var e : requestHeaderPatterns.entrySet())
-                    urlConnection.setRequestProperty(e.getKey(), replacePlainTextParameters(e.getValue(), params));
-    
-                if (usernamePatternOrNull != null && passwordPatternOrNull != null) {
-                    var user = replacePlainTextParameters(usernamePatternOrNull, params);
-                    var pw = replacePlainTextParameters(passwordPatternOrNull, params);
-                    var encodedAuth = Base64.encodeBase64String((user + ":" + pw).getBytes(UTF_8));
-                    urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
-                }
-    
-                if (requestBodyXmlTemplate != null || requestBodyXmlTransformer != null) {
-                    if ( ! requestHeaderPatterns.keySet().stream().map(x -> x.toLowerCase()).collect(toSet()).contains("content-type"))
-                        urlConnection.setRequestProperty("Content-Type", "application/xml; charset=UTF-8");
-                    urlConnection.setDoOutput(true);
-                    try (var o = urlConnection.getOutputStream()) {
-                        // Get XML (either fixed in <xml-body>, or result of XSLT) 
-                        Document body;
-                        if (requestBodyXmlTemplate != null) {
-                            var stringParams = params.entrySet().stream().collect(toMap(e -> e.getKey().name, e -> e.getValue()));
-                            body = DomVariableExpander.expand(dollarThenBraces, stringParams, requestBodyXmlTemplate);
-                        } else if (requestBodyXmlTransformer != null) {
-                            var parametersXml = createParametersElement("parameters", params);
-                            var bodyDocument = new DOMResult();
-                            requestBodyXmlTransformer.newTransformer().transform(
-                                new DOMSource(parametersXml.getOwnerDocument()), bodyDocument);
-                            body = (Document) bodyDocument.getNode();
-                            logXmlForDebugging(getClass(), "Result of XSLT, to send to '" + baseUrl + "'", body);
-                        } else {
-                            throw new RuntimeException("Unreachable");
-                        }
-                        
-                        // Add base64 uploaded files if necessary
-                        if (replaceXmlElementWithFileUploads)
-                            body = replaceXmlElementWithFileUploads(fileUploads, body);
-                        
-                        // Stream to HTTP connection
-                        TransformerFactory.newInstance().newTransformer().transform(new DOMSource(body), new StreamResult(o));
-                    }
-                }
+    protected void throwException(@Nonnull String url, @Nonnull Exception e) {
+        if (e instanceof IOException) {
+            e = new HttpRequestFailedException(url, null, "URL '" + url + "'", e);
+        }
+        if (e instanceof HttpRequestFailedException) {
+            if (ignoreIfError) {
+                Logger.getLogger(HttpRequestSpecification.this.getClass()).warn(e.getMessage());
+                return;
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+        throw new RuntimeException(e);
+    }
 
-                if (requestBodyJsonTemplate != null || requestBodyJsonTransformer != null) {
-                    if ( ! requestHeaderPatterns.keySet().stream().map(x -> x.toLowerCase()).collect(toSet()).contains("content-type"))
-                        urlConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-                    urlConnection.setDoOutput(true);
-                    try (var o = urlConnection.getOutputStream()) {
-                        if (requestBodyJsonTemplate != null) {
-                            var body = expandJson(params, requestBodyJsonTemplate);
-                            new ObjectMapper().writeValue(o, body);
-                        } else if (requestBodyJsonTransformer != null) {
-                            var parametersXml = createParametersElement("parameters", params);
-                            StringWriter json = new StringWriter();
-                            requestBodyJsonTransformer.newTransformer().transform(
-                                new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
-                            if (DeploymentParameters.get().xsltDebugLog)
-                                Logger.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
-                            IOUtils.write(json.toString(), o, UTF_8.name());
-                        } else {
-                            throw new RuntimeException("Unreachable");
+    /** @param after URLConnection is null if an error occurred and this request is set to ignore errors */
+    @SneakyThrows({TransformerConfigurationException.class, TransformerException.class, DocumentTemplateInvalidException.class})
+    public @Nonnull Runnable scheduleExecutionAndAssertNoError(
+        @Nonnull TransformationContext context, @Nonnull Consumer<URLConnection> after
+    ) throws TransformationFailedException {
+        var baseUrl = replacePlainTextParameters(urlPattern, context.params); // without ?x=y parameters
+        var precursorTasks = new ArrayList<Runnable>();
+        try (var ignored = new Timer("Prepare HTTP request to '" + baseUrl + "'")) {
+            var getParameters = new HashMap<String, String>();
+            for (var e : getParameterPatterns.entrySet())
+                getParameters.put(e.getKey(), replacePlainTextParameters(e.getValue(), context.params));
+            var urlAndParams = getParameterPatterns.isEmpty()
+                ? baseUrl
+                : baseUrl + "?" + WebEncodingUtils.encodeGetParameters(getParameters);
+
+            var urlConnection = (HttpURLConnection) new URL(urlAndParams).openConnection();
+            urlConnection.setRequestMethod(method.name());
+
+            for (var e : requestHeaderPatterns.entrySet())
+                urlConnection.setRequestProperty(e.getKey(), replacePlainTextParameters(e.getValue(), context.params));
+
+            if (usernamePatternOrNull != null && passwordPatternOrNull != null) {
+                var user = replacePlainTextParameters(usernamePatternOrNull, context.params);
+                var pw = replacePlainTextParameters(passwordPatternOrNull, context.params);
+                var encodedAuth = Base64.encodeBase64String((user + ":" + pw).getBytes(UTF_8));
+                urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+            }
+
+            if (requestBodyXmlTemplate != null || requestBodyXmlTransformer != null) {
+                if ( ! requestHeaderPatterns.keySet().stream().map(x -> x.toLowerCase()).collect(toSet()).contains("content-type"))
+                    urlConnection.setRequestProperty("Content-Type", "application/xml; charset=UTF-8");
+                
+                // Get XML (either fixed in <xml-body>, or result of XSLT) 
+                Document body;
+                if (requestBodyXmlTemplate != null) {
+                    var stringParams = context.params.entrySet().stream().collect(toMap(e -> e.getKey().name, e -> e.getValue()));
+                    body = DomVariableExpander.expand(dollarThenBraces, stringParams, requestBodyXmlTemplate);
+                } else if (requestBodyXmlTransformer != null) {
+                    var parametersXml = createParametersElement("parameters", context.params);
+                    var bodyDocument = new DOMResult();
+                    requestBodyXmlTransformer.newTransformer().transform(
+                        new DOMSource(parametersXml.getOwnerDocument()), bodyDocument);
+                    body = (Document) bodyDocument.getNode();
+                    logXmlForDebugging(getClass(), "Result of XSLT, to send to '" + baseUrl + "'", body);
+                } else {
+                    throw new RuntimeException("Unreachable");
+                }
+                
+                // Add base64 uploaded files if necessary
+                if (replaceXmlElementWithFileUploads)
+                    body = replaceXmlElementWithFileUploads(context.fileUploads, body);
+                
+                // After XSLT results expanded, make request
+                Consumer<Document> makeRequest = new Consumer<Document>() {
+                    @SneakyThrows({IOException.class, TransformerConfigurationException.class, TransformerException.class})
+                    @Override public void accept(Document body) {
+                        urlConnection.setDoOutput(true);
+                        try (var o = urlConnection.getOutputStream()) {
+                            TransformerFactory.newInstance().newTransformer().transform(new DOMSource(body), new StreamResult(o));
                         }
                     }
+                };
+                
+                makeRequest.accept(body);
+            }
+
+            if (requestBodyJsonTemplate != null || requestBodyJsonTransformer != null) {
+                if ( ! requestHeaderPatterns.keySet().stream().map(x -> x.toLowerCase()).collect(toSet()).contains("content-type"))
+                    urlConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+                urlConnection.setDoOutput(true);
+                try (var o = urlConnection.getOutputStream()) {
+                    if (requestBodyJsonTemplate != null) {
+                        var body = expandJson(context.params, requestBodyJsonTemplate);
+                        new ObjectMapper().writeValue(o, body);
+                    } else if (requestBodyJsonTransformer != null) {
+                        var parametersXml = createParametersElement("parameters", context.params);
+                        StringWriter json = new StringWriter();
+                        requestBodyJsonTransformer.newTransformer().transform(
+                            new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
+                        if (DeploymentParameters.get().xsltDebugLog)
+                            Logger.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
+                        IOUtils.write(json.toString(), o, UTF_8.name());
+                    } else {
+                        throw new RuntimeException("Unreachable");
+                    }
                 }
-    
-                if (urlConnection.getResponseCode() < 200 || urlConnection.getResponseCode() >= 300) {
-                    String body = null;
-                    var type = urlConnection.getContentType();
-                    if (type != null && (type.contains("text") || type.contains("json") || type.contains("xml"))) {
-                        try (var errorStream = urlConnection.getErrorStream()) {
-                            if (errorStream != null) {
-                                var responseCharset = MediaType.parse(urlConnection.getContentType()).charset().or(UTF_8);
-                                body = IOUtils.toString(errorStream, responseCharset.name());
+            }
+            
+            Runnable executeRequest = () -> {
+                try (var ignored2 = new Timer("Execute HTTP request to '" + baseUrl + "'")) {
+                    if (urlConnection.getResponseCode() < 200 || urlConnection.getResponseCode() >= 300) {
+                        String body = null;
+                        var type = urlConnection.getContentType();
+                        if (type != null && (type.contains("text") || type.contains("json") || type.contains("xml"))) {
+                            try (var errorStream = urlConnection.getErrorStream()) {
+                                if (errorStream != null) {
+                                    var responseCharset = MediaType.parse(urlConnection.getContentType()).charset().or(UTF_8);
+                                    body = IOUtils.toString(errorStream, responseCharset.name());
+                                }
                             }
                         }
+
+                        var bodyMsg = body == null ? "" :
+                            " (body was: " +
+                                (body.length() > 1_000 ? body.substring(0, 1_000) + "... [truncated]" : body)
+                                + ")";
+
+                        var reasonPhrase = urlConnection.getResponseMessage() == null || urlConnection.getResponseMessage().isEmpty()
+                            ? "" : " " + urlConnection.getResponseMessage();
+
+                        throw new HttpRequestFailedException(baseUrl, urlConnection.getResponseCode(), "URL '" + baseUrl
+                            + "' returned " + urlConnection.getResponseCode()
+                            + reasonPhrase + bodyMsg);
                     }
-    
-                    var bodyMsg = body == null ? "" :
-                        " (body was: " +
-                            (body.length() > 1_000 ? body.substring(0, 1_000)+"... [truncated]" : body)
-                        + ")";
-    
-                    var reasonPhrase = urlConnection.getResponseMessage() == null || urlConnection.getResponseMessage().isEmpty()
-                        ? "" : " " + urlConnection.getResponseMessage();
-    
-                    throw new HttpRequestFailedException(baseUrl, urlConnection.getResponseCode(), "URL '" + baseUrl
-                        + "' returned " + urlConnection.getResponseCode()
-                        + reasonPhrase + bodyMsg);
+
+                    after.accept(urlConnection);
+
                 }
-    
-                return urlConnection;
-            }
-            catch (IOException e) { throw new HttpRequestFailedException(baseUrl, null, "URL '" + baseUrl + "'", e); }
+                catch (IOException | HttpRequestFailedException e) { 
+                    throwException(baseUrl, e);
+                    after.accept(null);
+                }
+            };
+            context.threads.addTaskWithDependenciesOffPool(precursorTasks, executeRequest);
+            return executeRequest;
         }
-        catch (HttpRequestFailedException e) {
-            if (ignoreIfError) {
-                Logger.getLogger(getClass()).warn(e.getMessage());
-                return null;
-            } else throw e;
+        catch (IOException e) { 
+            throwException(baseUrl, e);
+            Runnable task = () -> after.accept(null);
+            context.threads.addTask(task);
+            return task;
         }
     }
 
-    /** @return null if an error occurred and this request is set to ignore errors. Does not expand variables in response */
-    public @CheckForNull Element executeAndParseResponse(
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads
-    ) throws HttpRequestFailedException {
-        var urlConnection = executeAndAssertNoError(params, fileUploads);
-        if (urlConnection == null) return null;
-        
-        try {
+    /** @param after if an error occurred and this request is set to ignore errors. Does not expand variables in response */
+    public @Nonnull Runnable scheduleExecutionAndParseResponse(
+        @Nonnull TransformationContext context, @Nonnull Consumer<Element> after
+    ) throws TransformationFailedException {
+        return scheduleExecutionAndAssertNoError(context, urlConnection -> {
+            if (urlConnection == null) { after.accept(null); return; }
+
             var url = urlConnection.getURL();
     
             try {
                 if (urlConnection.getContentLength() == 0) {
                     var response = DomParser.newDocumentBuilder().newDocument();
                     response.appendChild(response.createElement("empty-response"));
-                    return response.getDocumentElement();
+                    after.accept(response.getDocumentElement());
                 }
                 else if (urlConnection.getContentType().toLowerCase().contains("json")) {
                     var responseCharset = MediaType.parse(urlConnection.getContentType()).charset().or(UTF_8);
@@ -385,40 +419,41 @@ public class HttpRequestSpecification {
                         xmlString = XML.toString(new JSONTokener(reader).nextValue());
                     }
                     catch (JSONException e) {
-                        throw new HttpRequestFailedException(url.toExternalForm(), null, "Cannot parse JSON response from '" + url + "'", e);
+                        throw new HttpRequestFailedException(url.toExternalForm(), null, 
+                            "Cannot parse JSON response from '" + url + "'", e);
                     }
     
                     // The "JSON to XML" conversion does not necessarily have a single root element. XML requires a single root element.
                     var xmlIncludingHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?><response>" + xmlString + "</response>";
     
                     try {
-                        return newDocumentBuilder().parse(new ByteArrayInputStream(xmlIncludingHeader.getBytes(UTF_8))).getDocumentElement();
+                        after.accept(newDocumentBuilder().parse(
+                            new ByteArrayInputStream(xmlIncludingHeader.getBytes(UTF_8))).getDocumentElement());
                     }
                     catch (SAXException e) {
-                        Logger.getLogger(getClass()).info("Response JSON, converted to XML: " + xmlIncludingHeader);
-                        throw new HttpRequestFailedException(url.toExternalForm(), null, "Could not convert JSON at URL '" + url + "' to valid XML", e);
+                        Logger.getLogger(HttpRequestSpecification.this.getClass())
+                            .info("Response JSON, converted to XML: " + xmlIncludingHeader);
+                        throw new HttpRequestFailedException(url.toExternalForm(), null, 
+                            "Could not convert JSON at URL '" + url + "' to valid XML", e);
                     }
                 }
                 else if (urlConnection.getContentType().toLowerCase().contains("xml")) {
                     try (var inputStream = urlConnection.getInputStream()) {
                         var downloadedXml = DomParser.newDocumentBuilder().parse(inputStream);
-                        return downloadedXml.getDocumentElement();
+                        after.accept(downloadedXml.getDocumentElement());
                     }
                     catch (SAXException e) {
                         throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "' contained invalid XML", e);
                     }
                 }
-                else throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "' returned an unexpected content type " +
+                else throw new HttpRequestFailedException(url.toExternalForm(), null, 
+                        "URL '" + url + "' returned an unexpected content type " +
                         "'" + urlConnection.getContentType() + "': Expecting XML, JSON, or empty content");
             }
-            catch (IOException e) { throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "'", e); }
-        }
-        catch (HttpRequestFailedException e) {
-            if (ignoreIfError) {
-                Logger.getLogger(getClass()).warn(e.getMessage());
-                return null;
+            catch (IOException | HttpRequestFailedException e) { 
+                throwException(url.toExternalForm(), e);
+                after.accept(null);
             }
-            else throw e;
-        }
+        });
     }
 }
