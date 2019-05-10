@@ -432,13 +432,14 @@ public class EndpointExecutor {
 
                     try { taskThreads.execute(); }
                     catch (RuntimeException e) {
-                        if (e.getCause() != null && e.getCause() instanceof RequestInvalidException)
+                        if (e.getCause() instanceof RequestInvalidException)
                             throw (RequestInvalidException) e.getCause();
-                        if (e.getCause() != null && e.getCause() instanceof TransformationFailedException)
+                        else if (e.getCause() instanceof TransformationFailedException)
                             throw (TransformationFailedException) e.getCause();
-                        if (e.getCause() != null && e.getCause() instanceof TaskExecutionFailedException)
+                        else if (e.getCause() instanceof TaskExecutionFailedException)
                             throw (TaskExecutionFailedException) e.getCause();
-                        throw e;
+                        else
+                            throw e;
                     }
 
                     responseContent = responseCreationTask.responseContent;
