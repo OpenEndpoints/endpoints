@@ -1,6 +1,7 @@
 package endpoints.task;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import com.offerready.xslt.BufferedDocumentGenerationDestination;
 import com.offerready.xslt.EmailPartDocumentDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
@@ -12,12 +13,14 @@ import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.val;
 import org.w3c.dom.Element;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.mail.BodyPart;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -25,14 +28,13 @@ import javax.mail.Part;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 
 import static com.databasesandlife.util.DomParser.*;
+import static com.offerready.xslt.EmailPartDocumentDestination.newMimeBodyForDestination;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 public class EmailTask extends Task {
@@ -178,10 +180,11 @@ public class EmailTask extends Task {
         bodyPart.setContent(body);
         mainPart.addBodyPart(bodyPart);
         for (var bodyTransformer : alternativeBodies) {
-            var bodyDestination = new EmailPartDocumentDestination();
-            body.addBodyPart(bodyDestination.getBodyPart());
             try {
-                partTasks.add(bodyTransformer.scheduleExecution(context, bodyDestination));
+                var xslt = context.getOrScheduleTransformation(bodyTransformer);
+                var ourBodyPart = newMimeBodyForDestination(xslt.result);
+                body.addBodyPart(ourBodyPart);
+                partTasks.add(xslt);
             }
             catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Email body", e); }
         }
@@ -196,12 +199,14 @@ public class EmailTask extends Task {
                 mainPart.addBodyPart(attachmentPart);
             }
             else if (at instanceof AttachmentTransformation) {
-                AttachmentTransformation a = (AttachmentTransformation) at;
-                var dest = new EmailPartDocumentDestination();
-                mainPart.addBodyPart(dest.getBodyPart());
-                dest.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, context.params));
+                var a = (AttachmentTransformation) at;
                 try {
-                    partTasks.add(a.contents.scheduleExecution(context, dest));
+                    var xslt = context.getOrScheduleTransformation(a.contents);
+                    var part = newMimeBodyForDestination(xslt.result);
+                    part.setFileName(replacePlainTextParameters(a.filenamePattern, context.params));
+                    part.setDisposition(Part.ATTACHMENT);
+                    mainPart.addBodyPart(part);
+                    partTasks.add(xslt);
                 }
                 catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e); }
             }
