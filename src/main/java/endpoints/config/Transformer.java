@@ -4,13 +4,17 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.DocumentGenerationDestination;
 import com.offerready.xslt.DocumentGenerator;
 import com.offerready.xslt.DocumentOutputDefinition;
+import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.TransformationContext;
 import endpoints.datasource.DataSource;
 import endpoints.datasource.TransformationFailedException;
+import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.Collection;
+import java.util.Collections;
 
 public class Transformer {
     
@@ -35,4 +39,19 @@ public class Transformer {
             catch (DocumentTemplateInvalidException e) { throw new RuntimeException(e); }
         });
     }
+    
+    @SneakyThrows(ConfigurationException.class)
+    public static @Nonnull Transformer newIdentityTransformerForTesting() {
+        var defn = new DocumentOutputDefinition(Collections.emptyMap());
+
+        var threads = new WeaklyCachedXsltTransformer.XsltCompilationThreads();
+        var result = new Transformer();
+        result.source = new DataSource();
+        result.generator = new DocumentGenerator(threads, defn);
+        threads.execute();
+
+        return result;
+    }
+
+
 }

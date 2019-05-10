@@ -1,13 +1,17 @@
 package endpoints.config;
 
 import com.databasesandlife.util.DomParser;
+import com.databasesandlife.util.TemporaryFile;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.ApplicationTransaction;
 import endpoints.EndpointExecutor.UploadedFile;
+import endpoints.TransformationContext;
 import endpoints.config.HttpRequestSpecification.HttpRequestFailedException;
+import endpoints.datasource.TransformationFailedException;
 import junit.framework.TestCase;
 import lombok.SneakyThrows;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
@@ -28,6 +32,7 @@ import java.util.HashMap;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 
 public class HttpRequestSpecificationTest extends TestCase {
 
@@ -35,58 +40,71 @@ public class HttpRequestSpecificationTest extends TestCase {
 
     @FunctionalInterface
     interface DeliverResponse {
-        public void deliverResponse(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response) throws IOException;
+        void deliverResponse(@Nonnull HttpServletRequest request, @Nonnull HttpServletResponse response) 
+        throws IOException, ConfigurationException;
     }
 
     @SneakyThrows({ConfigurationException.class, IOException.class})
-    public @Nonnull Element runTest(@Nonnull String configXml, @Nonnull DeliverResponse deliverResponse)
-    throws HttpRequestFailedException {
-        var httpXslt = "" +
-            "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>" +
-            "  <xsl:template match='/'>" +
-            "    <xml-from-xslt/>" +
-            "  </xsl:template>" +
-            "</xsl:stylesheet>";
-        var xsltDir = File.createTempFile("xslt-files", "");
-        if ( ! xsltDir.delete()) throw new RuntimeException();
-        if ( ! xsltDir.mkdir()) throw new RuntimeException();
-        var xsltFile = new File(xsltDir, "unit-test.xslt");
-        FileUtils.writeStringToFile(xsltFile, httpXslt, StandardCharsets.UTF_8.name());
-        
-        var config =
-            "<task class='endpoints.task.HttpRequestTask'>" +
-            "  <url>http://localhost:"+port+"/</url>" +
-            configXml +
-            "</task>";
-        var threads = new XsltCompilationThreads();
-        var configElement = DomParser.from(new ByteArrayInputStream(config.getBytes(UTF_8)));
-        var httpSpec = new HttpRequestSpecification(threads, xsltDir, configElement);
-        threads.execute();
+    public Element runTest(boolean ignoreErrors, @Nonnull String configXml, @Nonnull DeliverResponse deliverResponse)
+    throws HttpRequestFailedException, TransformationFailedException {
+        try (var xsltDir = new TemporaryFile("xslt-files", "dir")) {
+            var httpXslt = "" +
+                "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>" +
+                "  <xsl:template match='/'>" +
+                "    <xml-from-xslt/>" +
+                "  </xsl:template>" +
+                "</xsl:stylesheet>";
+            if ( ! xsltDir.file.delete()) throw new RuntimeException();
+            if ( ! xsltDir.file.mkdir()) throw new RuntimeException();
+            var xsltFile = new File(xsltDir.file, "unit-test.xslt");
+            FileUtils.writeStringToFile(xsltFile, httpXslt, StandardCharsets.UTF_8.name());
 
-        var server = new Server(port);
-        server.setHandler(new AbstractHandler() {
-            @Override public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-                response.setStatus(HttpServletResponse.SC_OK);
-                deliverResponse.deliverResponse(request, response);
-                baseRequest.setHandled(true);
+            var config =
+                "<task class='endpoints.task.HttpRequestTask' "+(ignoreErrors?"ignore-if-error='true'":"")+">" +
+                "  <url>http://localhost:"+port+"/</url>" +
+                configXml +
+                "</task>";
+            var threads = new XsltCompilationThreads();
+            var configElement = DomParser.from(new ByteArrayInputStream(config.getBytes(UTF_8)));
+            var httpSpec = new HttpRequestSpecification(threads, xsltDir.file, configElement);
+            threads.execute();
+
+            var server = new Server(port);
+            server.setHandler(new AbstractHandler() {
+                @SneakyThrows(ConfigurationException.class)
+                @Override public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+                throws IOException {
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    deliverResponse.deliverResponse(request, response);
+                    baseRequest.setHandled(true);
+                }
+            });
+
+            var params = new HashMap<ParameterName, String>();
+            params.put(new ParameterName("foo"), "bar");
+
+            try { server.start(); }
+            catch (Exception e) { throw new RuntimeException(e); }
+
+            var application = new Application();
+            try (var tx = new ApplicationTransaction(application)) {
+                var context = new TransformationContext(tx, params, emptyList(), emptyMap());
+                var resultContainer = new Object() {
+                    public Element element;
+                };
+                httpSpec.scheduleExecutionAndParseResponse(context, e -> resultContainer.element = e);
+                context.threads.execute();
+                return resultContainer.element;
             }
-        });
+            catch (RuntimeException e) {
+                if (e.getCause() instanceof HttpRequestFailedException) throw (HttpRequestFailedException) e.getCause();
+                else throw e;
+            }
+            finally {
+                try { server.stop(); }
+                catch (Exception e) { e.printStackTrace(); }
+            }
 
-        var params = new HashMap<ParameterName, String>();
-        params.put(new ParameterName("foo"), "bar");
-
-        try { server.start(); }
-        catch (Exception e) { throw new RuntimeException(e); }
-
-        try {
-            var result = httpSpec.executeAndParseResponse(params, emptyList());
-            assertNotNull(result);
-            return result;
-        }
-        finally {
-            try { server.stop(); }
-            catch (Exception e) { e.printStackTrace(); }
         }
     }
 
@@ -116,56 +134,81 @@ public class HttpRequestSpecificationTest extends TestCase {
         assertEquals("password.txt", upload.getAttributes().getNamedItem("filename").getTextContent());
         assertEquals("d3Q=", upload.getTextContent());
     }
+    
+    protected void runTestFail(@Nonnull String configXml, @Nonnull DeliverResponse deliverResponse)
+    throws TransformationFailedException, HttpRequestFailedException {
+        try { runTest(false, configXml, deliverResponse); fail(); }
+        catch (HttpRequestFailedException ignored) { }
+
+        runTest(true, configXml, deliverResponse);
+    }
 
     public void testExecuteAndParseResponse() throws Exception {
         // Test normal case
-        runTest("", (req, resp) -> { });
+        runTest(false, "", (req, resp) -> { });
 
         // Test non-200 status code
-        try { runTest("", (req, resp) -> resp.setStatus(HttpServletResponse.SC_CONFLICT)); fail(); }
-        catch (HttpRequestFailedException ignored) { }
+        runTestFail("", (req, resp) -> resp.setStatus(HttpServletResponse.SC_CONFLICT));
 
         // Test non GET method
-        runTest("<method name='POST'/>", (req, resp) -> {
+        runTest(false, "<method name='POST'/>", (req, resp) -> {
             if ( ! req.getMethod().equals("POST")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test GET parameter incl parameter expansion
-        runTest("<get-parameter name='foo'>${foo}</get-parameter>", (req, resp) -> {
+        runTest(false, "<get-parameter name='foo'>${foo}</get-parameter>", (req, resp) -> {
             if ( ! req.getParameter("foo").equals("bar")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test header incl parameter expansion
-        runTest("<request-header name='foo'>${foo}</request-header>", (req, resp) -> {
+        runTest(false, "<request-header name='foo'>${foo}</request-header>", (req, resp) -> {
             if ( ! req.getHeader("foo").equals("bar")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test XML request body (fixed) incl parameter expansion
-        runTest("<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
+        runTest(false, "<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<your-tag>bar</your-tag>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
-        // Test XML request body (xslt) incl parameter expansion
-        runTest("<xml-body xslt-file='unit-test.xslt'/>", (req, resp) -> {
+        // Test XML request body (xslt)
+        runTest(false, "<xml-body xslt-file='unit-test.xslt'/>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<xml-from-xslt/>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test JSON request body incl parameter expansion
-        runTest("<json-body>{ \"key\": \"${foo}\" }</json-body>", (req, resp) -> {
+        runTest(false, "<json-body>{ \"key\": \"${foo}\" }</json-body>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("\"key\":\"bar\""))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
+        // Test non-XML/JSON case
+        runTestFail("", (req, resp) -> {
+            resp.setContentType("text/plain");
+            IOUtils.write("some-text", resp.getOutputStream());
+        });
+
+        // Test invalid XML
+        runTestFail("", (req, resp) -> {
+            resp.setContentType("application/xml");
+            IOUtils.write("not-valid-xml", resp.getOutputStream());
+        });
+
         // Test XML response body
-        assertEquals("output", runTest("", (req, resp) -> {
+        assertEquals("output", runTest(false, "", (req, resp) -> {
             resp.setContentType("application/xml");
             IOUtils.write("<output>stuff</output>", resp.getOutputStream());
         }).getTagName());
 
+        // Test invalid JSON
+        runTestFail("", (req, resp) -> {
+            resp.setContentType("application/json");
+            IOUtils.write("{'foo'", resp.getOutputStream());
+        });
+
         // Test JSON response body
-        var jsonResponse = runTest("", (req, resp) -> {
+        var jsonResponse = runTest(false, "", (req, resp) -> {
             resp.setContentType("application/json");
             IOUtils.write("{ \"output\": \"stuff\" }", resp.getOutputStream());
         });
@@ -173,7 +216,7 @@ public class HttpRequestSpecificationTest extends TestCase {
         assertEquals("output", DomParser.getSubElements(jsonResponse, "*").get(0).getTagName());
 
         // Test empty
-        assertEquals("empty-response", runTest("", (req, resp) -> {
+        assertEquals("empty-response", runTest(false, "", (req, resp) -> {
             resp.setContentType("something/invalid");
         }).getTagName());
     }

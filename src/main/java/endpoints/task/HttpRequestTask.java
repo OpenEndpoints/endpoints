@@ -7,6 +7,8 @@ import endpoints.config.HttpRequestSpecification;
 import endpoints.config.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
+import endpoints.datasource.TransformationFailedException;
+import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
@@ -35,10 +37,8 @@ public class HttpRequestTask extends Task {
     }
     
     @Override
+    @SneakyThrows(TransformationFailedException.class)
     protected @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) {
-        context.threads.addTask(() -> {
-            try { spec.executeAndAssertNoError(context.params, context.fileUploads); }
-            catch (HttpRequestFailedException e) { throw new RuntimeException(new TaskExecutionFailedException(e)); }
-        });
+        spec.scheduleExecutionAndAssertNoError(context, urlConnection -> {});
     }
 }
