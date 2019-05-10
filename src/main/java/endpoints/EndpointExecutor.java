@@ -358,7 +358,7 @@ public class EndpointExecutor {
         return dest;
     }
 
-    protected RequestLogRecord newRequestLogRecord(
+    protected @Nonnull RequestLogRecord newRequestLogRecord(
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpointName,
         @Nonnull Instant now, @Nonnull Request req, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
