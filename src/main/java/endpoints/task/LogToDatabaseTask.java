@@ -1,17 +1,10 @@
 package endpoints.task;
 
-import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.databasesandlife.util.jdbc.DbTransaction.SqlException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
-import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
-import endpoints.PlaintextParameterReplacer;
+import endpoints.*;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import org.w3c.dom.Element;
@@ -57,19 +50,15 @@ public class LogToDatabaseTask extends Task {
     }
     
     @Override
-    protected @Nonnull void scheduleTaskExecutionUnconditionally(
-        @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
-        @Nonnull Map<ParameterName, String> parameters, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) {
-        threads.addTask(() -> {
+    protected @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) {
+        context.threads.addTask(() -> {
             final DbTransaction db;
-            if (jdbcUrlOrNull == null) db = tx.db;
-            else tx.addDatabaseConnection(db = new DbTransaction(jdbcUrlOrNull));
+            if (jdbcUrlOrNull == null) db = context.tx.db;
+            else context.tx.addDatabaseConnection(db = new DbTransaction(jdbcUrlOrNull));
 
             try {
                 var cols = patternForColumn.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
-                    e -> PlaintextParameterReplacer.replacePlainTextParameters(e.getValue(), parameters)));
+                    e -> PlaintextParameterReplacer.replacePlainTextParameters(e.getValue(), context.params)));
                 db.insert(table, cols);
             }
             catch (SqlException e) {

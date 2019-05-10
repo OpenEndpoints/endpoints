@@ -137,7 +137,7 @@
         <dependency>
             <groupId>com.databasesandlife</groupId>
             <artifactId>java-common</artifactId>
-            <version>8.9.1</version>
+            <version>8.10.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>

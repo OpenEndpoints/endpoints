@@ -1,18 +1,18 @@
 package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
+import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.databasesandlife.util.jdbc.DbTransaction.CannotConnectToDatabaseException;
 import com.databasesandlife.util.jdbc.DbTransaction.SqlException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
 import endpoints.EndpointExecutor.UploadedFile;
 import endpoints.OnDemandIncrementingNumber;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.PlaintextParameterReplacer;
+import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
@@ -91,16 +91,14 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     }
     
     @Override
-    public @Nonnull DataSourceCommandResult execute(
-        @Nonnull ApplicationTransaction tx, 
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) {
-        return new DataSourceCommandResult() {
+    public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+        var result = new DataSourceCommandResult() {
             @Override protected Element[] populateOrThrow() {
-                var paramsExpanded = paramPatterns.stream().map(pattern -> replacePlainTextParameters(pattern, params)).toArray();
-                return execute(tx.db, paramsExpanded);
+                var paramsExpanded = paramPatterns.stream().map(pattern -> replacePlainTextParameters(pattern, context.params)).toArray();
+                return execute(context.tx.db, paramsExpanded);
             }
         };
+        context.threads.addTaskOffPool(result);
+        return result;
     }
 }

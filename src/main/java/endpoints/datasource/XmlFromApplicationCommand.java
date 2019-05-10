@@ -5,14 +5,9 @@ import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
-import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.PlaintextParameterReplacer;
+import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
@@ -23,7 +18,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -91,19 +85,17 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult execute(
-        @Nonnull ApplicationTransaction tx, 
-        @Nonnull Map<ParameterName, String> params, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) {
-        return new DataSourceCommandResult() {
+    public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+        var result = new DataSourceCommandResult() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
-                var stringParams = params.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue()));
-                var fileElement = executeImmediately(params);
+                var stringParams = context.params.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue()));
+                var fileElement = executeImmediately(context.params);
                 if (fileElement == null) return new Element[0];
                 var expanded = DomVariableExpander.expand(dollarThenBraces, stringParams, fileElement).getDocumentElement();
                 return new Element[] { expanded };
             }
         };
+        context.threads.addTask(result);
+        return result;
     }
 }

@@ -1,14 +1,8 @@
 package endpoints.task;
 
-import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor;
-import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
+import endpoints.TransformationContext;
 import endpoints.config.HttpRequestSpecification;
 import endpoints.config.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.config.ParameterName;
@@ -17,7 +11,6 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -42,13 +35,9 @@ public class HttpRequestTask extends Task {
     }
     
     @Override
-    protected @Nonnull void scheduleTaskExecutionUnconditionally(
-        @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
-        @Nonnull Map<ParameterName, String> parameters, @Nonnull List<? extends UploadedFile> fileUploads,
-        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc
-    ) {
-        threads.addTask(() -> {
-            try { spec.executeAndAssertNoError(parameters, fileUploads); }
+    protected @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) {
+        context.threads.addTask(() -> {
+            try { spec.executeAndAssertNoError(context.params, context.fileUploads); }
             catch (HttpRequestFailedException e) { throw new RuntimeException(new TaskExecutionFailedException(e)); }
         });
     }
