@@ -2162,7 +2162,11 @@ consumed
  The term “on-demand” refers to the fact the number does not get consumed
  unless it is requested.
  The numbers are unique within the application.
- The type attribute may take the values 
+ The 
+\family typewriter
+type
+\family default
+ attribute may take the values 
 \family typewriter
 perpetual
 \family default
@@ -2191,7 +2195,7 @@ month
 \family typewriter
 year
 \family default
-) are not consumed.
+) are not automaticlaly consumed as well.
  If the data source is used twice within the same request, they both see
  the same number.
 \end_layout
