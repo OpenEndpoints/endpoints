@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.util.Map;
 
 /**
  * Application that has been parsed from somewhere.
@@ -15,6 +16,7 @@ import javax.annotation.Nonnull;
  */
 public class Application {
     
+    protected @Getter @Nonnull Map<String, Transformer> transformers;
     protected @Getter @Nonnull EndpointHierarchyFolderNode endpoints;
     protected @Getter @Nonnull String[] secretKeys;
     protected @Getter @CheckForNull EmailSendingConfiguration emailServerOrNull;

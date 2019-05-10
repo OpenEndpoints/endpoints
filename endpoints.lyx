@@ -1780,6 +1780,21 @@ filename
  The encoding is always base64, no other encodings are supported.
 \end_layout
 
+\begin_layout Standard
+The optional attribute 
+\family typewriter
+expand-transformations="true"
+\family default
+ indicates that any element with attributes such as 
+\family typewriter
+<foo xslt-transformation="foo" encoding="base64">
+\family default
+ indicates that the transformation with that name should be executed (for
+ example, genreate a PDF file), and the contents of the resulting file should
+ be placed in this tag.
+ The encoding is always base64, no other encodings are supported.
+\end_layout
+
 \end_deeper
 \begin_layout Description
 XML

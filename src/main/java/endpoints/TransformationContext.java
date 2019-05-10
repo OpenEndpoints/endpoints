@@ -2,6 +2,7 @@ package endpoints;
 
 import com.databasesandlife.util.ThreadPool;
 import com.offerready.xslt.BufferedDocumentGenerationDestination;
+import endpoints.config.Application;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
@@ -20,10 +21,14 @@ import static java.util.Collections.singletonList;
  *   <p>
  * There are (at the time of writing) three times in the endpoints's execution where one is created:
  * During parameter transformation, during success flow, and during error flow.
+ *   <p>
+ * An {@link ApplicationTransaction} can span multiple {@link TransformationContext}s, for example, in the success case,
+ * the parameters and transformed and the success flow executes within one transaction.
  */
 @RequiredArgsConstructor
 public class TransformationContext {
 
+    public final @Nonnull Application application;
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads = new ThreadPool();
     public final @Nonnull Map<ParameterName, String> params;
@@ -35,7 +40,7 @@ public class TransformationContext {
         @Override public void run() { }
     }
     
-    public synchronized @Nonnull TransformerExecutor getOrScheduleTransformation(@Nonnull Transformer transformer) 
+    public synchronized @Nonnull TransformerExecutor scheduleTransformation(@Nonnull Transformer transformer) 
     throws TransformationFailedException {
         var result = new TransformerExecutor();
         var process = transformer.scheduleExecution(this, result.result);
