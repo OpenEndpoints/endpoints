@@ -339,8 +339,8 @@ public class EndpointExecutor {
      */
     @SneakyThrows({IOException.class})
     protected @Nonnull BufferedHttpResponseDocumentGenerationDestination scheduleResponseGeneration(
-        @Nonnull TransformationContext context, 
-        @Nonnull ResponseConfiguration config, boolean success, boolean transform
+        @Nonnull TransformationContext context,
+        @Nonnull ResponseConfiguration config, boolean success
     ) throws RequestInvalidException, TransformationFailedException {
         var dest = new BufferedHttpResponseDocumentGenerationDestination();
 
@@ -358,7 +358,7 @@ public class EndpointExecutor {
         else if (config instanceof TransformationResponseConfiguration) {
             var r = (TransformationResponseConfiguration) config;
             dest.setStatusCode(statusCode);
-            r.transformer.scheduleExecution(context, dest, transform);
+            r.transformer.scheduleExecution(context, dest);
             if (r.downloadFilenamePatternOrNull != null)
                 dest.setContentDispositionToDownload(replacePlainTextParameters(r.downloadFilenamePatternOrNull, context.params));
         }
@@ -391,7 +391,7 @@ public class EndpointExecutor {
      */
     public void execute(
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
-        @Nonnull Application application, @Nonnull Endpoint endpoint, boolean transform,
+        @Nonnull Application application, @Nonnull Endpoint endpoint,
         @CheckForNull String hashToCheck, @Nonnull Request req, @Nonnull Responder responder
     ) throws EndpointExecutionFailedException {
         try (var ignored = new Timer(getClass().getSimpleName())) {
@@ -421,7 +421,7 @@ public class EndpointExecutor {
                 try (var ignored3 = new Timer("Execute <task>s and generate response")) {
                     var context = new TransformationContext(tx, parameters, req.getUploadedFiles(), autoInc);
 
-                    responseContent = scheduleResponseGeneration(context, endpoint.success, true, transform);
+                    responseContent = scheduleResponseGeneration(context, endpoint.success, true);
 
                     for (var task : endpoint.tasks)
                         task.scheduleTaskExecution(context);
@@ -454,7 +454,7 @@ public class EndpointExecutor {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(tx, new HashMap<>(), emptyList(), autoInc);
-                    var errorResponseContent = scheduleResponseGeneration(context, endpoint.error, false, transform);
+                    var errorResponseContent = scheduleResponseGeneration(context, endpoint.error, false);
                     
                     try { context.threads.execute(); }
                     catch (RuntimeException e2) {

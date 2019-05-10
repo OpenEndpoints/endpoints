@@ -181,7 +181,7 @@ public class EmailTask extends Task {
             var bodyDestination = new EmailPartDocumentDestination();
             body.addBodyPart(bodyDestination.getBodyPart());
             try {
-                partTasks.add(bodyTransformer.scheduleExecution(context, bodyDestination, true));
+                partTasks.add(bodyTransformer.scheduleExecution(context, bodyDestination));
             }
             catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Email body", e); }
         }
@@ -201,7 +201,7 @@ public class EmailTask extends Task {
                 mainPart.addBodyPart(dest.getBodyPart());
                 dest.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, context.params));
                 try {
-                    partTasks.add(a.contents.scheduleExecution(context, dest, true));
+                    partTasks.add(a.contents.scheduleExecution(context, dest));
                 }
                 catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e); }
             }

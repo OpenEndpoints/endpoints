@@ -28,11 +28,10 @@ public class Transformer {
     }
 
     public @Nonnull Runnable scheduleExecution(
-        @Nonnull TransformationContext context, @Nonnull DocumentGenerationDestination dest,
-        boolean transform
+        @Nonnull TransformationContext context, @Nonnull DocumentGenerationDestination dest
     ) throws TransformationFailedException {
         return source.scheduleExecution(context, document -> {
-            try { generator.transform(dest, document, transform, null); }
+            try { generator.transform(dest, document, true, null); }
             catch (DocumentTemplateInvalidException e) { throw new RuntimeException(e); }
         });
     }
