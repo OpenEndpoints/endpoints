@@ -87,8 +87,10 @@ public class HttpRequestSpecificationTest extends TestCase {
             catch (Exception e) { throw new RuntimeException(e); }
 
             var application = new Application();
+            application.transformers = new HashMap<>();
+            application.transformers.put("t", Transformer.newIdentityTransformerForTesting());
             try (var tx = new ApplicationTransaction(application)) {
-                var context = new TransformationContext(tx, params, emptyList(), emptyMap());
+                var context = new TransformationContext(application, tx, params, emptyList(), emptyMap());
                 var resultContainer = new Object() {
                     public Element element;
                 };
@@ -169,6 +171,16 @@ public class HttpRequestSpecificationTest extends TestCase {
         runTest(false, "<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<your-tag>bar</your-tag>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
+        });
+
+        // Test XML request body (fixed) incl transformation
+        runTest(false, "<xml-body expand-transformations='true'> " +
+                "<your-tag xslt-transformation='t' encoding='base64'/> </xml-body>", (req, resp) -> {
+            var xml = DomParser.from(req.getInputStream());
+            if ( ! xml.getNodeName().equals("your-tag")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
+            var base64 = Base64.decodeBase64(xml.getTextContent());
+            var file = DomParser.from(new ByteArrayInputStream(base64));
+            if ( ! file.getNodeName().equals("transformation-input")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test XML request body (xslt)

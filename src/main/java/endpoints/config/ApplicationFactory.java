@@ -116,6 +116,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
                 throw new ConfigurationException("Legacy 'smtp.xml' exists, rename to 'email-sending-configuration.xml'");
 
             var result = new Application();
+            result.transformers = transformers;
             result.endpoints = EndpointHierarchyParser.parse(tx, threads, transformers, directory, httpXsltDirectory,
                 xmlFromApplicationDirectory, new File(directory, "static"), new File(directory, "parameter-xslt"),
                 new File(directory, "endpoints.xml"));

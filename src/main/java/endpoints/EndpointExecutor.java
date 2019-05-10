@@ -210,7 +210,7 @@ public class EndpointExecutor {
             appendTextElement(inputFromApplicationElement, "http-header-user-agent", req.getUserAgent());
 
             // Add data sources e.g. <xml-from-application>
-            var context = new TransformationContext(tx, emptyMap(), req.getUploadedFiles(), autoInc);
+            var context = new TransformationContext(application, tx, emptyMap(), req.getUploadedFiles(), autoInc);
             var dataSourceResults = new ArrayList<DataSourceCommandResult>();
             for (var c : parameterTransformation.dataSourceCommands)
                 dataSourceResults.add(c.scheduleExecution(context));
@@ -419,7 +419,7 @@ public class EndpointExecutor {
 
                 final BufferedHttpResponseDocumentGenerationDestination responseContent;
                 try (var ignored3 = new Timer("Execute <task>s and generate response")) {
-                    var context = new TransformationContext(tx, parameters, req.getUploadedFiles(), autoInc);
+                    var context = new TransformationContext(application, tx, parameters, req.getUploadedFiles(), autoInc);
 
                     responseContent = scheduleResponseGeneration(context, endpoint.success, true);
 
@@ -453,7 +453,7 @@ public class EndpointExecutor {
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
                     var autoInc = newLazyNumbers(applicationName, environment, now);
-                    var context = new TransformationContext(tx, new HashMap<>(), emptyList(), autoInc);
+                    var context = new TransformationContext(application, tx, new HashMap<>(), emptyList(), autoInc);
                     var errorResponseContent = scheduleResponseGeneration(context, endpoint.error, false);
                     
                     try { context.threads.execute(); }

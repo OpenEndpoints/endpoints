@@ -1,8 +1,6 @@
 package endpoints.task;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.BufferedDocumentGenerationDestination;
-import com.offerready.xslt.EmailPartDocumentDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.EndpointExecutor.UploadedFile;
@@ -13,14 +11,12 @@ import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import lombok.val;
 import org.w3c.dom.Element;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.mail.BodyPart;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -34,7 +30,6 @@ import java.util.*;
 import static com.databasesandlife.util.DomParser.*;
 import static com.offerready.xslt.EmailPartDocumentDestination.newMimeBodyForDestination;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 public class EmailTask extends Task {
@@ -181,7 +176,7 @@ public class EmailTask extends Task {
         mainPart.addBodyPart(bodyPart);
         for (var bodyTransformer : alternativeBodies) {
             try {
-                var xslt = context.getOrScheduleTransformation(bodyTransformer);
+                var xslt = context.scheduleTransformation(bodyTransformer);
                 var ourBodyPart = newMimeBodyForDestination(xslt.result);
                 body.addBodyPart(ourBodyPart);
                 partTasks.add(xslt);
@@ -201,7 +196,7 @@ public class EmailTask extends Task {
             else if (at instanceof AttachmentTransformation) {
                 var a = (AttachmentTransformation) at;
                 try {
-                    var xslt = context.getOrScheduleTransformation(a.contents);
+                    var xslt = context.scheduleTransformation(a.contents);
                     var part = newMimeBodyForDestination(xslt.result);
                     part.setFileName(replacePlainTextParameters(a.filenamePattern, context.params));
                     part.setDisposition(Part.ATTACHMENT);

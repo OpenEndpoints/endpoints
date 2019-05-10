@@ -20,6 +20,7 @@ import endpoints.EndpointExecutor.RequestInvalidException;
 import endpoints.EndpointExecutor.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
+import endpoints.XmlWithBase64TransformationsExpander;
 import endpoints.datasource.TransformationFailedException;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
@@ -74,7 +75,7 @@ public class HttpRequestSpecification {
     protected @CheckForNull String usernamePatternOrNull, passwordPatternOrNull;
     protected @CheckForNull Element requestBodyXmlTemplate;
     protected @CheckForNull WeaklyCachedXsltTransformer requestBodyXmlTransformer;
-    protected boolean replaceXmlElementWithFileUploads;
+    protected boolean replaceXmlElementWithFileUploads, replaceXmlElementsWithTransformerResults;
     protected @CheckForNull JsonNode requestBodyJsonTemplate;
     protected @CheckForNull WeaklyCachedXsltTransformer requestBodyJsonTransformer;
 
@@ -196,6 +197,8 @@ public class HttpRequestSpecification {
                 throw new ConfigurationException("<xml-body>: must have xslt-file='x.xslt' attr, or a fixed body");
             replaceXmlElementWithFileUploads = Boolean.parseBoolean(getOptionalAttribute(
                 requestBodyXmlTemplateContainer, "upload-files"));
+            replaceXmlElementsWithTransformerResults = Boolean.parseBoolean(getOptionalAttribute(
+                requestBodyXmlTemplateContainer, "expand-transformations"));
         }
 
         var requestBodyJsonElement = getOptionalSingleSubElement(command, "json-body");
@@ -326,7 +329,11 @@ public class HttpRequestSpecification {
                     }
                 };
                 
-                makeRequest.accept(body);
+                // Add base64 XSLT results if necessary (e.g. PDFs)
+                if (replaceXmlElementsWithTransformerResults)
+                    precursorTasks.add(new XmlWithBase64TransformationsExpander(context, body).schedule(makeRequest));
+                else 
+                    makeRequest.accept(body);
             }
 
             if (requestBodyJsonTemplate != null || requestBodyJsonTransformer != null) {
