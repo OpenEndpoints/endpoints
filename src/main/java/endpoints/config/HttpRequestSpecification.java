@@ -122,7 +122,7 @@ public class HttpRequestSpecification {
         @Nonnull List<? extends UploadedFile> fileUploads, @Nonnull Document doc 
     ) {
         return DomVariableExpander.expand(doc, x -> new IdentityForwardingSaxHandler(x) {
-            @SneakyThrows({IOException.class, ConfigurationException.class, RequestInvalidException.class})
+            @SneakyThrows({ConfigurationException.class, RequestInvalidException.class})
             @Override public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
                 var uploadFieldName = atts.getValue("upload-field-name");
                 if (uploadFieldName != null) {
@@ -144,7 +144,7 @@ public class HttpRequestSpecification {
                         uploadAtts.addAttribute("", "filename", "filename", "", file.getSubmittedFileName());
                     super.startElement(uri, localName, qName, uploadAtts);
                     
-                    var bytes = IOUtils.toByteArray(file.getInputStream());
+                    var bytes = file.toByteArray();
                     var base64 = Base64.encodeBase64String(bytes).toCharArray();
                     super.characters(base64, 0, base64.length);
 
