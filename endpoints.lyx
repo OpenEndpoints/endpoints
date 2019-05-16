@@ -2149,6 +2149,14 @@ name "<parameters/>"
 \end_layout
 
 \begin_layout LyX-Code
+  <file-upload field-name="foo" upload-filename="foo.jpg"/>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
 </parameters>
 \end_layout
 
