@@ -45,6 +45,7 @@ import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberTyp
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.year;
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.TransformationContext.unwrapException;
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
@@ -249,13 +250,10 @@ public class EndpointExecutor {
             return result;
         }
         catch (ConfigurationException e) { throw new RequestInvalidException("While processing result of parameter transformation", e); }
-        catch (RuntimeException e) { // from tasks.execute
-            if (e.getCause() instanceof RequestInvalidException)
-                throw (RequestInvalidException) e.getCause();
-            else if (e.getCause() instanceof TransformationFailedException)
-                throw (TransformationFailedException) e.getCause();
-            else
-                throw e;
+        catch (RuntimeException e) {
+            unwrapException(e, RequestInvalidException.class);
+            unwrapException(e, TransformationFailedException.class);
+            throw e;
         }
     }
 
@@ -428,14 +426,10 @@ public class EndpointExecutor {
 
                     try { context.threads.execute(); }
                     catch (RuntimeException e) {
-                        if (e.getCause() instanceof RequestInvalidException)
-                            throw (RequestInvalidException) e.getCause();
-                        else if (e.getCause() instanceof TransformationFailedException)
-                            throw (TransformationFailedException) e.getCause();
-                        else if (e.getCause() instanceof TaskExecutionFailedException)
-                            throw (TaskExecutionFailedException) e.getCause();
-                        else
-                            throw e;
+                        unwrapException(e, RequestInvalidException.class);
+                        unwrapException(e, TransformationFailedException.class);
+                        unwrapException(e, TaskExecutionFailedException.class);
+                        throw e;
                     }
                 }
 
@@ -458,12 +452,9 @@ public class EndpointExecutor {
                     
                     try { context.threads.execute(); }
                     catch (RuntimeException e2) {
-                        if (e2.getCause() instanceof RequestInvalidException)
-                            throw (RequestInvalidException) e2.getCause();
-                        else if (e2.getCause() instanceof TransformationFailedException)
-                            throw (TransformationFailedException) e2.getCause();
-                        else
-                            throw e2;
+                        unwrapException(e2, RequestInvalidException.class);
+                        unwrapException(e2, TransformationFailedException.class);
+                        throw e2;
                     }
 
                     var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, autoInc, errorResponseContent);

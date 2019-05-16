@@ -48,4 +48,12 @@ public class TransformationContext {
         return result;
     }
 
+    @SuppressWarnings("unchecked") 
+    public static <E extends Exception> void unwrapException(@Nonnull RuntimeException e, @Nonnull Class<E> exceptionClass) throws E {
+        // runnable must wrap checked exception, then threads.execute wraps it again
+        if (e.getCause() != null 
+                && e.getCause().getCause() != null
+                && exceptionClass.isAssignableFrom(e.getCause().getCause().getClass()))
+            throw (E) e.getCause().getCause();
+    }
 }

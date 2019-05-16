@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 
+import static endpoints.TransformationContext.unwrapException;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -99,8 +100,8 @@ public class HttpRequestSpecificationTest extends TestCase {
                 return resultContainer.element;
             }
             catch (RuntimeException e) {
-                if (e.getCause() instanceof HttpRequestFailedException) throw (HttpRequestFailedException) e.getCause();
-                else throw e;
+                unwrapException(e, HttpRequestFailedException.class);
+                throw e;
             }
             finally {
                 try { server.stop(); }
