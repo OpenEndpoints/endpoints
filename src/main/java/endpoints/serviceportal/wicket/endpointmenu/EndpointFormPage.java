@@ -2,8 +2,7 @@ package endpoints.serviceportal.wicket.endpointmenu;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.DeploymentParameters;
-import endpoints.EndpointExecutor;
-import endpoints.EndpointExecutor.UploadedFile;
+import endpoints.UploadedFile;
 import endpoints.PublishEnvironment;
 import endpoints.config.ParameterName;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointFormMenuItem;
@@ -13,7 +12,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.protocol.http.servlet.MultipartServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;

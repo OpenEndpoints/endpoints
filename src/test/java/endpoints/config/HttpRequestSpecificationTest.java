@@ -5,7 +5,7 @@ import com.databasesandlife.util.TemporaryFile;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor.UploadedFile;
+import endpoints.UploadedFile;
 import endpoints.TransformationContext;
 import endpoints.config.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.datasource.TransformationFailedException;

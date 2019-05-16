@@ -3,7 +3,7 @@ package endpoints.task;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.EndpointExecutor.UploadedFile;
+import endpoints.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.config.ParameterName;

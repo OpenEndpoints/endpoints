@@ -9,8 +9,6 @@ import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
-import java.util.Collections;
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +30,7 @@ public class TransformationContext {
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads = new ThreadPool();
     public final @Nonnull Map<ParameterName, String> params;
-    public final @Nonnull List<? extends EndpointExecutor.UploadedFile> fileUploads;
+    public final @Nonnull List<? extends UploadedFile> fileUploads;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
     
     public static class TransformerExecutor implements Runnable {

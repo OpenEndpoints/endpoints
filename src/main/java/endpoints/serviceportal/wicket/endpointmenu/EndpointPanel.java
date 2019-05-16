@@ -4,7 +4,7 @@ import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.DeploymentParameters;
 import endpoints.EndpointExecutor;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
-import endpoints.EndpointExecutor.UploadedFile;
+import endpoints.UploadedFile;
 import endpoints.PublishEnvironment;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;

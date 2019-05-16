@@ -17,7 +17,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidEx
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.DeploymentParameters;
 import endpoints.EndpointExecutor.RequestInvalidException;
-import endpoints.EndpointExecutor.UploadedFile;
+import endpoints.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.XmlWithBase64TransformationsExpander;
