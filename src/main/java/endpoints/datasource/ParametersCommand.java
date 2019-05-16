@@ -39,6 +39,7 @@ public class ParametersCommand extends DataSourceCommand {
             var el = doc.createElement("file-upload");
             el.setAttribute("field-name", f.getFieldName());
             el.setAttribute("upload-filename", f.getSubmittedFileName());
+            if (f.getXmlDocumentOrNull() != null) el.appendChild(doc.importNode(f.getXmlDocumentOrNull(), true));
             result.add(el);
         }
         return result.toArray(new Element[0]);
