@@ -304,7 +304,7 @@ public class HttpRequestSpecification {
                     var stringParams = context.params.entrySet().stream().collect(toMap(e -> e.getKey().name, e -> e.getValue()));
                     body = DomVariableExpander.expand(dollarThenBraces, stringParams, requestBodyXmlTemplate);
                 } else if (requestBodyXmlTransformer != null) {
-                    var parametersXml = createParametersElement("parameters", context.params);
+                    var parametersXml = createParametersElement("parameters", context.params, context.fileUploads);
                     var bodyDocument = new DOMResult();
                     requestBodyXmlTransformer.newTransformer().transform(
                         new DOMSource(parametersXml.getOwnerDocument()), bodyDocument);
@@ -345,7 +345,7 @@ public class HttpRequestSpecification {
                         var body = expandJson(context.params, requestBodyJsonTemplate);
                         new ObjectMapper().writeValue(o, body);
                     } else if (requestBodyJsonTransformer != null) {
-                        var parametersXml = createParametersElement("parameters", context.params);
+                        var parametersXml = createParametersElement("parameters", context.params, context.fileUploads);
                         StringWriter json = new StringWriter();
                         requestBodyJsonTransformer.newTransformer().transform(
                             new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));

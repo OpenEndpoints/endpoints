@@ -265,7 +265,7 @@ public class EndpointExecutor {
                 } else {
                     transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req, autoInc,
                         endpoint.parameterTransformation, autoIncrement, random,
-                        ParametersCommand.createParametersElements(inputParameters));
+                        ParametersCommand.createParametersElements(inputParameters, req.getUploadedFiles()));
                 }
                 break;
 
