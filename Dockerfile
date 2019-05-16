@@ -1,4 +1,4 @@
-FROM jetty:9.4.14-jre11
+FROM jetty:9.4.18-jre11
 COPY target/endpoints /var/lib/jetty/webapps/ROOT
 ENV ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout
 EXPOSE 8080
