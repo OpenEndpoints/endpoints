@@ -1,7 +1,10 @@
 package endpoints;
 
+import com.databasesandlife.util.DomParser;
+import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -9,6 +12,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public abstract class UploadedFile {
+    
+    protected boolean xmlParsingAttempted = false;
+    protected @CheckForNull Element xmlDocumentOrNull;
     
     public abstract @Nonnull String getFieldName();
     
@@ -31,5 +37,15 @@ public abstract class UploadedFile {
     @SneakyThrows(IOException.class)
     public @Nonnull byte[] toByteArray() {
         return IOUtils.toByteArray(getInputStream());
+    }
+    
+    public synchronized @CheckForNull Element getXmlDocumentOrNull() {
+        if (! xmlParsingAttempted) {
+            try { xmlDocumentOrNull = DomParser.from(getInputStream()); }
+            catch (ConfigurationException ignored) { xmlDocumentOrNull = null; }
+            
+            xmlParsingAttempted = true;
+        }
+        return xmlDocumentOrNull;
     }
 }

@@ -2136,6 +2136,7 @@ name "<parameters/>"
  in a format like:
 \end_layout
 
+\begin_deeper
 \begin_layout LyX-Code
 <parameters>
 \end_layout
@@ -2160,6 +2161,27 @@ name "<parameters/>"
 </parameters>
 \end_layout
 
+\begin_layout Standard
+If a file upload contains XML, the 
+\family typewriter
+<file-upload>
+\family default
+ has a single child which is the root element of the XML file; otherwise
+ the 
+\family typewriter
+<file-upload>
+\family default
+ element is empty.
+\end_layout
+
+\begin_layout Standard
+Whether a file upload is XML or not is determined by whether the XML can
+ be parsed as XML.
+ The uploaded filename and Content Type are ignored, to allow files such
+ as SVGs which don't have an XML extension nor an XML Content Type.
+\end_layout
+
+\end_deeper
 \begin_layout Description
 
 \family typewriter

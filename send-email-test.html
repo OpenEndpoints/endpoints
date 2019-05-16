@@ -1,8 +1,19 @@
 <form action="http://localhost:9758/example-application/send-email" method="post" enctype="multipart/form-data">
+    <h1>Send email</h1>
     <input type="hidden" name="param-in-hash" value="x"/>
     <input type="hidden" name="profile-id" value="y"/>
     <p><label>Email Address: <input name="email-address" value="adrian.m.smith@gmail.com"/></label></p>
     <p><label>Hash: <input name="hash" value="edaf7f4f1dc26820275201d5964ac0bea49d654ac4fae9606647fea606e00e24"/></label></p>
-    <p><label>Uploads: <input type="file" multiple="true" name="irrelevant"/></label></p>
+    <p><label>Uploads: <input type="file" multiple="multiple" name="irrelevant"/></label></p>
+    <p><input type="submit"/></p>
+</form>
+
+<hr>
+
+<form action="http://localhost:9758/example-application/json" method="post" enctype="multipart/form-data">
+    <h1>Produce JSON</h1>
+    <input type="hidden" name="param-in-hash" value="x"/>
+    <input type="hidden" name="hash" value="95be18ae19a5ac3c67d1db62826eed239615563d28e46f87c61bd609b12a1f5f"/>
+    <p><label>Uploads: <input type="file" multiple="multiple" name="irrelevant"/></label></p>
     <p><input type="submit"/></p>
 </form>
