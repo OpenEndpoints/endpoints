@@ -14,6 +14,7 @@ import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.task.Task.TaskExecutionFailedException;
 import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -60,18 +61,24 @@ import static org.jooq.impl.DSL.max;
 
 public class EndpointExecutor {
 
-    public interface UploadedFile {
-        @Nonnull String getFieldName();
-        @Nonnull String getContentType();
+    public abstract static class UploadedFile {
+        public abstract @Nonnull String getFieldName();
+        public abstract @Nonnull String getContentType();
 
         /**
          * This is safe to call multiple times.
          * @implNote Both Wicket and Servlet are based on Jetty, which reads and stores the entire content when preparing the request.
          */
-        @Nonnull InputStream getInputStream();
+        public abstract @Nonnull InputStream getInputStream();
         
         /** null means that no filename was submitted. Will not be empty. */
-        @CheckForNull String getSubmittedFileName();
+        public abstract @CheckForNull String getSubmittedFileName();
+
+        /** @implNote Note that this creates a copy of the byte buffer each time it's called */
+        @SneakyThrows(IOException.class)
+        public @Nonnull byte[] toByteArray() {
+            return IOUtils.toByteArray(getInputStream());
+        }
     }
 
     public interface Request {

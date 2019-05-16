@@ -32,7 +32,7 @@ public class EndpointFormPage extends EndpointPage {
     protected final @Nonnull EndpointPanel results;
 
     @RequiredArgsConstructor
-    protected static class WicketUploadedFile implements UploadedFile {
+    protected static class WicketUploadedFile extends UploadedFile {
         final protected @Nonnull FileItem item;
 
         @Override public @Nonnull String getFieldName() { return item.getFieldName(); }

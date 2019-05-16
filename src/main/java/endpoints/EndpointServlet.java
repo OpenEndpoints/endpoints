@@ -39,7 +39,7 @@ import static java.util.stream.Collectors.toMap;
 public class EndpointServlet extends HttpServlet {
     
     @RequiredArgsConstructor
-    protected static class ServletUploadedFile implements UploadedFile {
+    protected static class ServletUploadedFile extends UploadedFile {
         final @Nonnull Part part;
         
         @Override public @Nonnull String getFieldName() { return part.getName(); }
@@ -66,7 +66,6 @@ public class EndpointServlet extends HttpServlet {
         resp.flushBuffer();
     }
     
-    @SneakyThrows(IOException.class)
     protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull EndpointExecutor.Request request) {
         if ( ! DeploymentParameters.get().xsltDebugLog) return;
         
@@ -83,9 +82,7 @@ public class EndpointServlet extends HttpServlet {
                     e.getKey().name, v.length(), StringEscapeUtils.escapeJava(v.substring(0, Math.min(1000, v.length())))));
 
         for (var e : request.getUploadedFiles()) {
-            var bytesStream = new ByteArrayOutputStream();
-            IOUtils.copy(e.getInputStream(), bytesStream);
-            var bytes = bytesStream.toByteArray();
+            var bytes = e.toByteArray();
 
             var hexString = new StringBuilder();
             int length = bytes.length;
