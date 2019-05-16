@@ -1,16 +1,11 @@
 package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
-import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.databasesandlife.util.jdbc.DbTransaction.CannotConnectToDatabaseException;
 import com.databasesandlife.util.jdbc.DbTransaction.SqlException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.EndpointExecutor.UploadedFile;
-import endpoints.OnDemandIncrementingNumber;
-import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.config.ParameterName;
@@ -21,7 +16,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
