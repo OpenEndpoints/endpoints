@@ -1845,6 +1845,10 @@ The optional attribute
 \family typewriter
 upload-files="true"
 \family default
+ and 
+\family typewriter
+expand-transformations="true"
+\family default
  may be present as above.
 \end_layout
 
@@ -2139,6 +2143,14 @@ name "<parameters/>"
 \begin_deeper
 \begin_layout LyX-Code
 <parameters>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- Info on every GET/POST parameter -->
 \end_layout
 
 \begin_layout LyX-Code
@@ -2147,17 +2159,61 @@ name "<parameters/>"
 
 \begin_layout LyX-Code
   ...
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- Info on every non-XML file upload -->
 \end_layout
 
 \begin_layout LyX-Code
-  <file-upload field-name="foo" upload-filename="foo.jpg"/>
+  <file-upload field-name="foo"
+\end_layout
+
+\begin_layout LyX-Code
+               upload-filename="foo.jpg"/>
 \end_layout
 
 \begin_layout LyX-Code
   ...
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+  <!-- Info on every XML file upload -->
 \end_layout
 
 \begin_layout LyX-Code
+  <file-upload field-name="bar"
+\end_layout
+
+\begin_layout LyX-Code
+               upload-filename="foo.xml">
+\end_layout
+
+\begin_layout LyX-Code
+    <xyz><!-- whatever is in uploaded file --></xyz>
+\end_layout
+
+\begin_layout LyX-Code
+  </file-upload>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
 </parameters>
 \end_layout
 
