@@ -1,13 +1,17 @@
-package endpoints.config;
+package endpoints;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.TemporaryFile;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.ApplicationTransaction;
+import endpoints.HttpRequestSpecification;
 import endpoints.UploadedFile;
 import endpoints.TransformationContext;
-import endpoints.config.HttpRequestSpecification.HttpRequestFailedException;
+import endpoints.HttpRequestSpecification.HttpRequestFailedException;
+import endpoints.config.Application;
+import endpoints.config.ParameterName;
+import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
 import junit.framework.TestCase;
 import lombok.SneakyThrows;
@@ -29,6 +33,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 import static endpoints.TransformationContext.unwrapException;
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -87,9 +92,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             try { server.start(); }
             catch (Exception e) { throw new RuntimeException(e); }
 
-            var application = new Application();
-            application.transformers = new HashMap<>();
-            application.transformers.put("t", Transformer.newIdentityTransformerForTesting());
+            var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
                 var context = new TransformationContext(application, tx, params, emptyList(), emptyMap());
                 var resultContainer = new Object() {

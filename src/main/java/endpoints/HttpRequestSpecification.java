@@ -1,4 +1,4 @@
-package endpoints.config;
+package endpoints;
 
 import com.databasesandlife.util.*;
 import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
@@ -15,12 +15,8 @@ import com.offerready.xslt.DocumentGenerator.StyleVisionXslt;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.DeploymentParameters;
 import endpoints.EndpointExecutor.RequestInvalidException;
-import endpoints.UploadedFile;
-import endpoints.PlaintextParameterReplacer;
-import endpoints.TransformationContext;
-import endpoints.XmlWithBase64TransformationsExpander;
+import endpoints.config.ParameterName;
 import endpoints.datasource.TransformationFailedException;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
