@@ -23,4 +23,10 @@ public class Application {
     protected @Getter @Nonnull ServicePortalEndpointMenuFolder servicePortalEndpointMenuItems;
     
     Application() { } 
+    
+    public static @Nonnull Application newForTesting(@Nonnull Map<String, Transformer> transformers) {
+        var result = new Application();
+        result.transformers = transformers;
+        return result;
+    }
 }
