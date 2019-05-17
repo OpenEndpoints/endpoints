@@ -152,7 +152,7 @@ Vagrant.configure(2) do |config|
     echo '  psql -hlocalhost endpoints postgres '
     echo '  psql -hlocalhost example_application postgres '
     echo '  mysql -uroot -proot example_application'
-    echo '  mvn -f /vagrant/pom.xml -Dspotbugs.skip=true package \'
+    echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'
     echo '          --mount type=bind,source=/vagrant/example-application,target=/var/endpoints/applications-checkout/example-application-symlink \'
