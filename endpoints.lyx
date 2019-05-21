@@ -928,6 +928,18 @@ The values of all the parameters listed in the
 \end_layout
 
 \begin_layout Enumerate
+Environment name (either 
+\family typewriter
+live
+\family default
+ or 
+\family typewriter
+preview
+\family default
+)
+\end_layout
+
+\begin_layout Enumerate
 Any key from the 
 \family typewriter
 security.xml
@@ -992,291 +1004,12 @@ barvalue
 \length 0bp
 \end_inset
 
+live
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
 key1")
-\family default
- which is 
-\family typewriter
-b8dc
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-b
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-1
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-f
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-b
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-3
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-e
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-9
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-e
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-9
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-7
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-f
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-7
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-f
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-b
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-a
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-c
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-8
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-9
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-4
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-3
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-4
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-6
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-1
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-a
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-a
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-8
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-0
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-9
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-b
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-7
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-e
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-4
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-0
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-a
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-9
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-0
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-6
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-0
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-d
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-f
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-e
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-7
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-7
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-0
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-8
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-a
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-3
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-2
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-2
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-5bcf2
 \family default
 .
 \end_layout
