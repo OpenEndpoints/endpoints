@@ -388,10 +388,13 @@ public class EndpointExecutor {
                     .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne(APPLICATION_CONFIG.LOCKED);
                 if (locked) throw new RequestInvalidException("Application is locked");
 
-                tx.db.jooq().select().from(APPLICATION_PUBLISH)
-                    .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(applicationName))
-                    .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
-                    .forUpdate().execute();
+                try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name 
+                        + "', environment '" + environment.name() + "'")) {
+                    tx.db.jooq().select().from(APPLICATION_PUBLISH)
+                        .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(applicationName))
+                        .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
+                        .forUpdate().execute();
+                }
 
                 long autoIncrement = getNextAutoIncrement(tx.db, applicationName, environment, endpoint.name);
                 var autoInc = newLazyNumbers(applicationName, environment, now);

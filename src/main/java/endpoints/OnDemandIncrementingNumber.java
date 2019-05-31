@@ -1,5 +1,6 @@
 package endpoints;
 
+import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.config.ApplicationName;
 import lombok.RequiredArgsConstructor;
@@ -68,12 +69,15 @@ public class OnDemandIncrementingNumber {
     public int getOrFetchValue(@Nonnull DbTransaction tx) {
         synchronized (tx) {
             if (value == null) {
-                tx.jooq()
-                    .selectFrom(APPLICATION_PUBLISH)
-                    .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(application))
-                    .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
-                    .forUpdate()
-                    .fetchOne();
+                try (var ignored = new Timer("Acquire lock on '" + application.name
+                        + "', environment '" + environment.name() + "'")) {
+                    tx.jooq()
+                        .selectFrom(APPLICATION_PUBLISH)
+                        .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(application))
+                        .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
+                        .forUpdate()
+                        .execute();
+                }
 
                 var timezone = tx.jooq()
                     .select(APPLICATION_CONFIG.TIMEZONE)
