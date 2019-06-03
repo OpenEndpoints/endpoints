@@ -22,7 +22,7 @@
           <to>${email-address}</to>
           <subject>Email from Endpoints to: ${email-address}</subject>
           <body-transformation name="produce-text"/>
-          <body-transformation name="produce-html"/>
+          <body-transformation name="produce-html-email-body"/>
           <attachment-static filename="static-subdirectory/spheres.png"/>
           <attachment-transformation name="produce-pdf" if="foo" equals="foo" filename="invoice-${invoice-number}.pdf"/>
           <attachment-transformation name="produce-pdf" if="foo" equals="bar" filename="DO-NOT-INCLUDE-${invoice-number}.pdf"/>

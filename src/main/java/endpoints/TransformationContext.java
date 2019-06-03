@@ -53,5 +53,10 @@ public class TransformationContext {
                 && e.getCause().getCause() != null
                 && exceptionClass.isAssignableFrom(e.getCause().getCause().getClass()))
             throw (E) e.getCause().getCause();
+        
+        // @SneakyThrows doesn't wrap, then threads.execute wraps it
+        if (e.getCause() != null
+                && exceptionClass.isAssignableFrom(e.getCause().getClass()))
+            throw (E) e.getCause();
     }
 }
