@@ -3,6 +3,7 @@ package endpoints.task;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.TransformationContext.TransformerExecutor;
 import endpoints.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
@@ -15,21 +16,25 @@ import org.w3c.dom.Element;
 
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
+import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.mail.BodyPart;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
-import javax.mail.Multipart;
 import javax.mail.Part;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 import java.io.*;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.offerready.xslt.EmailPartDocumentDestination.newMimeBodyForDestination;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 public class EmailTask extends Task {
@@ -77,6 +82,7 @@ public class EmailTask extends Task {
         }
     };
 
+    protected @Nonnull File staticDir;
     protected @Nonnull String fromPattern, subjectPattern;
     protected @Nonnull List<String> toPatterns;
     protected @Nonnull List<Transformer> alternativeBodies = new ArrayList<>();
@@ -91,11 +97,26 @@ public class EmailTask extends Task {
     }
 
     @SneakyThrows(IOException.class)
+    protected @Nonnull AttachmentStatic findStaticFileAndAssertExists(@Nonnull String errorPrefix, @Nonnull String filename)
+    throws ConfigurationException {
+        var result = new AttachmentStatic();
+        result.file = new File(staticDir, filename);
+        if ( ! result.file.getCanonicalPath().startsWith(staticDir.getCanonicalPath()+File.separator))
+            throw new ConfigurationException(errorPrefix + ": Filename " +
+                "'" + filename + "' attempts to reference outside application's 'static' directory");
+        if ( ! result.file.exists())
+            throw new ConfigurationException(errorPrefix + ": Filename " +
+                "'" + filename + "' not found in application's 'static' directory");
+        return result;
+    }
+
     public EmailTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, @Nonnull Element config
     ) throws ConfigurationException {
         super(threads, httpXsltDirectory, transformers, staticDir, config);
+        
+        this.staticDir = staticDir;
 
         fromPattern = getMandatorySingleSubElement(config, "from").getTextContent().trim();
         subjectPattern = getMandatorySingleSubElement(config, "subject").getTextContent().trim();
@@ -113,16 +134,8 @@ public class EmailTask extends Task {
             final Attachment attachment;
             switch (a.getTagName()) {
                 case "attachment-static":
-                    var filename = getMandatoryAttribute(a, "filename");
-                    var attachmentStatic = new AttachmentStatic();
-                    attachmentStatic.file = new File(staticDir, filename);
-                    if ( ! attachmentStatic.file.getCanonicalPath().startsWith(staticDir.getCanonicalPath()+File.separator))
-                        throw new ConfigurationException("<attachment-static>: Filename " +
-                            "'" + filename + "' attempts to reference outside application's 'static' directory");
-                    if ( ! attachmentStatic.file.exists())
-                        throw new ConfigurationException("<attachment-static>: Filename " +
-                            "'" + filename + "' not found in application's 'static' directory");
-                    attachment = attachmentStatic;
+                    attachment = findStaticFileAndAssertExists("<attachment-static>", 
+                        getMandatoryAttribute(a, "filename"));
                     break;
                 case "attachment-transformation":
                     var attachmentTransformation = new AttachmentTransformation();
@@ -159,6 +172,61 @@ public class EmailTask extends Task {
         for (var b : alternativeBodies) b.assertTemplatesValid();
         for (var a : attachments) a.assertTemplatesValid();
     }
+
+    @SneakyThrows(MessagingException.class)
+    protected @Nonnull MimeBodyPart scheduleHtmlBodyPart(
+        @Nonnull TransformationContext context, @Nonnull BodyPart html, 
+        @Nonnull List<Runnable> partTasks, @Nonnull TransformerExecutor htmlExecutor
+    ) {
+        var bodyPart = new MimeBodyPart();
+        var body = new MimeMultipart("related");
+        bodyPart.setContent(body);
+
+        body.addBodyPart(html);
+
+        var task = new Runnable() {
+            @SneakyThrows({MessagingException.class, TaskExecutionFailedException.class})
+            @Override public void run() {
+                var referencedFiles = new TreeMap<String, BodyPart>();
+                var matcher = Pattern.compile("['\"]cid:([/\\w\\-]+\\.\\w{3,4})['\"]")
+                    .matcher(htmlExecutor.result.getBody().toString(UTF_8));
+                while (matcher.find()) {
+                    var whole = matcher.group();
+                    var path = matcher.group(1); // e.g. "foo/bar.jpg"
+                    
+                    final AttachmentStatic staticFile;
+                    try { staticFile = findStaticFileAndAssertExists(whole, path); }
+                    catch (ConfigurationException e) { throw new TaskExecutionFailedException(e); }
+
+                    var filePart = new MimeBodyPart();
+                    var source = new DataSource() {
+                        public String getContentType() { return new MimetypesFileTypeMap().getContentType(path); }
+                        public String getName() { return path; }
+                        public OutputStream getOutputStream() { throw new RuntimeException(); }
+                        
+                        @SneakyThrows({FileNotFoundException.class})
+                        public InputStream getInputStream() { 
+                            return new FileInputStream(staticFile.file); 
+                        }
+                    };
+                    filePart.setDataHandler(new DataHandler(source));
+                    filePart.setFileName(path);
+                    filePart.setHeader("Content-ID", "<"+path+">");
+                    filePart.setDisposition(Part.INLINE);
+    
+                    referencedFiles.put(path, filePart);
+                }
+    
+                for (var attachmentPart : referencedFiles.values())
+                    body.addBodyPart(attachmentPart);
+            }
+        };
+        
+        context.threads.addTaskWithDependencies(singletonList(htmlExecutor), task);
+        partTasks.add(task);
+        
+        return bodyPart;
+    }
     
     @Override
     @SneakyThrows({MessagingException.class, IOException.class})
@@ -170,16 +238,21 @@ public class EmailTask extends Task {
         var mainPart = new MimeMultipart("mixed");
         var partTasks = new ArrayList<Runnable>();
 
-        Multipart body = new MimeMultipart("alternative");
-        MimeBodyPart bodyPart = new MimeBodyPart();
+        var bodyPart = new MimeBodyPart();
+        var body = new MimeMultipart("alternative");
         bodyPart.setContent(body);
         mainPart.addBodyPart(bodyPart);
         for (var bodyTransformer : alternativeBodies) {
             try {
                 var xslt = context.scheduleTransformation(bodyTransformer);
-                var ourBodyPart = newMimeBodyForDestination(xslt.result);
-                body.addBodyPart(ourBodyPart);
-                partTasks.add(xslt);
+                var contentsBodyPart = newMimeBodyForDestination(xslt.result);
+                var contentType = Optional.ofNullable(bodyTransformer.getDefn().contentType).orElse("").toLowerCase();
+                if (contentType.contains("text/html") && contentType.contains("utf-8")) {
+                    body.addBodyPart(scheduleHtmlBodyPart(context, contentsBodyPart, partTasks, xslt));
+                } else {
+                    body.addBodyPart(contentsBodyPart);
+                    partTasks.add(xslt);
+                }
             }
             catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Email body", e); }
         }

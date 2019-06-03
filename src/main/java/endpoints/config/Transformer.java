@@ -9,6 +9,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidEx
 import endpoints.TransformationContext;
 import endpoints.datasource.DataSource;
 import endpoints.datasource.TransformationFailedException;
+import lombok.Getter;
 import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
@@ -19,7 +20,7 @@ import java.util.Collections;
 public class Transformer {
     
     protected @Nonnull DataSource source;
-    protected @Nonnull DocumentOutputDefinition defn;
+    protected @Nonnull @Getter DocumentOutputDefinition defn;
     protected @Nonnull DocumentGenerator generator;
 
     /** Check that no parameters, other than the ones passed to this method, are necessary to perform the transformation */
