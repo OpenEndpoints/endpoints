@@ -5,6 +5,7 @@ import com.databasesandlife.util.wicket.CachingFutureModel;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
 import endpoints.PublishEnvironment;
+import endpoints.RequestLogId;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
@@ -61,7 +62,7 @@ public class DashboardPage extends AbstractLoggedInPage {
     protected @Getter @Setter @Nonnull DateRangeOption dateRange = DateRangeOption.getValues(now(UTC)).get(0);
     protected @Getter @Setter @CheckForNull NodeName filterEndpoint = null;
     protected @Getter @Setter @CheckForNull Integer filterStatusCode = null;
-    protected final @Nonnull Set<RequestLogRecord> expandedRows = new HashSet<>();
+    protected final @Nonnull Set<RequestLogId> expandedRows = new HashSet<>();
     
     protected @Nonnull Condition getCondition() {
         return REQUEST_LOG.APPLICATION.eq(applicationName)
@@ -175,6 +176,7 @@ public class DashboardPage extends AbstractLoggedInPage {
             resultsTable.add(new ListView<RequestLogRecord>("row", resultsModel) {
                 @Override protected void populateItem(@Nonnull ListItem<RequestLogRecord> item) {
                     var rec = item.getModelObject();
+                    var id = rec.getRequestLogId();
 
                     // We have to have this as UTC, because:
                     // The top KPI numbers have to be UTC because they are used for billing, all users must see the same data
@@ -182,7 +184,7 @@ public class DashboardPage extends AbstractLoggedInPage {
                     // If you select "today" in the UTC drop-down, you don't want to see yesterday in the table, so table must also be UTC
                     var tableRow = new WebMarkupContainer("tableRow");
                     tableRow.setOutputMarkupId(true);
-                    tableRow.add(AttributeAppender.append("class", () -> expandedRows.contains(rec) ? "open-row" : ""));
+                    tableRow.add(AttributeAppender.append("class", () -> expandedRows.contains(id) ? "open-row" : ""));
                     tableRow.add(new Label("dateTimeShortUtc", DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
                         .format(rec.getDatetimeUtc().atOffset(UTC))));
                     tableRow.add(new Label("endpoint", rec.getEndpoint().name));
@@ -194,7 +196,7 @@ public class DashboardPage extends AbstractLoggedInPage {
                     item.add(tableRow);
                     
                     var details = new WebMarkupContainer("details");
-                    details.add(AttributeAppender.append("style", () -> expandedRows.contains(rec) ? "" : "display:none;"));
+                    details.add(AttributeAppender.append("style", () -> expandedRows.contains(id) ? "" : "display:none;"));
                     details.setOutputMarkupId(true);
                     details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
                         .format(rec.getDatetimeUtc().atZone(UTC))));
@@ -215,11 +217,11 @@ public class DashboardPage extends AbstractLoggedInPage {
                     // And would also have lower maintainability, due to more technologies, and generally more complex solution
                     var toggle = new AjaxFallbackLink<Void>("toggle") {
                         @Override public void onClick(Optional<AjaxRequestTarget> redrawTarget) {
-                            if (expandedRows.contains(rec)) expandedRows.remove(rec); else expandedRows.add(rec);
+                            if (expandedRows.contains(id)) expandedRows.remove(id); else expandedRows.add(id);
                             redrawTarget.ifPresent(t -> t.add(tableRow, details));
                         }
                     };
-                    toggle.add(new Label("text", () -> expandedRows.contains(rec) ? "Hide" : "Show"));
+                    toggle.add(new Label("text", () -> expandedRows.contains(id) ? "Hide" : "Show"));
                     tableRow.add(toggle);
                 }
             });
