@@ -100,27 +100,6 @@ public class EndpointExecutor {
         }
     }
 
-    protected long generateRandom(
-        @Nonnull DbTransaction tx,
-        @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment
-    ) {
-        for (int attempt = 0; attempt < 100; attempt++) {
-            // 10 digits, starting with a non-zero so it is always 10 characters long
-            long candidate = Long.parseLong(random(1, "123456789") + randomNumeric(9));
-
-            int existingCount = tx.jooq()
-                .selectCount()
-                .from(REQUEST_LOG)
-                .where(REQUEST_LOG.RANDOM_ID_PER_APPLICATION.eq(candidate))
-                .and(REQUEST_LOG.APPLICATION.eq(applicationName))
-                .and(REQUEST_LOG.ENVIRONMENT.eq(environment))
-                .fetchOne().value1();
-            if (existingCount == 0) return candidate;
-        }
-
-        throw new RuntimeException("Cannot find new random number");
-    }
-
     protected void appendTextElement(@Nonnull Element parent, @Nonnull String name, @CheckForNull String contents) {
         if (contents == null) return;
         var newElement = parent.getOwnerDocument().createElement(name);
@@ -171,7 +150,7 @@ public class EndpointExecutor {
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull Endpoint endpoint, @Nonnull Request req,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
-        @Nonnull ParameterTransformation parameterTransformation, long autoIncrement, long random,
+        @Nonnull ParameterTransformation parameterTransformation, long autoIncrement, @Nonnull RandomRequestId random,
         @Nonnull Node... inputFromRequestContents
     ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException, HttpRequestFailedException {
         try {
@@ -194,7 +173,7 @@ public class EndpointExecutor {
             appendTextElement(inputFromApplicationElement, "included-requests-per-month", databaseConfig.getIncludedRequestsPerMonth());
             appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
             appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(autoIncrement));
-            appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random));
+            appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.getId()));
             appendTextElement(inputFromApplicationElement, "http-header-user-agent", req.getUserAgent());
 
             // Add data sources e.g. <xml-from-application>
@@ -249,7 +228,7 @@ public class EndpointExecutor {
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull Endpoint endpoint, @Nonnull Request req,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
-        long autoIncrement, long random
+        long autoIncrement, @Nonnull RandomRequestId random
     ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException,
              EndpointExecutionFailedException, HttpRequestFailedException {
         final Map<ParameterName, String> transformedParameters;
@@ -400,7 +379,7 @@ public class EndpointExecutor {
 
                 long autoIncrement = getNextAutoIncrement(tx.db, applicationName, environment, endpoint.name);
                 var autoInc = newLazyNumbers(applicationName, environment, now);
-                long random = generateRandom(tx.db, applicationName, environment);
+                var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
                 var parameters = getParameters(applicationName, application, tx, endpoint, req, autoInc, autoIncrement, random);
 

@@ -350,6 +350,11 @@
                                             <converter>endpoints.jooq.GitRevisionConverter</converter>
                                             <expression>REVISION</expression>
                                         </forcedType>
+                                        <forcedType>
+                                            <userType>endpoints.RandomRequestId</userType>
+                                            <converter>endpoints.jooq.RandomRequestIdConverter</converter>
+                                            <expression>.*RANDOM_ID.*</expression>
+                                        </forcedType>
                                     </forcedTypes>
                                 </database>
                                 <generate>
