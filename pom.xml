@@ -351,6 +351,11 @@
                                             <expression>REVISION</expression>
                                         </forcedType>
                                         <forcedType>
+                                            <userType>endpoints.RequestLogId</userType>
+                                            <converter>endpoints.jooq.RequestLogIdConverter</converter>
+                                            <expression>REQUEST_LOG_ID</expression>
+                                        </forcedType>
+                                        <forcedType>
                                             <userType>endpoints.RandomRequestId</userType>
                                             <converter>endpoints.jooq.RandomRequestIdConverter</converter>
                                             <expression>.*RANDOM_ID.*</expression>
