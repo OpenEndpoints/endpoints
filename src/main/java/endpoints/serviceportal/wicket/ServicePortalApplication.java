@@ -4,17 +4,8 @@ import com.databasesandlife.util.CleartextPassword;
 import com.databasesandlife.util.wicket.CleartextPasswordConverter;
 import com.databasesandlife.util.wicket.UuidConverter;
 import endpoints.DeploymentParameters;
-import endpoints.PublishEnvironment;
-import endpoints.config.Endpoint;
-import endpoints.config.ServicePortalEndpointMenuItem;
-import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointContentMenuItem;
-import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointFormMenuItem;
-import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem;
-import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;
 import endpoints.serviceportal.ServicePortalUsername;
 import endpoints.serviceportal.wicket.converter.ServicePortalUsernameConverter;
-import endpoints.serviceportal.wicket.endpointmenu.EndpointContentPage;
-import endpoints.serviceportal.wicket.endpointmenu.EndpointFormPage;
 import endpoints.serviceportal.wicket.page.*;
 import org.apache.wicket.ConverterLocator;
 import org.apache.wicket.IConverterLocator;
@@ -64,7 +55,7 @@ public class ServicePortalApplication extends WebApplication {
         // Beautiful URLs
         mountPage("/change-password", ChangePasswordPage.class);
         mountPage("/home", ApplicationHomePage.class);
-        mountPage("/dashboard", DashboardPage.class);
+        mountPage("/request-log", RequestLogPage.class);
         mountPage("/publish", PublishPage.class);
         mountPage("/calculate-hash", CalculateHashPage.class);
         mountPage("/secret-key", GenerateNewSecretKeyPage.class);

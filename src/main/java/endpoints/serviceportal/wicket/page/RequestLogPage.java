@@ -1,6 +1,5 @@
 package endpoints.serviceportal.wicket.page;
 
-import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.wicket.CachingFutureModel;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
@@ -10,13 +9,9 @@ import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.serviceportal.DateRangeOption;
-import endpoints.serviceportal.DateRangeOption.LastNDaysOption;
-import endpoints.serviceportal.DateRangeOption.ThisMonthOption;
-import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.model.EndpointNamesModel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -28,34 +23,29 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.util.convert.IConverter;
-import org.apache.wicket.util.convert.converter.IntegerConverter;
 import org.jooq.Condition;
 import org.jooq.Result;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 import static endpoints.PublishEnvironment.live;
-import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toMap;
 import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
 import static org.apache.wicket.util.time.Duration.seconds;
-import static org.jooq.impl.DSL.count;
 import static org.jooq.impl.DSL.trueCondition;
 
-public class DashboardPage extends AbstractLoggedInPage {
+public class RequestLogPage extends AbstractLoggedInPage {
 
     protected final @Nonnull ApplicationName applicationName = getSession().getLoggedInDataOrThrow().application;
     protected @Getter @Setter @Nonnull PublishEnvironment filterEnvironment = live;
@@ -72,21 +62,6 @@ public class DashboardPage extends AbstractLoggedInPage {
                 .plus(1, DAYS).atStartOfDay(UTC).toInstant()))
             .and(filterEndpoint == null ? trueCondition() : REQUEST_LOG.ENDPOINT.eq(filterEndpoint))
             .and(filterStatusCode == null ? trueCondition() : REQUEST_LOG.STATUS_CODE.eq(filterStatusCode));
-    }
-
-    @RequiredArgsConstructor
-    class KpiModel extends CachingFutureModel<Integer> {
-        protected final @Nonnull DateRangeOption dateOption;
-        @Override protected @Nonnull Integer populate() {
-            try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer("KPI " + dateOption) ) {
-                return tx.jooq().selectCount()
-                    .from(REQUEST_LOG)
-                    .where(REQUEST_LOG.APPLICATION.eq(applicationName))
-                    .and(REQUEST_LOG.ENVIRONMENT.eq(live))
-                    .and(REQUEST_LOG.DATETIME_UTC.ge(dateOption.getStartDateUtc(now(UTC)).atStartOfDay(UTC).toInstant()))
-                    .fetchOne().value1();
-            }
-        }
     }
 
     protected class ResultsModel extends CachingFutureModel<Result<RequestLogRecord>> {
@@ -109,40 +84,10 @@ public class DashboardPage extends AbstractLoggedInPage {
         }
     }
     
-    protected static class LabelWithThousandSeparator extends Label {
-        public LabelWithThousandSeparator(String id, IModel<Integer> model) { super(id, model); }
-
-        @SuppressWarnings("unchecked") 
-        @Override public <C> IConverter<C> getConverter(Class<C> type) {
-            return (IConverter<C>) new IntegerConverter() {
-                @Override protected NumberFormat newNumberFormat(Locale locale) {
-                    return new DecimalFormat("#,##0");
-                }
-            };
-        }
-    }
-
-    public DashboardPage() {
-        super(NavigationItem.DashboardPage, null);
+    public RequestLogPage() {
+        super(NavigationItem.RequestLogPage, null);
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var kpiTransactionsTodayModel = new KpiModel(new LastNDaysOption("", 1));
-            var kpiTransactionsTodayLabel = new LabelWithThousandSeparator("transactionsToday", kpiTransactionsTodayModel);
-            add(kpiTransactionsTodayLabel.setOutputMarkupId(true));
-
-            var kpiTransactionsLast7DaysModel = new KpiModel(new LastNDaysOption("", 7));
-            var kpiTransactionsLast7DaysLabel = new LabelWithThousandSeparator("transactionsLast7Days", kpiTransactionsLast7DaysModel);
-            add(kpiTransactionsLast7DaysLabel.setOutputMarkupId(true));
-
-            var kpiTransactionsThisMonthModel = new KpiModel(new ThisMonthOption(""));
-            var kpiTransactionsThisMonthLabel = new LabelWithThousandSeparator("transactionsThisMonth", kpiTransactionsThisMonthModel);
-            add(kpiTransactionsThisMonthLabel.setOutputMarkupId(true));
-            
-            var includedRequestsPerMonth = tx.jooq().select(APPLICATION_CONFIG.INCLUDED_REQUESTS_PER_MONTH)
-                .from(APPLICATION_CONFIG).where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne().value1();
-            add(new LabelWithThousandSeparator("includedRequestsPerMonth", () -> includedRequestsPerMonth)
-                .setVisible(includedRequestsPerMonth != null));
-            
             var endpointsNamesModel = new EndpointNamesModel(this::getFilterEnvironment);
             var statusCodes = tx.jooq().selectDistinct(REQUEST_LOG.STATUS_CODE).from(REQUEST_LOG)
                 .where(REQUEST_LOG.APPLICATION.eq(applicationName))
@@ -234,12 +179,9 @@ public class DashboardPage extends AbstractLoggedInPage {
             add(resultsTable.setOutputMarkupId(true));
             
             add(onTimer(seconds(5), (target) -> {
-                kpiTransactionsTodayModel.refresh();
-                kpiTransactionsLast7DaysModel.refresh();
-                kpiTransactionsThisMonthModel.refresh();
                 resultsModel.refresh();
                 resultsCountModel.refresh();
-                target.add(kpiTransactionsTodayLabel, kpiTransactionsLast7DaysLabel, kpiTransactionsThisMonthLabel, resultsTable);
+                target.add(resultsTable);
             }));
         }
     }

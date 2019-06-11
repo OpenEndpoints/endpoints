@@ -29,7 +29,7 @@ public class NavigationPanel extends Panel {
     @RequiredArgsConstructor
     public enum NavigationItem {
         ApplicationHomePage(false),
-        DashboardPage(false),
+        RequestLogPage(false),
         PublishPage(false),
         CalculateHashPage(true),
         GenerateNewSecretKeyPage(true),
