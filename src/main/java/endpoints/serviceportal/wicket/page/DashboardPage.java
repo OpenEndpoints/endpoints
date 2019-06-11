@@ -189,7 +189,8 @@ public class DashboardPage extends AbstractLoggedInPage {
                     tableRow.add(new Label("statusCode", rec.getStatusCode())
                         .add(AttributeAppender.append("class", rec.getStatusCode() >= 300 ? "status-error" : "")));
                     tableRow.add(new Label("incrementalIdPerEndpoint", rec.getIncrementalIdPerEndpoint()));
-                    tableRow.add(new Label("randomIdPerApplication", rec.getRandomIdPerApplication()));
+                    tableRow.add(new Label("randomIdPerApplication", Optional.ofNullable(rec.getRandomIdPerApplication())
+                        .map(x -> x.getId()).orElse(null)));
                     item.add(tableRow);
                     
                     var details = new WebMarkupContainer("details");
