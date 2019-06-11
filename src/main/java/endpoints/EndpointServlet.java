@@ -148,10 +148,12 @@ public class EndpointServlet extends HttpServlet {
                     return Optional.ofNullable(req.getContentType()).orElse("GET").replaceAll(";.*$", "");
                 }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
-                    return req.getParameterMap().entrySet().stream().collect(toMap(
-                        e -> new ParameterName(e.getKey()),
-                        e -> asList(e.getValue())
-                    ));
+                    return req.getParameterMap().entrySet().stream()
+                        .filter(e -> ! e.getKey().equalsIgnoreCase("debug"))
+                        .collect(toMap(
+                            e -> new ParameterName(e.getKey()),
+                            e -> asList(e.getValue())
+                        ));
                 }
                 @SneakyThrows({ServletException.class, IOException.class})
                 @Override public @Nonnull List<UploadedFile> getUploadedFiles() {
@@ -170,6 +172,7 @@ public class EndpointServlet extends HttpServlet {
             var suppliedHash = req.getParameter("hash");
 
             new EndpointExecutor().execute(environment, applicationName, application, endpoint,
+                Boolean.parseBoolean(req.getParameter("debug")),
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
         }
         catch (RequestInvalidException e) {

@@ -223,6 +223,69 @@ preview
 .
 \end_layout
 
+\begin_layout Subsection
+Debugging
+\end_layout
+
+\begin_layout Standard
+The following terms are used in the context of debugging:
+\end_layout
+
+\begin_layout Description
+Debugging
+\begin_inset space ~
+\end_inset
+
+Allowed Each application may be configured in the database to allow debugging
+ or not.
+ This may be changed with a button in the Service Portal.
+\end_layout
+
+\begin_layout Description
+Debugging
+\begin_inset space ~
+\end_inset
+
+Requested It is possible to send the extra parameter 
+\family typewriter
+debug=true
+\family default
+ with a request.
+ 
+\end_layout
+
+\begin_layout Standard
+Debugging occurs if 
+\emph on
+both
+\emph default
+ debugging is allowed 
+\emph on
+and
+\emph default
+ requested.
+\end_layout
+
+\begin_layout Standard
+Debugging means: the input and output of the parameter transformation is
+ stored in the request log.
+ These XML files may then be downloaded in the service portal.
+\end_layout
+
+\begin_layout Standard
+Whether debugging is allowed or not, and whether it has been requested or
+ not, are available in the input to the parameter transformation.
+ This may, if the parameter transformation desires it, be written into 
+\begin_inset Quotes eld
+\end_inset
+
+parameters
+\begin_inset Quotes erd
+\end_inset
+
+ available to the main endpoints processing flow.
+\end_layout
+
 \begin_layout Section
 Format of an Application
 \end_layout
@@ -565,7 +628,7 @@ the root element of the file).
 \end_layout
 
 \begin_layout Subsubsection
-Parameter transformation
+Parameter Transformation
 \end_layout
 
 \begin_layout Standard
@@ -651,6 +714,10 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
+    <debug-requested/>   <!-- or missing -->
+\end_layout
+
+\begin_layout LyX-Code
     <parameter name="language" value="foo"/>
 \end_layout
 
@@ -689,6 +756,10 @@ status open
 \begin_layout LyX-Code
     <included-requests-per-month>1000</included-requests-per-month>   <!--
  optional -->
+\end_layout
+
+\begin_layout LyX-Code
+    <debug-allowed/>   <!-- or missing -->
 \end_layout
 
 \begin_layout LyX-Code
