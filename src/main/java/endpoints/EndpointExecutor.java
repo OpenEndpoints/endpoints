@@ -6,6 +6,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import endpoints.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.config.*;
 import endpoints.datasource.DataSourceCommandResult;
@@ -172,7 +173,7 @@ public class EndpointExecutor {
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull ParameterTransformation parameterTransformation, long autoIncrement, long random,
         @Nonnull Node... inputFromRequestContents
-    ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException {
+    ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException, HttpRequestFailedException {
         try {
             // Create input document
             var inputParametersDocument = DomParser.newDocumentBuilder().newDocument();
@@ -239,6 +240,7 @@ public class EndpointExecutor {
         catch (RuntimeException e) {
             unwrapException(e, RequestInvalidException.class);
             unwrapException(e, TransformationFailedException.class);
+            unwrapException(e, HttpRequestFailedException.class);
             throw e;
         }
     }
@@ -249,7 +251,7 @@ public class EndpointExecutor {
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
         long autoIncrement, long random
     ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException,
-             EndpointExecutionFailedException {
+             EndpointExecutionFailedException, HttpRequestFailedException {
         final Map<ParameterName, String> transformedParameters;
 
         switch (req.getContentType()) {
@@ -418,6 +420,7 @@ public class EndpointExecutor {
                         unwrapException(e, RequestInvalidException.class);
                         unwrapException(e, TransformationFailedException.class);
                         unwrapException(e, TaskExecutionFailedException.class);
+                        unwrapException(e, HttpRequestFailedException.class);
                         throw e;
                     }
                 }
@@ -431,7 +434,7 @@ public class EndpointExecutor {
                 responder.respond(responseContent);
             }
             catch (RequestInvalidException | ParameterTransformationHadErrorException
-                    | TransformationFailedException | TaskExecutionFailedException e) {
+                    | TransformationFailedException | TaskExecutionFailedException | HttpRequestFailedException e) {
                 try (var tx = new ApplicationTransaction(application);
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
@@ -448,10 +451,10 @@ public class EndpointExecutor {
 
                     var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, autoInc, errorResponseContent);
                     r.setExceptionMessage(e.getMessage());
-                    r.setHttpRequestFailedUrl(e.getCause() instanceof HttpRequestSpecification.HttpRequestFailedException
-                        ? (((HttpRequestSpecification.HttpRequestFailedException) e.getCause()).url) : null);
-                    r.setHttpRequestFailedStatusCode(e.getCause() instanceof HttpRequestSpecification.HttpRequestFailedException
-                        ? (((HttpRequestSpecification.HttpRequestFailedException) e.getCause()).responseStatusCode) : null);
+                    r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
+                        ? (((HttpRequestFailedException) e).url) : null);
+                    r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException
+                        ? (((HttpRequestFailedException) e).responseStatusCode) : null);
                     r.setXsltParameterErrorMessage(e instanceof ParameterTransformationHadErrorException
                         ? ((ParameterTransformationHadErrorException) e).error : null);
                     tx.db.insert(r);
