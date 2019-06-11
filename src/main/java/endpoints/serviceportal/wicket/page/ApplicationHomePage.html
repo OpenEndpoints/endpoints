@@ -106,6 +106,8 @@
 
                 <div class="uk-width-1-1"><h1 class="uk-heading-primary uk-heading-bullet" wicket:id="applicationDisplayName">Display Name</h1></div>
 
+                <wicket:container wicket:id="feedback" id="x"/>
+
                 <div class="uk-width-1-1">
 
 
@@ -116,19 +118,27 @@
                             <table class="uk-table uk-table-divider uk-table-small uk-table-responsive">
                                 <tr>
                                     <td>Application&nbsp;Name:</td>
-                                    <td wicket:id="applicationName">offerready_com</td>
+                                    <td colspan=2 wicket:id="applicationName">offerready_com</td>
                                 </tr>
                                 <tr>
                                     <td>Code&nbsp;Repository:</td>
-                                    <td wicket:id="repository">https://bitbucket.org/offer-ready/epapp-offerready_com.git</td>
+                                    <td colspan=2 wicket:id="repository">https://bitbucket.org/offer-ready/epapp-offerready_com.git</td>
                                 </tr>
                                 <tr>
                                     <td>Preview&nbsp;URL:</td>
-                                    <td wicket:id="urlPreview">https://endpoints.offer-ready.com/offerready_com/{endpoint}?environment=preview&amp;{parameter}</td>
+                                    <td colspan=2 wicket:id="urlPreview">https://endpoints.offer-ready.com/offerready_com/{endpoint}?environment=preview&amp;{parameter}</td>
                                 </tr>
                                 <tr>
                                     <td>Live&nbsp;URL:</td>
-                                    <td wicket:id="urlLive">https://endpoints.offer-ready.com/offerready_com/{endpoint}?{parameter}</td>
+                                    <td colspan=2 wicket:id="urlLive">https://endpoints.offer-ready.com/offerready_com/{endpoint}?{parameter}</td>
+                                </tr>
+                                <tr>
+                                    <td>Debug:</td>
+                                    <td wicket:id="currentDebugAllowed">Allowed</td>
+                                    <td style="text-align: right">
+                                        <a wicket:id="toggleDebugAllowed" href="#">Change</a> 
+                                        | 
+                                        <a wicket:id="clearDebugLog" href="#">Clear debug log</a></td>
                                 </tr>
                             </table>
 
