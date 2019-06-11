@@ -1,5 +1,6 @@
 package endpoints.serviceportal.wicket.page;
 
+import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.wicket.CachingFutureModel;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
@@ -21,11 +22,17 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.request.Response;
+import org.apache.wicket.request.resource.BaseDataResource;
+import org.apache.wicket.util.time.Duration;
 import org.jooq.Condition;
+import org.jooq.Field;
 import org.jooq.Result;
+import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -80,6 +87,36 @@ public class RequestLogPage extends AbstractLoggedInPage {
         @Override protected @Nonnull Integer populate() {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
                 return tx.jooq().selectCount().from(REQUEST_LOG).where(getCondition()).fetchOne().value1();
+            }
+        }
+    }
+    
+    protected class XmlDownloadResource extends BaseDataResource<String> {
+        protected final @Nonnull RequestLogId id;
+        protected final @Nonnull Field<Element> field;
+
+        public XmlDownloadResource(@Nonnull RequestLogId id, @Nonnull Field<Element> field, @Nonnull String filename) {
+            super("application/xml; charset=utf-8", null, filename);
+            this.id = id;
+            this.field = field;
+        }
+
+        // By default these are cached, which is bad as they have e.g. link8 and if a new request turns up
+        // then all the rows are pushed down and link8 might now refer to something else
+        @Override protected void configureResponse(ResourceResponse response, Attributes attributes) {
+            super.configureResponse(response, attributes);
+            response.disableCaching();
+        }
+
+        @Override protected Long getLength(String data) { return null; }
+        @Override protected void writeData(Response response, String data) { response.write(data); }
+
+        @Override protected @Nonnull String getData(Attributes x) {
+            try (var tx = DeploymentParameters.get().newDbTransaction()) {
+                Logger.getLogger(getClass()).info("Downloading " + field + " for request_log_id " + id.getId() + "...");
+                var element = tx.jooq().select(field).from(REQUEST_LOG).where(REQUEST_LOG.APPLICATION.eq(applicationName))
+                    .and(REQUEST_LOG.REQUEST_LOG_ID.eq(id)).fetchOne().value1();
+                return DomParser.formatXmlPretty(element);
             }
         }
     }
@@ -154,6 +191,14 @@ public class RequestLogPage extends AbstractLoggedInPage {
                         .setVisible(rec.getHttpRequestFailedStatusCode() != null));
                     details.add(new Label("xsltParameterErrorMessage", rec.getXsltParameterErrorMessage())
                         .setVisible(rec.getXsltParameterErrorMessage() != null));
+                    details.add(new ResourceLink<Element>("downloadInputXml",
+                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input.xml"))
+                        .setVisible(rec.getParameterTransformationInput() != null));
+                    details.add(new ResourceLink<Element>("downloadOutputXml",
+                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output.xml"))
+                        .setVisible(rec.getParameterTransformationOutput() != null));
+                    details.add(new WebMarkupContainer("outputXmlNotAvailable")
+                        .setVisible(rec.getParameterTransformationOutput() == null));
                     item.add(details);
 
                     // We implement the [+] opening of rows in Wicket, not Javascript
