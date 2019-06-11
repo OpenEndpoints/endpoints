@@ -142,7 +142,7 @@ Vagrant.configure(2) do |config|
     echo 'After "vagrant ssh", use:'
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true jetty:run '
     echo '    Then surf to: '
-    echo '       http://localhost:9758/example-application/json?param-in-hash=x&email-address=y&email-address=email-address&hash=95be18ae19a5ac3c67d1db62826eed239615563d28e46f87c61bd609b12a1f5f '
+    echo '       http://localhost:9758/example-application/json?param-in-hash=x&email-address=y&email-address=email-address&hash=95be18ae19a5ac3c67d1db62826eed239615563d28e46f87c61bd609b12a1f5f&debug=true '
     echo '       http://localhost:9758/service-portal '
     echo '    Or open send-email-test.html '
     echo '    Or execute: '

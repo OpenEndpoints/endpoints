@@ -102,7 +102,7 @@ public class EndpointPanel extends Panel {
             };
             new EndpointExecutor().execute(environment, applicationName,
                 DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment), endpoint,
-                null, request, 
+                false, null, request, 
                 responseContent -> {
                     downloadFileName = responseContent.getFilenameOrNull();
                     contentType = responseContent.getContentType();

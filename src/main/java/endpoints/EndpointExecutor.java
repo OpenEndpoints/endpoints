@@ -99,6 +99,10 @@ public class EndpointExecutor {
             this.error = error;
         }
     }
+    
+    protected class ParameterTransformationLogger {
+        public Element input, output;
+    }
 
     protected void appendTextElement(@Nonnull Element parent, @Nonnull String name, @CheckForNull String contents) {
         if (contents == null) return;
@@ -148,7 +152,8 @@ public class EndpointExecutor {
     @SneakyThrows({DocumentTemplateInvalidException.class, TransformerException.class})
     protected @Nonnull Map<ParameterName, String> transformXmlIntoParameters(
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
-        @Nonnull Endpoint endpoint, @Nonnull Request req,
+        @Nonnull Endpoint endpoint, @Nonnull Request req, boolean debugAllowed, boolean debugRequested, 
+        @Nonnull ParameterTransformationLogger parameterTransformationLogger,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull ParameterTransformation parameterTransformation, long autoIncrement, @Nonnull RandomRequestId random,
         @Nonnull Node... inputFromRequestContents
@@ -161,6 +166,7 @@ public class EndpointExecutor {
             // Add <input-from-request>
             var inputFromRequestElement = inputParametersDocument.createElement("input-from-request");
             inputParametersDocument.getDocumentElement().appendChild(inputFromRequestElement);
+            if (debugRequested) inputFromRequestElement.appendChild(inputParametersDocument.createElement("debug-requested"));
             for (var n : inputFromRequestContents) inputFromRequestElement.appendChild(inputParametersDocument.importNode(n, true));
 
             // Add <input-from-application>
@@ -171,6 +177,7 @@ public class EndpointExecutor {
             appendTextElement(inputFromApplicationElement, "application", applicationName.name);
             appendTextElement(inputFromApplicationElement, "application-display-name", databaseConfig.getDisplayName());
             appendTextElement(inputFromApplicationElement, "included-requests-per-month", databaseConfig.getIncludedRequestsPerMonth());
+            if (debugAllowed) inputFromApplicationElement.appendChild(inputParametersDocument.createElement("debug-allowed"));
             appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
             appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(autoIncrement));
             appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.getId()));
@@ -187,14 +194,15 @@ public class EndpointExecutor {
                     inputParametersDocument.getDocumentElement().appendChild(inputParametersDocument.importNode(element, true));
 
             // Transform
-            logXmlForDebugging(getClass(), "Input to parameter transformation", inputParametersDocument);
+            boolean debug = debugAllowed && debugRequested;
+            if (debug) parameterTransformationLogger.input = inputParametersDocument.getDocumentElement();
             var outputParametersDocument = new DOMResult();
             parameterTransformation.xslt.newTransformer()
                 .transform(new DOMSource(inputParametersDocument), outputParametersDocument);
-            logXmlForDebugging(getClass(), "Output from parameter transformation", (Document) outputParametersDocument.getNode());
 
             // Parse and return output
             var outputParametersRoot = ((Document) outputParametersDocument.getNode()).getDocumentElement();
+            if (debug) parameterTransformationLogger.output = outputParametersRoot;
             if (outputParametersRoot == null) throw new ConfigurationException("Parameter transformation delivered empty document");
             var error = getOptionalSingleSubElement(outputParametersRoot, "error");
             if (error != null) throw new ParameterTransformationHadErrorException("Parameter transformation " +
@@ -226,7 +234,8 @@ public class EndpointExecutor {
 
     protected @Nonnull Map<ParameterName, String> getParameters(
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
-        @Nonnull Endpoint endpoint, @Nonnull Request req,
+        @Nonnull Endpoint endpoint, @Nonnull Request req, boolean debugAllowed, boolean debugRequested,
+        @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
         long autoIncrement, @Nonnull RandomRequestId random
     ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException,
@@ -244,7 +253,8 @@ public class EndpointExecutor {
                 if (endpoint.parameterTransformation == null) {
                     transformedParameters = inputParameters;
                 } else {
-                    transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req, autoInc,
+                    transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req,
+                        debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                         endpoint.parameterTransformation, autoIncrement, random,
                         ParametersCommand.createParametersElements(inputParameters, req.getUploadedFiles()));
                 }
@@ -255,7 +265,8 @@ public class EndpointExecutor {
                     if (endpoint.parameterTransformation == null) throw new RequestInvalidException("Endpoint does not have " +
                         "<parameter-transformation> defined, therefore cannot accept XML request");
                     var requestDocument = DomParser.from(req.getInputStream());
-                    transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req, autoInc,
+                    transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req,
+                        debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                         endpoint.parameterTransformation, autoIncrement, random, requestDocument);
                 }
                 catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }
@@ -334,7 +345,7 @@ public class EndpointExecutor {
 
     protected @Nonnull RequestLogRecord newRequestLogRecord(
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpointName,
-        @Nonnull Instant now, @Nonnull Request req, 
+        @Nonnull Instant now, @Nonnull Request req, @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull BufferedHttpResponseDocumentGenerationDestination response
     ) {
@@ -348,6 +359,8 @@ public class EndpointExecutor {
         r.setOnDemandPerpetualIncrementingNumber(autoInc.get(perpetual).getValueOrNull());
         r.setOnDemandYearIncrementingNumber(autoInc.get(year).getValueOrNull());
         r.setOnDemandMonthIncrementingNumber(autoInc.get(month).getValueOrNull());
+        r.setParameterTransformationInput(parameterTransformationLogger.input);
+        r.setParameterTransformationOutput(parameterTransformationLogger.output);
         return r;
     }
 
@@ -356,18 +369,21 @@ public class EndpointExecutor {
      */
     public void execute(
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
-        @Nonnull Application application, @Nonnull Endpoint endpoint,
+        @Nonnull Application application, @Nonnull Endpoint endpoint, boolean debugRequested,
         @CheckForNull String hashToCheck, @Nonnull Request req, @Nonnull Responder responder
     ) throws EndpointExecutionFailedException {
         try (var ignored = new Timer(getClass().getSimpleName())) {
             var now = Instant.now();
             
+            var parameterTransformationLogger = new ParameterTransformationLogger();
+            
             try (var tx = new ApplicationTransaction(application);
                  var ignored2 = new Timer("<success> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
 
-                var locked = tx.db.jooq().select(APPLICATION_CONFIG.LOCKED).from(APPLICATION_CONFIG)
-                    .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne(APPLICATION_CONFIG.LOCKED);
-                if (locked) throw new RequestInvalidException("Application is locked");
+                var appConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
+                    .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne();
+                
+                if (appConfig.getLocked()) throw new RequestInvalidException("Application is locked");
 
                 try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name 
                         + "', environment '" + environment.name() + "'")) {
@@ -381,7 +397,9 @@ public class EndpointExecutor {
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
-                var parameters = getParameters(applicationName, application, tx, endpoint, req, autoInc, autoIncrement, random);
+                var parameters = getParameters(applicationName, application, tx, endpoint, req, 
+                    appConfig.getDebugAllowed(), debugRequested, parameterTransformationLogger, 
+                    autoInc, autoIncrement, random);
 
                 if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
 
@@ -404,7 +422,8 @@ public class EndpointExecutor {
                     }
                 }
 
-                var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, autoInc, responseContent);
+                var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, parameterTransformationLogger,
+                    autoInc, responseContent);
                 r.setIncrementalIdPerEndpoint(autoIncrement);
                 r.setRandomIdPerApplication(random);
                 tx.db.insert(r);
@@ -428,7 +447,8 @@ public class EndpointExecutor {
                         throw e2;
                     }
 
-                    var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, autoInc, errorResponseContent);
+                    var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, parameterTransformationLogger, 
+                        autoInc, errorResponseContent);
                     r.setExceptionMessage(e.getMessage());
                     r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
                         ? (((HttpRequestFailedException) e).url) : null);
