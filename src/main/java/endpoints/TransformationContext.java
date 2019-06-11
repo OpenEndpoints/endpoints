@@ -45,18 +45,4 @@ public class TransformationContext {
         threads.addTaskWithDependencies(singletonList(process), result);
         return result;
     }
-
-    @SuppressWarnings("unchecked") 
-    public static <E extends Exception> void unwrapException(@Nonnull RuntimeException e, @Nonnull Class<E> exceptionClass) throws E {
-        // runnable must wrap checked exception, then threads.execute wraps it again
-        if (e.getCause() != null 
-                && e.getCause().getCause() != null
-                && exceptionClass.isAssignableFrom(e.getCause().getCause().getClass()))
-            throw (E) e.getCause().getCause();
-        
-        // @SneakyThrows doesn't wrap, then threads.execute wraps it
-        if (e.getCause() != null
-                && exceptionClass.isAssignableFrom(e.getCause().getClass()))
-            throw (E) e.getCause();
-    }
 }

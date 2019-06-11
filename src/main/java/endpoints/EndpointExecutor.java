@@ -39,13 +39,13 @@ import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
+import static com.databasesandlife.util.ThreadPool.unwrapException;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.month;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.perpetual;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.year;
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
-import static endpoints.TransformationContext.unwrapException;
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
