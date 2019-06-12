@@ -12,8 +12,10 @@ import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.serviceportal.DateRangeOption;
 import endpoints.serviceportal.wicket.model.EndpointNamesModel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.log4j.Logger;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -36,11 +38,9 @@ import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static endpoints.PublishEnvironment.live;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
@@ -48,8 +48,10 @@ import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toCollection;
 import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
 import static org.apache.wicket.util.time.Duration.seconds;
+import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.trueCondition;
 
 public class RequestLogPage extends AbstractLoggedInPage {
@@ -71,14 +73,31 @@ public class RequestLogPage extends AbstractLoggedInPage {
             .and(filterStatusCode == null ? trueCondition() : REQUEST_LOG.STATUS_CODE.eq(filterStatusCode));
     }
 
-    protected class ResultsModel extends CachingFutureModel<Result<RequestLogRecord>> {
-        @Override protected @Nonnull Result<RequestLogRecord> populate() {
+    @AllArgsConstructor
+    protected class RequestLogEntry implements Serializable {
+        /** Doesn't have the XML fields populated (they might be huge, don't store them in the session) */
+        public RequestLogRecord record;
+        public boolean hasParameterTransformationInputXml, hasParameterTransformationOutputXml;
+    }
+
+    protected class ResultsModel extends CachingFutureModel<ArrayList<RequestLogEntry>> {
+        @SuppressWarnings("SimplifyStreamApiCallChains")
+        @Override protected @Nonnull ArrayList<RequestLogEntry> populate() {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                return tx.jooq().selectFrom(REQUEST_LOG)
+                var fields = new ArrayList<Field<?>>();
+                fields.add(field(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT.isNotNull()));
+                fields.add(field(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT.isNotNull()));
+                fields.addAll(asList(REQUEST_LOG.fields()));
+                fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT);
+                fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT);
+
+                return tx.jooq().select(fields)
+                    .from(REQUEST_LOG)
                     .where(getCondition())
                     .orderBy(REQUEST_LOG.DATETIME_UTC.desc())
                     .limit(500)
-                    .fetch();
+                    .fetch(r -> new RequestLogEntry(r.into(REQUEST_LOG), r.get(0, Boolean.class), r.get(1, Boolean.class)))
+                    .stream().collect(toCollection(ArrayList::new));
             }
         }
     }
@@ -155,9 +174,10 @@ public class RequestLogPage extends AbstractLoggedInPage {
                 statusCodes).setNullValid(true));
             
             var resultsTable = new WebMarkupContainer("results");
-            resultsTable.add(new ListView<RequestLogRecord>("row", resultsModel) {
-                @Override protected void populateItem(@Nonnull ListItem<RequestLogRecord> item) {
-                    var rec = item.getModelObject();
+            resultsTable.add(new ListView<RequestLogEntry>("row", resultsModel) {
+                @Override protected void populateItem(@Nonnull ListItem<RequestLogEntry> item) {
+                    var entry = item.getModelObject();
+                    var rec = entry.record;
                     var id = rec.getRequestLogId();
 
                     // We have to have this as UTC, because:
@@ -193,12 +213,12 @@ public class RequestLogPage extends AbstractLoggedInPage {
                         .setVisible(rec.getXsltParameterErrorMessage() != null));
                     details.add(new ResourceLink<Element>("downloadInputXml",
                         new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input.xml"))
-                        .setVisible(rec.getParameterTransformationInput() != null));
+                        .setVisible(entry.hasParameterTransformationInputXml));
                     details.add(new ResourceLink<Element>("downloadOutputXml",
                         new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output.xml"))
-                        .setVisible(rec.getParameterTransformationOutput() != null));
+                        .setVisible(entry.hasParameterTransformationOutputXml));
                     details.add(new WebMarkupContainer("outputXmlNotAvailable")
-                        .setVisible(rec.getParameterTransformationOutput() == null));
+                        .setVisible(!entry.hasParameterTransformationOutputXml));
                     item.add(details);
 
                     // We implement the [+] opening of rows in Wicket, not Javascript
