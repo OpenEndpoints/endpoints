@@ -1,0 +1,2 @@
+ALTER TABLE application_config
+DROP included_requests_per_month;
