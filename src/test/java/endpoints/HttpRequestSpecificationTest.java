@@ -67,7 +67,7 @@ public class HttpRequestSpecificationTest extends TestCase {
 
             var config =
                 "<task class='endpoints.task.HttpRequestTask' "+(ignoreErrors?"ignore-if-error='true'":"")+">" +
-                "  <url>http://localhost:"+port+"/</url>" +
+                (configXml.contains("<url>") ? "" : "  <url>http://localhost:"+port+"/</url>") +
                 configXml +
                 "</task>";
             var threads = new XsltCompilationThreads();
@@ -99,18 +99,23 @@ public class HttpRequestSpecificationTest extends TestCase {
                     public Element element;
                 };
                 httpSpec.scheduleExecutionAndParseResponse(context, e -> resultContainer.element = e);
-                context.threads.execute();
+                
+                // In EndpointsExecutor, only the threads.execute catches Exceptions
+                // so we simulate that behaviour here. That's because all the HTTP requests must happen
+                // in the threads otherwise they will be executed in sequence (which is wrong)
+                // although everything will appear to work.
+                try { context.threads.execute(); }
+                catch (RuntimeException e) {
+                    unwrapException(e, HttpRequestFailedException.class);
+                    throw e;
+                }
+
                 return resultContainer.element;
-            }
-            catch (RuntimeException e) {
-                unwrapException(e, HttpRequestFailedException.class);
-                throw e;
             }
             finally {
                 try { server.stop(); }
                 catch (Exception e) { e.printStackTrace(); }
             }
-
         }
     }
 
@@ -148,14 +153,19 @@ public class HttpRequestSpecificationTest extends TestCase {
 
         runTest(true, configXml, deliverResponse);
     }
+    
+    public void runTestInclVariousHttpFails(@Nonnull String configXml, @Nonnull DeliverResponse deliverResponse) 
+    throws HttpRequestFailedException, TransformationFailedException {
+        runTest(false, configXml, deliverResponse);
 
-    public void testExecuteAndParseResponse() throws Exception {
-        // Test normal case
-        runTest(false, "", (req, resp) -> { });
+        // Test URL doesn't exist
+        runTestFail("<url>https://dfglkjfgkjldgkjgdfkl.com/</url>" + configXml, deliverResponse);
 
         // Test non-200 status code
-        runTestFail("", (req, resp) -> resp.setStatus(HttpServletResponse.SC_CONFLICT));
+        runTestFail(configXml, (req, resp) -> resp.setStatus(HttpServletResponse.SC_CONFLICT));
+    }
 
+    public void testExecuteAndParseResponse() throws Exception {
         // Test non GET method
         runTest(false, "<method name='POST'/>", (req, resp) -> {
             if ( ! req.getMethod().equals("POST")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -170,15 +180,20 @@ public class HttpRequestSpecificationTest extends TestCase {
         runTest(false, "<request-header name='foo'>${foo}</request-header>", (req, resp) -> {
             if ( ! req.getHeader("foo").equals("bar")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
+        
+        // ---------------- Various request bodies ------------------------
+
+        // Test empty request body
+        runTestInclVariousHttpFails("", (req, resp) -> { });
 
         // Test XML request body (fixed) incl parameter expansion
-        runTest(false, "<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
+        runTestInclVariousHttpFails("<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<your-tag>bar</your-tag>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
-        // Test XML request body (fixed) incl transformation
-        runTest(false, "<xml-body expand-transformations='true'> " +
+        // Test XML request body (fixed) incl referencing other XSLTs within an element
+        runTestInclVariousHttpFails("<xml-body expand-transformations='true'> " +
                 "<your-tag xslt-transformation='t' encoding='base64'/> </xml-body>", (req, resp) -> {
             var xml = DomParser.from(req.getInputStream());
             if ( ! xml.getNodeName().equals("your-tag")) resp.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -188,16 +203,18 @@ public class HttpRequestSpecificationTest extends TestCase {
         });
 
         // Test XML request body (xslt)
-        runTest(false, "<xml-body xslt-file='unit-test.xslt'/>", (req, resp) -> {
+        runTestInclVariousHttpFails("<xml-body xslt-file='unit-test.xslt'/>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<xml-from-xslt/>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test JSON request body incl parameter expansion
-        runTest(false, "<json-body>{ \"key\": \"${foo}\" }</json-body>", (req, resp) -> {
+        runTestInclVariousHttpFails("<json-body>{ \"key\": \"${foo}\" }</json-body>", (req, resp) -> {
             if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("\"key\":\"bar\""))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
+
+        // ---------------- Various response bodies ------------------------
 
         // Test non-XML/JSON case
         runTestFail("", (req, resp) -> {
