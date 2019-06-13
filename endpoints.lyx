@@ -754,11 +754,6 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
-    <included-requests-per-month>1000</included-requests-per-month>   <!--
- optional -->
-\end_layout
-
-\begin_layout LyX-Code
     <debug-allowed/>   <!-- or missing -->
 \end_layout
 
