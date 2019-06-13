@@ -295,7 +295,7 @@ public class HttpRequestSpecification {
                     urlConnection.setRequestProperty("Content-Type", "application/xml; charset=UTF-8");
                 
                 // Get XML (either fixed in <xml-body>, or result of XSLT) 
-                Document body;
+                final Document body;
                 if (requestBodyXmlTemplate != null) {
                     var stringParams = context.params.entrySet().stream().collect(toMap(e -> e.getKey().name, e -> e.getValue()));
                     body = DomVariableExpander.expand(dollarThenBraces, stringParams, requestBodyXmlTemplate);
@@ -311,47 +311,62 @@ public class HttpRequestSpecification {
                 }
                 
                 // Add base64 uploaded files if necessary
-                if (replaceXmlElementWithFileUploads)
-                    body = replaceXmlElementWithFileUploads(context.fileUploads, body);
+                var bodyAfterUploadFiles = (replaceXmlElementWithFileUploads)
+                    ? replaceXmlElementWithFileUploads(context.fileUploads, body) : body;
                 
                 // After XSLT results expanded, make request
-                Consumer<Document> makeRequest = new Consumer<Document>() {
-                    @SneakyThrows({IOException.class, TransformerConfigurationException.class, TransformerException.class})
-                    @Override public void accept(Document body) {
-                        urlConnection.setDoOutput(true);
-                        try (var o = urlConnection.getOutputStream()) {
-                            TransformerFactory.newInstance().newTransformer().transform(new DOMSource(body), new StreamResult(o));
-                        }
+                Consumer<Document> makeRequest = bodyAfterXsltElementExpansion -> {
+                    urlConnection.setDoOutput(true);
+                    try (var o = urlConnection.getOutputStream()) {
+                        // This does not do any XSLT, it simply sends the DOM to the HTTP server
+                        TransformerFactory.newInstance().newTransformer().transform(
+                            new DOMSource(bodyAfterXsltElementExpansion), new StreamResult(o));
+                    }
+                    catch (IOException | TransformerException e) {
+                        throwException(baseUrl, e); // IOException can be URL not found etc.
+                        after.accept(null);
                     }
                 };
                 
                 // Add base64 XSLT results if necessary (e.g. PDFs)
+                // Then do the request (always in a "task" so that we are not blocked by slow HTTP servers) 
                 if (replaceXmlElementsWithTransformerResults)
-                    precursorTasks.add(new XmlWithBase64TransformationsExpander(context, body).schedule(makeRequest));
-                else 
-                    makeRequest.accept(body);
+                    precursorTasks.add(new XmlWithBase64TransformationsExpander(context, bodyAfterUploadFiles).schedule(makeRequest));
+                else {
+                    Runnable req = () -> makeRequest.accept(bodyAfterUploadFiles);
+                    context.threads.addTaskOffPool(req);
+                    precursorTasks.add(req);
+                }
             }
 
             if (requestBodyJsonTemplate != null || requestBodyJsonTransformer != null) {
                 if ( ! requestHeaderPatterns.keySet().stream().map(x -> x.toLowerCase()).collect(toSet()).contains("content-type"))
                     urlConnection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
                 urlConnection.setDoOutput(true);
-                try (var o = urlConnection.getOutputStream()) {
-                    if (requestBodyJsonTemplate != null) {
-                        var body = expandJson(context.params, requestBodyJsonTemplate);
-                        new ObjectMapper().writeValue(o, body);
-                    } else if (requestBodyJsonTransformer != null) {
-                        var parametersXml = createParametersElement("parameters", context.params, context.fileUploads);
-                        StringWriter json = new StringWriter();
-                        requestBodyJsonTransformer.newTransformer().transform(
-                            new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
-                        if (DeploymentParameters.get().xsltDebugLog)
-                            Logger.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
-                        IOUtils.write(json.toString(), o, UTF_8.name());
-                    } else {
-                        throw new RuntimeException("Unreachable");
+                Runnable sendRequest = () -> { 
+                    try (var o = urlConnection.getOutputStream()) {
+                        if (requestBodyJsonTemplate != null) {
+                            var body = expandJson(context.params, requestBodyJsonTemplate);
+                            new ObjectMapper().writeValue(o, body);
+                        } else if (requestBodyJsonTransformer != null) {
+                            var parametersXml = createParametersElement("parameters", context.params, context.fileUploads);
+                            StringWriter json = new StringWriter();
+                            requestBodyJsonTransformer.newTransformer().transform(
+                                new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
+                            if (DeploymentParameters.get().xsltDebugLog)
+                                Logger.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
+                            IOUtils.write(json.toString(), o, UTF_8.name());
+                        } else {
+                            throw new RuntimeException("Unreachable");
+                        }
                     }
-                }
+                    catch (IOException | DocumentTemplateInvalidException | TransformerException e) {
+                        throwException(baseUrl, e);
+                        after.accept(null);
+                    }
+                };
+                context.threads.addTaskOffPool(sendRequest);
+                precursorTasks.add(sendRequest);
             }
             
             Runnable executeRequest = () -> {
