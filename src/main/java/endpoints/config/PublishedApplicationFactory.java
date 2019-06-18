@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
+import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 
 /**
@@ -119,4 +120,14 @@ public class PublishedApplicationFactory extends ApplicationFactory {
                 "Application which was previously successfully published seems is invalid", e), e);
         }
     }
+
+    public @Nonnull ApplicationConfig fetchApplicationConfig(@Nonnull DbTransaction db, @Nonnull ApplicationName applicationName) {
+        var appConfig = db.jooq()
+            .select(APPLICATION_CONFIG.LOCKED, APPLICATION_CONFIG.DEBUG_ALLOWED)
+            .from(APPLICATION_CONFIG)
+            .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName))
+            .fetchOne();
+        return new ApplicationConfig(appConfig.value1(), appConfig.value2());
+    }
+
 }

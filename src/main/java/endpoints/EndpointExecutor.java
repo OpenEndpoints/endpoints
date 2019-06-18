@@ -378,11 +378,10 @@ public class EndpointExecutor {
             
             try (var tx = new ApplicationTransaction(application);
                  var ignored2 = new Timer("<success> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
-
-                var appConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
-                    .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne();
                 
-                if (appConfig.getLocked()) throw new RequestInvalidException("Application is locked");
+                var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);
+                
+                if (appConfig.locked) throw new RequestInvalidException("Application is locked");
 
                 try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name 
                         + "', environment '" + environment.name() + "'")) {
@@ -397,7 +396,7 @@ public class EndpointExecutor {
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
                 var parameters = getParameters(applicationName, application, tx, endpoint, req, 
-                    appConfig.getDebugAllowed(), debugRequested, parameterTransformationLogger, 
+                    appConfig.debugAllowed, debugRequested, parameterTransformationLogger, 
                     autoInc, autoIncrement, random);
 
                 if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);

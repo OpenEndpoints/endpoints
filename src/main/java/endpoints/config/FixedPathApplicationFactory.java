@@ -31,4 +31,8 @@ public class FixedPathApplicationFactory extends ApplicationFactory {
         if ( ! "endpoints".equals(name.name)) throw new ApplicationNotFoundException(name);
         return application;
     }
+
+    public @Nonnull ApplicationConfig fetchApplicationConfig(@Nonnull DbTransaction db, @Nonnull ApplicationName applicationName) {
+        return new ApplicationConfig(false, false);
+    }
 }
