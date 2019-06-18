@@ -2880,8 +2880,19 @@ JAVA_OPTIONS
 \end_layout
 
 \begin_layout Standard
-If you are using the software with service portal and publishing, then the
- following variables are also mandatory:
+If you are using the software with service portal and publishing (that is
+ to say, 
+\emph on
+not
+\emph default
+ using the software in the manner described in section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:singleapp"
+
+\end_inset
+
+), then the following variables are also mandatory:
 \end_layout
 
 \begin_layout Description
@@ -3043,6 +3054,12 @@ Name}
 \end_layout
 
 \begin_layout Subsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:singleapp"
+
+\end_inset
+
 Via Docker, with a Single Application
 \end_layout
 
@@ -3066,7 +3083,8 @@ The database is still needed, for example for the request log.
 \end_layout
 
 \begin_layout Standard
-You need a Dockerfile like:
+A Dockerfile such as the following can be used to create a Docker image
+ running a single application:
 \end_layout
 
 \begin_layout LyX-Code
@@ -3075,6 +3093,17 @@ FROM offerready/endpoints-he
 
 \begin_layout LyX-Code
 COPY application /var/endpoints/fixed-application
+\end_layout
+
+\begin_layout Standard
+The URLs served by the application have the normal format, that is to say
+ the application name must be specified, even though there is and can only
+ ever be one application with this setup.
+ The requests must use the application with the fixed name name 
+\family typewriter
+application
+\family default
+, and must be for the default (live) environment.
 \end_layout
 
 \begin_layout Section
