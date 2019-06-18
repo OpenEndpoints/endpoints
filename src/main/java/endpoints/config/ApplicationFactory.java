@@ -12,6 +12,8 @@ import com.offerready.xslt.config.SecurityParser;
 import endpoints.PublishEnvironment;
 import endpoints.datasource.DataSource;
 import endpoints.datasource.DataSourceCommand;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
@@ -25,6 +27,11 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     public static class ApplicationNotFoundException extends Exception {
         public ApplicationNotFoundException(ApplicationName name) { super(name.name); }
         public ApplicationName getName() { return new ApplicationName(getMessage()); }
+    }
+    
+    @AllArgsConstructor
+    public static class ApplicationConfig {
+        public final boolean locked, debugAllowed;
     }
 
     protected static @Nonnull DataSource parseDataSource(
@@ -135,4 +142,6 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         @Nonnull DbTransaction db,
         @Nonnull ApplicationName name, @Nonnull PublishEnvironment environment
     ) throws ApplicationNotFoundException;
+    
+    public abstract @Nonnull ApplicationConfig fetchApplicationConfig(@Nonnull DbTransaction db, @Nonnull ApplicationName name);
 }
