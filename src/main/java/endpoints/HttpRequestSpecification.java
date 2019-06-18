@@ -140,8 +140,13 @@ public class HttpRequestSpecification {
                         uploadAtts.addAttribute("", "filename", "filename", "", file.getSubmittedFileName());
                     super.startElement(uri, localName, qName, uploadAtts);
                     
-                    var bytes = file.toByteArray();
-                    var base64 = Base64.encodeBase64String(bytes).toCharArray();
+                    // Deliberately don't set these intermediate results e.g. file.toByteArray() in variables.
+                    // Java GC cannot release objects as long as they're bound to a local variable in a running block.
+                    // These can be large e.g. for a 100MB file, base64 is 125MB, as 2-byte string that is 256MB.
+                    // We create a byte[], then a String (base64), then a char[], then super.characters(..) creates a String.
+                    // Try not to require these all to be in memory simultaneously.
+                    var base64 = Base64.encodeBase64String(file.toByteArray()).toCharArray();
+                    
                     super.characters(base64, 0, base64.length);
 
                     // endElement will be called by the corresponding source element's endElement
