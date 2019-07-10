@@ -3,7 +3,7 @@
         <html>
             <body>
                 <p>This is the email body in HTML.</p>
-                <p>This is an inline image: <img src="cid:static-subdirectory/spheres2.png"/></p>
+                <p>This is an inline image: <img src="cid:static-subdirectory/spheres.png"/></p>
             </body>
         </html>
     </literal-xml>
