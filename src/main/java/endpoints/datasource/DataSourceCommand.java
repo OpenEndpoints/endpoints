@@ -11,7 +11,7 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
+import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 
@@ -57,7 +57,7 @@ public abstract class DataSourceCommand {
     ) throws ConfigurationException { }
     
     /** Checks that no variables other than those supplied are necessary to execute this command */
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params)
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params)
     throws ConfigurationException { }
     
     /**

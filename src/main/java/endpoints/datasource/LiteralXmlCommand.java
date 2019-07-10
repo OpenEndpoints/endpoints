@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.getSubElements;
@@ -30,7 +30,7 @@ public class LiteralXmlCommand extends DataSourceCommand {
     }
     
     @Override
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         var emptyParams = params.stream().collect(Collectors.toMap(param -> param.name, param -> ""));
         try { DomVariableExpander.expand(VariableSyntax.dollarThenBraces, emptyParams, source); }

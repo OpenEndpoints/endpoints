@@ -17,8 +17,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
@@ -46,7 +46,7 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     }
 
     @Override
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         PlaintextParameterReplacer.assertParametersSuffice(params, filenamePattern, "'file' attribute");
         

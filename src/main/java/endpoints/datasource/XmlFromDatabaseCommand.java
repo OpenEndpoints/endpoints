@@ -14,8 +14,8 @@ import org.w3c.dom.Element;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
@@ -57,7 +57,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     }
     
     @Override
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         for (var p : paramPatterns) PlaintextParameterReplacer.assertParametersSuffice(params, p, "<param>");
     }

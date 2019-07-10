@@ -5,10 +5,9 @@ import endpoints.config.ParameterName;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;
 
@@ -22,7 +21,7 @@ public class PlaintextParameterReplacer {
     }
 
     public static void assertParametersSuffice(
-        @Nonnull Collection<ParameterName> params, @CheckForNull CharSequence template, @Nonnull String msg
+        @Nonnull Set<ParameterName> params, @CheckForNull CharSequence template, @Nonnull String msg
     ) throws ConfigurationException {
         if (template == null) return;
         var m = Pattern.compile("\\$\\{([\\w-]+)\\}").matcher(template);

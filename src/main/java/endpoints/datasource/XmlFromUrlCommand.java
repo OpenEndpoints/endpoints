@@ -12,7 +12,7 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
@@ -32,7 +32,7 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     }
 
     @Override
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         spec.assertParametersSuffice(params);
     }

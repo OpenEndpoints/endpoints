@@ -230,7 +230,7 @@ public class HttpRequestSpecification {
             throw new ConfigurationException("Only one of <xml-body> and <json-body> may be set");
     }
 
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         PlaintextParameterReplacer.assertParametersSuffice(params, urlPattern, "<url> element");
         for (var e : getParameterPatterns.entrySet())
             PlaintextParameterReplacer.assertParametersSuffice(params, e.getValue(), "<get-parameter name='"+e.getKey()+"'> element");
