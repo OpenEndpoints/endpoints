@@ -47,7 +47,7 @@ public class EndpointHierarchyParser extends DomParser {
     }
     
     protected static @Nonnull ResponseConfiguration parseResponseConfiguration(
-        @Nonnull Map<String, Transformer> transformers, @Nonnull Collection<ParameterName> params, @CheckForNull Element element
+        @Nonnull Map<String, Transformer> transformers, @Nonnull Set<ParameterName> params, @CheckForNull Element element
     ) throws ConfigurationException {
         if (element == null) return new EmptyResponseConfiguration();
 
@@ -121,7 +121,7 @@ public class EndpointHierarchyParser extends DomParser {
             var dataSourceCommands = new ArrayList<DataSourceCommand>();
             for (var command : getSubElements(element, "*")) {
                 var cmd = DataSourceCommand.newForConfig(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
-                cmd.assertParametersSuffice(Collections.emptyList());
+                cmd.assertParametersSuffice(Collections.emptySet());
                 dataSourceCommands.add(cmd);
             }
 

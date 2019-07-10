@@ -9,8 +9,8 @@ import org.w3c.dom.Document;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class DataSource {
@@ -18,7 +18,7 @@ public class DataSource {
     public final @Nonnull List<DataSourceCommand> commands = new ArrayList<>();
 
     /** Checks that no variables other than those supplied are necessary to execute all commands */
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         for (var c : commands) {
             try { c.assertParametersSuffice(params); }
             catch (ConfigurationException e) { throw new ConfigurationException(c.getClass().getSimpleName(), e); }

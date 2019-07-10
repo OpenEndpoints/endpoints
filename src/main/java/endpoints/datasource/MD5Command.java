@@ -13,7 +13,7 @@ import org.w3c.dom.Element;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collection;
+import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.*;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
@@ -34,7 +34,7 @@ public class MD5Command extends DataSourceCommand {
     }
 
     @Override
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         PlaintextParameterReplacer.assertParametersSuffice(params, messageStringPattern, "'message-string' attribute");
     }

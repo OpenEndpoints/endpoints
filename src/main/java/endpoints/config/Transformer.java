@@ -14,8 +14,8 @@ import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 public class Transformer {
     
@@ -24,7 +24,7 @@ public class Transformer {
     protected @Nonnull DocumentGenerator generator;
 
     /** Check that no parameters, other than the ones passed to this method, are necessary to perform the transformation */
-    public void assertParametersSuffice(@Nonnull Collection<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         source.assertParametersSuffice(params);
     }
     
