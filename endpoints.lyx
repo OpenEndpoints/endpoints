@@ -520,6 +520,23 @@ ${invoice-number}.pdf">
 \end_layout
 
 \end_deeper
+\begin_layout Standard
+The 
+\family typewriter
+<success>
+\family default
+ tag (but not the 
+\family typewriter
+<error>
+\family default
+ tag) may have 
+\family typewriter
+<input-intermedate-value>
+\family default
+ elements; these behave the same was as with tasks (see later for further
+ explanation.)
+\end_layout
+
 \begin_layout Subsubsection
 Parameters
 \end_layout
@@ -1146,6 +1163,104 @@ bar
 \end_layout
 
 \begin_layout Subsubsection
+Intermediate Values: Passing Results From One Task To Another
+\end_layout
+
+\begin_layout Standard
+In addition to parameters there are 
+\series bold
+Intermediate Values
+\series default
+.
+ These are like parameters, but they do not come from the user’s request,
+ instead they come from other tasks.
+\end_layout
+
+\begin_layout Standard
+Intermediate values can also be referenced as 
+\family typewriter
+${value}
+\family default
+ just like normal parameters.
+\end_layout
+
+\begin_layout Standard
+Intermediate values may not have the same name as a parameter.
+ (If intermediate values could have the same names, then 
+\family typewriter
+${value}
+\family default
+ could be ambiguous.)
+\end_layout
+
+\begin_layout Standard
+Tasks must explicitly specify which intermediate values they output and
+ which they input.
+ Any task may accept any input intermediate value, however, the output of
+ an intermediate value is task-specific.
+ (For example, HTTP Tasks parse the response, but there is no useful way
+ for an email task to output a variable.)
+\end_layout
+
+\begin_layout Standard
+A task which outputs intermediate values may not be 
+\begin_inset Quotes eld
+\end_inset
+
+optional
+\begin_inset Quotes erd
+\end_inset
+
+ (with 
+\family typewriter
+if
+\family default
+ and 
+\family typewriter
+equals
+\family default
+ attributes).
+ That is because the output variables will be used by other tasks, therefore
+ the task must always run.
+\end_layout
+
+\begin_layout Standard
+For example:
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.HttpRequestTask">
+\end_layout
+
+\begin_layout LyX-Code
+   ...
+\end_layout
+
+\begin_layout LyX-Code
+   <output-intermediate-value name="invoice-number".../>
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.HttpRequestTask">
+\end_layout
+
+\begin_layout LyX-Code
+   <input-intermediate-value name="invoice-number"/>
+\end_layout
+
+\begin_layout LyX-Code
+   ...
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout Subsubsection
 Sending an Email
 \end_layout
 
@@ -1538,36 +1653,22 @@ this error is ignored.
  By default, the error aborts the processing of the endpoint.
 \end_layout
 
+\begin_layout Paragraph
+Request Body
+\end_layout
+
 \begin_layout Standard
 One of the following body tags may be present:
 \end_layout
 
-\begin_layout Description
-No
-\begin_inset space ~
-\end_inset
-
-content
-\begin_inset space ~
-\end_inset
-
-tag In which case an empty request is sent
+\begin_layout Itemize
+No content tag.
+ In which case an empty request is sent
 \end_layout
 
-\begin_layout Description
-XML
-\begin_inset space ~
-\end_inset
-
-with
-\begin_inset space ~
-\end_inset
-
-inline
-\begin_inset space ~
-\end_inset
-
-contents An element like the following may be present inside the 
+\begin_layout Itemize
+XML with inline contents.
+ An element like the following may be present inside the 
 \family typewriter
 <task>
 \family default
@@ -1623,38 +1724,15 @@ expand-transformations="true"
 <foo xslt-transformation="foo" encoding="base64">
 \family default
  indicates that the transformation with that name should be executed (for
- example, genreate a PDF file), and the contents of the resulting file should
+ example, generate a PDF file), and the contents of the resulting file should
  be placed in this tag.
  The encoding is always base64, no other encodings are supported.
 \end_layout
 
 \end_deeper
-\begin_layout Description
-XML
-\begin_inset space ~
-\end_inset
-
-whose
-\begin_inset space ~
-\end_inset
-
-contents
-\begin_inset space ~
-\end_inset
-
-are
-\begin_inset space ~
-\end_inset
-
-result
-\begin_inset space ~
-\end_inset
-
-of
-\begin_inset space ~
-\end_inset
-
-XSLT An element like the following may be present inside the 
+\begin_layout Itemize
+XML whose contents are result of XSLT.
+ An element like the following may be present inside the 
 \family typewriter
 <task>:
 \end_layout
@@ -1711,20 +1789,9 @@ This XSLT does not have access to the results of any other data sources.
 \end_layout
 
 \end_deeper
-\begin_layout Description
-JSON
-\begin_inset space ~
-\end_inset
-
-with
-\begin_inset space ~
-\end_inset
-
-inline
-\begin_inset space ~
-\end_inset
-
-content The following element may be present inside the 
+\begin_layout Itemize
+JSON with inline content.
+ The following element may be present inside the 
 \family typewriter
 <task>
 \family default
@@ -1755,32 +1822,9 @@ Variables may be present in string elements in the JSON; they are expanded.
 \end_layout
 
 \end_deeper
-\begin_layout Description
-JSON
-\begin_inset space ~
-\end_inset
-
-whose
-\begin_inset space ~
-\end_inset
-
-contents
-\begin_inset space ~
-\end_inset
-
-are
-\begin_inset space ~
-\end_inset
-
-result
-\begin_inset space ~
-\end_inset
-
-of
-\begin_inset space ~
-\end_inset
-
-XSLT An element like the following may be present inside the 
+\begin_layout Itemize
+JSON whose contents are result of XSLT.
+ An element like the following may be present inside the 
 \family typewriter
 <task>:
 \end_layout
@@ -1808,7 +1852,7 @@ The XSLT file must produce text with
  The text is interpreted as JSON.
  Be careful with including variables; they must be escaped to be valid JSON
  syntax.
- Ideally replace backslash with two backslahes, then replace double-quotes
+ Ideally replace backslash with two backslashes, then replace double-quotes
  with backslash then double-quote.
 \end_layout
 
@@ -1822,6 +1866,89 @@ As with the XML from XSLT, the XSLT takes a
 \end_layout
 
 \end_deeper
+\begin_layout Paragraph
+Parsing Response and Producing Intermediate Values
+\end_layout
+
+\begin_layout Standard
+Either of the following syntaxes may be optionally used, to produce output
+ variables.
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.HttpRequestTask">
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
+  <output-intermediate-value 
+\end_layout
+
+\begin_layout LyX-Code
+      name="invoice-number"
+\end_layout
+
+\begin_layout LyX-Code
+      xpath="/foo/bar"
+\end_layout
+
+\begin_layout LyX-Code
+      regex="
+\backslash
+d+"/>
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.HttpRequestTask">
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
+  <output-intermediate-value 
+\end_layout
+
+\begin_layout LyX-Code
+      name="invoice-number"
+\end_layout
+
+\begin_layout LyX-Code
+      jsonpath="$.invoiceNumbers[:1].value"
+\end_layout
+
+\begin_layout LyX-Code
+      regex="
+\backslash
+d+"/>
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout Standard
+The former requires that the result of the response be XML, the latter that
+ it be JSON.
+ No attempt is made to convert the response between XML and JSON.
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+regex
+\family default
+ attribute is optional.
+\end_layout
+
 \begin_layout Subsubsection
 Custom Task
 \end_layout
@@ -1999,6 +2126,22 @@ name "<parameters/>"
 \begin_inset Newline newline
 \end_inset
 
+  <!-- Info on every visible intermediate value -->
+\end_layout
+
+\begin_layout LyX-Code
+  <intermediate-value name="offer-id" value="OA-00023"/>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
   <!-- Info on every non-XML file upload -->
 \end_layout
 
@@ -2129,7 +2272,7 @@ month
 \family typewriter
 year
 \family default
-) are not automaticlaly consumed as well.
+) are not automatically consumed as well.
  If the data source is used twice within the same request, they both see
  the same number.
 \end_layout

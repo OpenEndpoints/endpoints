@@ -39,6 +39,7 @@ import static com.databasesandlife.util.ThreadPool.unwrapException;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 
 public class HttpRequestSpecificationTest extends TestCase {
 
@@ -98,7 +99,7 @@ public class HttpRequestSpecificationTest extends TestCase {
                 var resultContainer = new Object() {
                     public Element element;
                 };
-                httpSpec.scheduleExecutionAndParseResponse(context, e -> resultContainer.element = e);
+                httpSpec.scheduleExecutionAndParseResponse(context, emptySet(), e -> resultContainer.element = e);
                 
                 // In EndpointsExecutor, only the threads.execute catches Exceptions
                 // so we simulate that behaviour here. That's because all the HTTP requests must happen

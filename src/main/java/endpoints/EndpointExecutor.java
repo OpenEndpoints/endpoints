@@ -1,6 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.DomParser;
+import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
@@ -40,23 +41,23 @@ import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.databasesandlife.util.ThreadPool.unwrapException;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.month;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.perpetual;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.year;
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
-import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang.RandomStringUtils.random;
-import static org.apache.commons.lang.RandomStringUtils.randomNumeric;
 import static org.jooq.impl.DSL.max;
 
 public class EndpointExecutor {
@@ -186,7 +187,7 @@ public class EndpointExecutor {
             var context = new TransformationContext(application, tx, emptyMap(), req.getUploadedFiles(), autoInc);
             var dataSourceResults = new ArrayList<DataSourceCommandResult>();
             for (var c : parameterTransformation.dataSourceCommands)
-                dataSourceResults.add(c.scheduleExecution(context));
+                dataSourceResults.add(c.scheduleExecution(context, emptySet()));
             context.threads.execute();
             for (var r : dataSourceResults)
                 for (var element : r.get())
@@ -255,7 +256,7 @@ public class EndpointExecutor {
                     transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req,
                         debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                         endpoint.parameterTransformation, autoIncrement, random,
-                        ParametersCommand.createParametersElements(inputParameters, req.getUploadedFiles()));
+                        ParametersCommand.createParametersElements(inputParameters, emptyMap(), req.getUploadedFiles()));
                 }
                 break;
 
@@ -304,6 +305,10 @@ public class EndpointExecutor {
             else throw new RequestInvalidException("Hash wrong");
         }
     }
+    
+    protected abstract static class HttpDestination 
+    extends BufferedHttpResponseDocumentGenerationDestination 
+    implements Runnable { }
 
     /**
      * Either execute the response (in case of redirect or OK), or write the response to a buffer (in the case of content).
@@ -312,34 +317,39 @@ public class EndpointExecutor {
      * response has already been streamed to the client. 
      * @return response which must still be delivered to the user, or null if it has already been delivered.
      */
-    @SneakyThrows({IOException.class})
-    protected @Nonnull BufferedHttpResponseDocumentGenerationDestination scheduleResponseGeneration(
+    protected @Nonnull HttpDestination scheduleResponseGeneration(
+        @Nonnull List<Runnable> dependencies,
         @Nonnull TransformationContext context,
         @Nonnull ResponseConfiguration config, boolean success
-    ) throws RequestInvalidException, TransformationFailedException {
-        var dest = new BufferedHttpResponseDocumentGenerationDestination();
+    ) {
+        var result = new HttpDestination() {
+            @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
+            @Override public void run() {
+                var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
-        int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
+                int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
 
-        if (config instanceof EmptyResponseConfiguration) {
-            dest.setStatusCode(statusCode);
-        }
-        else if (config instanceof RedirectResponseConfiguration) {
-            var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).url, context.params);
-            if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
-                throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
-            dest.setRedirectUrl(new URL(url));
-        }
-        else if (config instanceof TransformationResponseConfiguration) {
-            var r = (TransformationResponseConfiguration) config;
-            dest.setStatusCode(statusCode);
-            r.transformer.scheduleExecution(context, dest);
-            if (r.downloadFilenamePatternOrNull != null)
-                dest.setContentDispositionToDownload(replacePlainTextParameters(r.downloadFilenamePatternOrNull, context.params));
-        }
-        else throw new IllegalStateException("Unexpected config: " + config);
-
-        return dest;
+                if (config instanceof EmptyResponseConfiguration) {
+                    setStatusCode(statusCode);
+                }
+                else if (config instanceof RedirectResponseConfiguration) {
+                    var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
+                    if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
+                        throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
+                    setRedirectUrl(new URL(url));
+                }
+                else if (config instanceof TransformationResponseConfiguration) {
+                    var r = (TransformationResponseConfiguration) config;
+                    setStatusCode(statusCode);
+                    r.transformer.scheduleExecution(context, config.inputIntermediateValues, this);
+                    if (r.downloadFilenamePatternOrNull != null)
+                        setContentDispositionToDownload(replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
+                }
+                else throw new IllegalStateException("Unexpected config: " + config);
+            }
+        };
+        context.threads.addTaskWithDependencies(dependencies, result);
+        return result;
     }
 
     protected @Nonnull RequestLogRecord newRequestLogRecord(
@@ -361,6 +371,42 @@ public class EndpointExecutor {
         r.setParameterTransformationInput(parameterTransformationLogger.input);
         r.setParameterTransformationOutput(parameterTransformationLogger.output);
         return r;
+    }
+    
+    protected @Nonnull HttpDestination scheduleTasksAndSuccess(
+        @Nonnull TransformationContext context, @Nonnull Endpoint endpoint
+    ) {
+        var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
+        var tasksToExecute = new ArrayList<>(endpoint.tasks);
+        
+        int infiniteLoopProtection = 0;
+        while ( ! tasksToExecute.isEmpty())
+            tasks: for (var taskIter = tasksToExecute.iterator(); taskIter.hasNext(); ) {
+                var task = taskIter.next();
+                var taskDependencies = new ArrayList<SynchronizationPoint>();
+                for (var neededInputValue : task.inputIntermediateValues) {
+                    if ( ! synchronizationPointForOutputValue.containsKey(neededInputValue)) continue tasks;
+                    taskDependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
+                }
+                
+                var taskRunnable = task.scheduleTaskExecutionIfNecessary(taskDependencies, context);
+                taskIter.remove();
+                
+                for (var outputValue : task.getOutputIntermediateValues()) 
+                    synchronizationPointForOutputValue.put(outputValue, taskRunnable);
+            }
+
+            infiniteLoopProtection++;
+            if (infiniteLoopProtection >= 1_000) {
+                throw new RuntimeException("Unreachable: Probably circular dependency of task intermediate variables");
+        }
+
+        var successDependencies = new ArrayList<Runnable>();
+        for (var neededInputValue : endpoint.success.inputIntermediateValues) {
+            successDependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
+        }
+
+        return scheduleResponseGeneration(successDependencies, context, endpoint.success, true);
     }
 
     /**
@@ -401,14 +447,11 @@ public class EndpointExecutor {
 
                 if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
 
-                final BufferedHttpResponseDocumentGenerationDestination responseContent;
+                final HttpDestination responseContent;
                 try (var ignored3 = new Timer("Execute <task>s and generate response")) {
                     var context = new TransformationContext(application, tx, parameters, req.getUploadedFiles(), autoInc);
 
-                    responseContent = scheduleResponseGeneration(context, endpoint.success, true);
-
-                    for (var task : endpoint.tasks)
-                        task.scheduleTaskExecution(context);
+                    responseContent = scheduleTasksAndSuccess(context, endpoint);
 
                     try { context.threads.execute(); }
                     catch (RuntimeException e) {
@@ -435,7 +478,7 @@ public class EndpointExecutor {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(application, tx, new HashMap<>(), emptyList(), autoInc);
-                    var errorResponseContent = scheduleResponseGeneration(context, endpoint.error, false);
+                    var errorResponseContent = scheduleResponseGeneration(emptyList(), context, endpoint.error, false);
                     
                     try { context.threads.execute(); }
                     catch (RuntimeException e2) {

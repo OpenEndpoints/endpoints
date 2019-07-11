@@ -4,6 +4,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
@@ -47,7 +48,6 @@ public abstract class DataSourceCommand {
             if (e.getCause() instanceof ConfigurationException) throw (ConfigurationException) e.getCause();
             else throw e;
         }
-
     }
 
     // Subclass must have this constructor as it's called by reflection
@@ -57,13 +57,18 @@ public abstract class DataSourceCommand {
     ) throws ConfigurationException { }
     
     /** Checks that no variables other than those supplied are necessary to execute this command */
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params)
-    throws ConfigurationException { }
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException { }
     
     /**
      * A future is returned here, so that all data source commands (for example fetching various URLs) can execute in parallel
+     * @param visibleIntermediateValues these values are already produced by the time this method is called. 
      * @return parameters have been expanded in resulting XML if necessary
      */
-    abstract public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) 
-    throws TransformationFailedException;
+    abstract public @Nonnull DataSourceCommandResult scheduleExecution(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws TransformationFailedException;
 }

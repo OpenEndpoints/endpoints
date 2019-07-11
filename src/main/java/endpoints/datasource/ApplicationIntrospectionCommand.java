@@ -5,10 +5,13 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.List;
+import java.util.Set;
 
 public class ApplicationIntrospectionCommand extends DataSourceCommand {
 
@@ -46,7 +49,10 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
         }
     }
 
-    @Override public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+    @Override public @Nonnull DataSourceCommandResult scheduleExecution(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
         var result = new DataSourceCommandResult() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
                 var result = DomParser.newDocumentBuilder().newDocument().createElement("application-introspection");

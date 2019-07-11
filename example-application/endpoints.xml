@@ -16,17 +16,30 @@
       <endpoint name="send-email">
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
         <parameter name="dont-send" default-value="false"/>
+        <task class="endpoints.task.HttpRequestTask">
+          <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
+          <output-intermediate-value name="swagger-host" jsonpath="$.host" regex="[a-z.]+"/>
+        </task>
+        <task class="endpoints.task.HttpRequestTask">
+          <input-intermediate-value name="swagger-host"/>
+          <url>https://${swagger-host}/v2/api-docs</url>
+          <output-intermediate-value name="swagger-version" jsonpath="$.swagger"/>
+        </task>
         <task class="endpoints.task.EmailTask" if="${dont-send}" notequals="true">
+          <input-intermediate-value name="swagger-version"/>
           <from>endpoints@example.com</from>
           <to>${email-address}</to>
           <to>${email-address}</to>
-          <subject>Email from Endpoints to: ${email-address}</subject>
+          <subject>Email from Endpoints to: ${email-address} (Swagger Version ${swagger-version})</subject>
           <body-transformation name="produce-text"/>
           <body-transformation name="produce-html-email-body"/>
           <attachment-static filename="static-subdirectory/spheres.png"/>
           <attachment-transformation name="produce-pdf" if="foo" equals="foo" filename="invoice-${invoice-number}.pdf"/>
           <attachment-transformation name="produce-pdf" if="foo" equals="bar" filename="DO-NOT-INCLUDE-${invoice-number}.pdf"/>
           <attachments-from-request-file-uploads/>
+        </task>
+        <task class="endpoints.task.HttpRequestTask">
+          <url>https://www.dailymail.co.uk/home/index.html</url> <!-- slow, no output/input variables -->
         </task>
       </endpoint>
       
@@ -52,16 +65,12 @@
           <xml-from-application file="xml-subdirectory/spheres.fo"/>
           <literal-xml><this-is-some-literal-xml/></literal-xml>
         </parameter-transformation>
-        <task class="endpoints.task.LogToDatabaseTask">
-          <jdbc-connection-string>jdbc:mysql://localhost/example_application?user=root&amp;password=root&amp;useUnicode=true&amp;characterEncoding=UTF-8</jdbc-connection-string>
-          <table>log_to_database</table>
-          <column name="invoice_number">Invoice number: ${invoice-number}</column>
-          <column name="withouthyphen"/>
-        </task>
-        <task class="endpoints.task.HttpRequestTask" ignore-if-error="true">
-          <url>https://www.this-task-url-doesnt-exist/</url>
+        <task class="endpoints.task.HttpRequestTask">
+          <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
+          <output-intermediate-value name="swagger-version" jsonpath="$.swagger" regex="[\d.]+"/>
         </task>
         <success>
+          <input-intermediate-value name="swagger-version"/>
           <response-transformation name="produce-json"/>
         </success>
         <error>

@@ -8,6 +8,7 @@ import com.databasesandlife.util.jdbc.DbTransaction.SqlException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
@@ -19,7 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
-import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 
 public class XmlFromDatabaseCommand extends DataSourceCommand {
     
@@ -57,9 +58,14 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     }
     
     @Override
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
-        super.assertParametersSuffice(params);
-        for (var p : paramPatterns) PlaintextParameterReplacer.assertParametersSuffice(params, p, "<param>");
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
+        super.assertParametersSuffice(params, visibleIntermediateValues);
+
+        for (var p : paramPatterns) 
+            PlaintextParameterReplacer.assertParametersSuffice(params, visibleIntermediateValues, p, "<param>");
     }
 
     protected @Nonnull Element[] execute(@Nonnull DbTransaction tx, @Nonnull Object[] paramsExpanded) {
@@ -85,10 +91,14 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     }
     
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+    public @Nonnull DataSourceCommandResult scheduleExecution(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
         var result = new DataSourceCommandResult() {
             @Override protected Element[] populateOrThrow() {
-                var paramsExpanded = paramPatterns.stream().map(pattern -> replacePlainTextParameters(pattern, context.params)).toArray();
+                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var paramsExpanded = paramPatterns.stream().map(pattern -> replacePlainTextParameters(pattern, stringParams)).toArray();
                 return execute(context.tx.db, paramsExpanded);
             }
         };
