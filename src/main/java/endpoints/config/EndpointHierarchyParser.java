@@ -15,7 +15,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -53,30 +52,35 @@ public class EndpointHierarchyParser extends DomParser {
 
         var responseTransformationElement = getOptionalSingleSubElement(element, "response-transformation");
         var redirectToElement = getOptionalSingleSubElement(element, "redirect-to");
+
+        final ResponseConfiguration result;
         
         if (responseTransformationElement != null) {
-            assertNoOtherElements(element, "response-transformation");
-            var result = new TransformationResponseConfiguration();
+            assertNoOtherElements(element, "response-transformation", "input-intermediate-value");
+            var transform = new TransformationResponseConfiguration(element);
             var transformerName = getMandatoryAttribute(responseTransformationElement, "name");
-            result.transformer = transformers.get(transformerName);
-            if (result.transformer == null) throw new ConfigurationException("Transformer name='"+transformerName+"' not found");
-            result.transformer.assertParametersSuffice(params);
-            result.downloadFilenamePatternOrNull = getOptionalAttribute(responseTransformationElement, "download-filename");
-            return result;
+            transform.transformer = transformers.get(transformerName);
+            if (transform.transformer == null) throw new ConfigurationException("Transformer name='"+transformerName+"' not found");
+            transform.downloadFilenamePatternOrNull = getOptionalAttribute(responseTransformationElement, "download-filename");
+            result = transform;
         }
         else if (redirectToElement != null) {
-            assertNoOtherElements(element, "redirect-to", "redirect-prefix-whitelist-entry");
-            var result = new RedirectResponseConfiguration();
-            result.url = redirectToElement.getTextContent().trim();
-            result.whitelist = new UrlPrefixWhiteList();
+            assertNoOtherElements(element, "redirect-to", "redirect-prefix-whitelist-entry", "input-intermediate-value");
+            var redirect = new RedirectResponseConfiguration(element);
+            redirect.urlPattern = redirectToElement.getTextContent().trim();
+            redirect.whitelist = new UrlPrefixWhiteList();
             for (var e : getSubElements(element, "redirect-prefix-whitelist-entry"))
-                result.whitelist.urlPrefixWhiteList.add(e.getTextContent().trim());
-            return result;
+                redirect.whitelist.urlPrefixWhiteList.add(e.getTextContent().trim());
+            result = redirect;
         }
         else {
             assertNoOtherElements(element);
-            return new EmptyResponseConfiguration();
+            result = new EmptyResponseConfiguration();
         }
+        
+        result.assertParametersSuffice(params);
+        
+        return result;
     }
 
     @SneakyThrows({SecurityException.class, ClassNotFoundException.class, NoSuchMethodException.class,
@@ -88,18 +92,34 @@ public class EndpointHierarchyParser extends DomParser {
     ) throws ConfigurationException {
         var taskClassName = getMandatoryAttribute(element, "class");
         try {
-            @SuppressWarnings("unchecked") var taskClass = (Class<? extends Task>) Class.forName(taskClassName);
-            var constructor = taskClass.getConstructor(XsltCompilationThreads.class, File.class, Map.class, File.class, Element.class);
-            var result = constructor.newInstance(threads, httpXsltDirectory, transformers, staticDir, element);
-            result.assertParametersSuffice(params);
-            return result;
+            try {
+                @SuppressWarnings("unchecked") var taskClass = (Class<? extends Task>) Class.forName(taskClassName);
+                var constructor = taskClass.getConstructor(XsltCompilationThreads.class, File.class, Map.class, File.class, Element.class);
+                var result = constructor.newInstance(threads, httpXsltDirectory, transformers, staticDir, element);
+                result.assertParametersSuffice(params);
+                
+                if ( ! result.getOutputIntermediateValues().isEmpty() && result.condition.isOptional())
+                    throw new ConfigurationException("Task cannot be optional (if=x equals=x etc.), and also output " +
+                        "intermediate values. Another task might need those intermediate values, and it can't use them " +
+                        "if they have not been created because the task didn't execute because it's optional condition " +
+                        "was not satisfied.");
+                
+                for (var output : result.getOutputIntermediateValues())
+                    if (params.contains(new ParameterName(output.name)))
+                        throw new ConfigurationException("Task produces <output-intermediate-value name='" + output.name + "'> " +
+                            "but there is already a <parameter name='" + output.name + "'> defined. " +
+                            "Outputs and parameters may not have the same name, " +
+                            "otherwise variable syntax '${" + output.name + "}' would be ambiguous.");
+                
+                return result;
+            }
+            catch (InvocationTargetException e) {
+                if (e.getCause() instanceof ConfigurationException) throw (ConfigurationException) e.getCause();
+                else throw e;
+            }
         }
         catch (ConfigurationException e) {
             throw new ConfigurationException("<task class='"+taskClassName+"'>", e);
-        }
-        catch (InvocationTargetException e) {
-            if (e.getCause() instanceof ConfigurationException) throw (ConfigurationException) e.getCause();
-            else throw e;
         }
     }
 
@@ -121,7 +141,7 @@ public class EndpointHierarchyParser extends DomParser {
             var dataSourceCommands = new ArrayList<DataSourceCommand>();
             for (var command : getSubElements(element, "*")) {
                 var cmd = DataSourceCommand.newForConfig(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
-                cmd.assertParametersSuffice(Collections.emptySet());
+                cmd.assertParametersSuffice(Collections.emptySet(), Collections.emptySet());
                 dataSourceCommands.add(cmd);
             }
 
@@ -170,10 +190,19 @@ public class EndpointHierarchyParser extends DomParser {
                 getOptionalSingleSubElement(element, "error")); }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }
             
+            if ( ! result.error.inputIntermediateValues.isEmpty()) 
+                throw new ConfigurationException("<error> may not have consume <input-intermediate-value>s, " +
+                    "as the tasks which produce those intermediate values might not have been successful");
+            
             for (var taskElement : getSubElements(element, "task"))
                 result.tasks.add(parseTask(threads, httpXsltDirectory, 
                     transformers, staticDir, result.aggregateParametersOverParents().keySet(), taskElement));
             
+            var successAndTasks = new ArrayList<IntermediateValueProducerConsumer>();
+            successAndTasks.add(result.success);
+            successAndTasks.addAll(result.tasks);
+            IntermediateValueProducerConsumer.assertNoCircularDependencies(successAndTasks);
+
             return result;
         }
         catch (ConfigurationException e) { throw new ConfigurationException("<endpoint name='" + name.name + "'>", e); }

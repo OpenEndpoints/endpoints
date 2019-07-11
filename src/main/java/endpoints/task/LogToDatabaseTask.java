@@ -1,5 +1,6 @@
 package endpoints.task;
 
+import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.databasesandlife.util.jdbc.DbTransaction.SqlException;
@@ -16,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 
 /** Writes into a database. See "configuration.md" for more details. */
 public class LogToDatabaseTask extends Task {
@@ -31,7 +33,8 @@ public class LogToDatabaseTask extends Task {
     throws ConfigurationException {
         super(threads, httpXsltDirectory, transformers, staticDir, config);
 
-        assertNoOtherElements(config, "jdbc-connection-string", "table", "column");
+        assertNoOtherElements(config, "input-intermediate-value", "jdbc-connection-string", "table", "column");
+        
         var jdbc = getOptionalSingleSubElement(config, "jdbc-connection-string");
         if (jdbc != null) jdbcUrlOrNull = jdbc.getTextContent().trim();
         table = getMandatorySingleSubElement(config, "table").getTextContent();
@@ -46,24 +49,29 @@ public class LogToDatabaseTask extends Task {
     public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         for (var pattern : patternForColumn.entrySet())
-            PlaintextParameterReplacer.assertParametersSuffice(params, pattern.getValue(), "<column name='"+pattern.getKey()+"'>");
+            PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues,
+                pattern.getValue(), "<column name='"+pattern.getKey()+"'>");
     }
     
     @Override
-    protected @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) {
-        context.threads.addTask(() -> {
-            final DbTransaction db;
-            if (jdbcUrlOrNull == null) db = context.tx.db;
-            else context.tx.addDatabaseConnection(db = new DbTransaction(jdbcUrlOrNull));
+    protected void executeThenScheduleSynchronizationPoint(
+        @Nonnull TransformationContext context,
+        @Nonnull SynchronizationPoint workComplete
+    ) {
+        final DbTransaction db;
+        if (jdbcUrlOrNull == null) db = context.tx.db;
+        else context.tx.addDatabaseConnection(db = new DbTransaction(jdbcUrlOrNull));
 
-            try {
-                var cols = patternForColumn.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
-                    e -> PlaintextParameterReplacer.replacePlainTextParameters(e.getValue(), context.params)));
-                db.insert(table, cols);
-            }
-            catch (SqlException e) {
-                throw new RuntimeException(new TaskExecutionFailedException("Error occurred inserting to table '"+table+"'", e));
-            }
-        });
+        try {
+            var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+            var cols = patternForColumn.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
+                e -> replacePlainTextParameters(e.getValue(), stringParams)));
+            db.insert(table, cols);
+        }
+        catch (SqlException e) {
+            throw new RuntimeException(new TaskExecutionFailedException("Error occurred inserting to table '"+table+"'", e));
+        }
+        
+        context.threads.addTask(workComplete);
     }
 }

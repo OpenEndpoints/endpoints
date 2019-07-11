@@ -2,14 +2,17 @@ package endpoints.task;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.PlaintextParameterReplacer;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.util.Arrays.stream;
 
 /** Represents the <code>if="${foo}" equals="xyz"</code> conditions that tasks may have */
@@ -39,14 +42,21 @@ public class TaskCondition {
         }
     }
     
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
-        PlaintextParameterReplacer.assertParametersSuffice(params, lhsPattern, "'if' attribute");
-        PlaintextParameterReplacer.assertParametersSuffice(params, rhsPattern, "'"+operator+"' attribute");
+    public boolean isOptional() {
+        return ! (operator == Operator.equals && lhsPattern.isEmpty() && rhsPattern.isEmpty());
     }
     
-    public boolean evaluate(@Nonnull Map<ParameterName, String> parameters) {
-        var lhs = PlaintextParameterReplacer.replacePlainTextParameters(lhsPattern, parameters);
-        var rhs = PlaintextParameterReplacer.replacePlainTextParameters(rhsPattern, parameters);
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
+        PlaintextParameterReplacer.assertParametersSuffice(params, visibleIntermediateValues, lhsPattern, "'if' attribute");
+        PlaintextParameterReplacer.assertParametersSuffice(params, visibleIntermediateValues, rhsPattern, "'"+operator+"' attribute");
+    }
+    
+    public boolean evaluate(@Nonnull Map<String, String> parameters) {
+        var lhs = replacePlainTextParameters(lhsPattern, parameters);
+        var rhs = replacePlainTextParameters(rhsPattern, parameters);
         switch (operator) {
             case equals: return lhs.equals(rhs);
             case notequals: return ! lhs.equals(rhs);

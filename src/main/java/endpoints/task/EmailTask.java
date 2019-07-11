@@ -1,12 +1,14 @@
 package endpoints.task;
 
+import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.TransformationContext.TransformerExecutor;
-import endpoints.UploadedFile;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
+import endpoints.TransformationContext.TransformerExecutor;
+import endpoints.UploadedFile;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
@@ -31,8 +33,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.databasesandlife.util.DomParser.*;
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.offerready.xslt.EmailPartDocumentDestination.newMimeBodyForDestination;
-import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
@@ -41,8 +43,14 @@ public class EmailTask extends Task {
     
     protected static abstract class Attachment {
         public @Nonnull TaskCondition condition;
-        public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException { }
-        public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
+        
+        public void assertParametersSuffice(
+            @Nonnull Set<ParameterName> params,
+            @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+        ) throws ConfigurationException { }
+        
+        public void assertTemplatesValid() 
+        throws DocumentTemplateInvalidException { }
     }
 
     protected static class AttachmentStatic extends Attachment {
@@ -52,11 +60,16 @@ public class EmailTask extends Task {
     protected static class AttachmentTransformation extends Attachment {
         public @Nonnull String filenamePattern;
         public @Nonnull Transformer contents;
-        public @Override void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
-            super.assertParametersSuffice(params);
-            PlaintextParameterReplacer.assertParametersSuffice(params, filenamePattern, "filename");
-            contents.assertParametersSuffice(params);
+        
+        public @Override void assertParametersSuffice(
+            @Nonnull Set<ParameterName> params,
+            @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+        ) throws ConfigurationException {
+            super.assertParametersSuffice(params, visibleIntermediateValues);
+            PlaintextParameterReplacer.assertParametersSuffice(params, visibleIntermediateValues, filenamePattern, "filename");
+            contents.assertParametersSuffice(params, visibleIntermediateValues);
         }
+        
         public @Override void assertTemplatesValid() throws DocumentTemplateInvalidException {
             super.assertTemplatesValid();
             contents.assertTemplatesValid();
@@ -116,6 +129,9 @@ public class EmailTask extends Task {
     ) throws ConfigurationException {
         super(threads, httpXsltDirectory, transformers, staticDir, config);
         
+        assertNoOtherElements(config, "input-intermediate-value", "from", "to", "subject", "body-transformation",
+            "attachment-static", "attachment-transformation", "attachments-from-request-file-uploads");
+
         this.staticDir = staticDir;
 
         fromPattern = getMandatorySingleSubElement(config, "from").getTextContent().trim();
@@ -162,8 +178,12 @@ public class EmailTask extends Task {
     @Override
     public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
-        for (var b : alternativeBodies) b.assertParametersSuffice(params);
-        for (var a : attachments) a.assertParametersSuffice(params);
+        PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, fromPattern, "<from>");
+        PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, subjectPattern, "<subject>");
+        for (var t : toPatterns) 
+            PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, t, "<to>");
+        for (var b : alternativeBodies) b.assertParametersSuffice(params, inputIntermediateValues);
+        for (var a : attachments) a.assertParametersSuffice(params, inputIntermediateValues);
     }
 
     @Override
@@ -229,11 +249,12 @@ public class EmailTask extends Task {
     }
     
     @Override
-    @SneakyThrows({MessagingException.class, IOException.class})
-    public @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) 
-    throws TaskExecutionFailedException {
-        // It would be possible to do this "creation" work in a task in the ThreadPool as well, but it takes 0.000 seconds
-        // by my measurement, so there's no need to introduce that complexity.
+    @SneakyThrows({MessagingException.class, IOException.class, TaskExecutionFailedException.class})
+    public void executeThenScheduleSynchronizationPoint(
+        @Nonnull TransformationContext context,
+        @Nonnull SynchronizationPoint workComplete
+    ) {
+        var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
 
         var mainPart = new MimeMultipart("mixed");
         var partTasks = new ArrayList<Runnable>();
@@ -244,7 +265,7 @@ public class EmailTask extends Task {
         mainPart.addBodyPart(bodyPart);
         for (var bodyTransformer : alternativeBodies) {
             try {
-                var xslt = context.scheduleTransformation(bodyTransformer);
+                var xslt = context.scheduleTransformation(bodyTransformer, inputIntermediateValues);
                 var contentsBodyPart = newMimeBodyForDestination(xslt.result);
                 var contentType = Optional.ofNullable(bodyTransformer.getDefn().contentType).orElse("").toLowerCase();
                 if (contentType.contains("text/html") && contentType.contains("utf-8")) {
@@ -258,7 +279,7 @@ public class EmailTask extends Task {
         }
 
         for (var at : attachments) {
-            if ( ! at.condition.evaluate(context.params)) continue;
+            if ( ! at.condition.evaluate(stringParams)) continue;
 
             if (at instanceof AttachmentStatic) {
                 var attachmentPart = new MimeBodyPart();
@@ -269,9 +290,9 @@ public class EmailTask extends Task {
             else if (at instanceof AttachmentTransformation) {
                 var a = (AttachmentTransformation) at;
                 try {
-                    var xslt = context.scheduleTransformation(a.contents);
+                    var xslt = context.scheduleTransformation(a.contents, inputIntermediateValues);
                     var part = newMimeBodyForDestination(xslt.result);
-                    part.setFileName(replacePlainTextParameters(a.filenamePattern, context.params));
+                    part.setFileName(replacePlainTextParameters(a.filenamePattern, stringParams));
                     part.setDisposition(Part.ATTACHMENT);
                     mainPart.addBodyPart(part);
                     partTasks.add(xslt);
@@ -290,15 +311,15 @@ public class EmailTask extends Task {
             else throw new RuntimeException(at.getClass().getName());
         }
 
-        context.threads.addTaskWithDependencies(partTasks, () -> {
+        Runnable sendEmail = () -> {
             try {
                 assert context.tx.email != null; // because requiresEmailServer() returns true
                 synchronized (context.tx.email) {
                     for (var toPattern : toPatterns) {
                         var msg = context.tx.email.newMimeMessage();
-                        msg.setFrom(new InternetAddress(replacePlainTextParameters(fromPattern, context.params)));
-                        msg.addRecipient(RecipientType.TO, new InternetAddress(replacePlainTextParameters(toPattern, context.params)));
-                        msg.setSubject(replacePlainTextParameters(subjectPattern, context.params));
+                        msg.setFrom(new InternetAddress(replacePlainTextParameters(fromPattern, stringParams)));
+                        msg.addRecipient(RecipientType.TO, new InternetAddress(replacePlainTextParameters(toPattern, stringParams)));
+                        msg.setSubject(replacePlainTextParameters(subjectPattern, stringParams));
                         msg.setContent(mainPart);
                         msg.setSentDate(new Date());
 
@@ -307,6 +328,9 @@ public class EmailTask extends Task {
                 }
             }
             catch (MessagingException e) { throw new RuntimeException(e); }
-        });
+        };
+        context.threads.addTaskWithDependencies(partTasks, sendEmail);
+        
+        context.threads.addTaskWithDependencies(List.of(sendEmail), workComplete);
     }
 }

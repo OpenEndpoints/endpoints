@@ -4,6 +4,7 @@ import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.IdentityForwardingSaxHandler;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.TransformationContext.TransformerExecutor;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,7 @@ import org.xml.sax.SAXException;
 
 import javax.annotation.Nonnull;
 import javax.xml.transform.TransformerException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.IdentityHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 /** Takes XML with &lt;foo xslt-transformation="foo" encoding="base64"&gt; tags and expands them */
@@ -74,12 +72,15 @@ public class XmlWithBase64TransformationsExpander {
         });
     }
 
-    public @Nonnull Runnable schedule(@Nonnull Consumer<Document> after) throws TransformationFailedException {
+    public @Nonnull Runnable schedule(
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
+        @Nonnull Consumer<Document> after
+    ) throws TransformationFailedException {
         var transformers = parseTransformers();
         
         var futures = new ArrayList<Runnable>(transformers.size());
         for (var t : transformers.values()) {
-            var transformTask = context.scheduleTransformation(t);
+            var transformTask = context.scheduleTransformation(t, visibleIntermediateValues);
             tasks.put(t, transformTask);
             futures.add(transformTask);
         }

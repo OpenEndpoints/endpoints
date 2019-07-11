@@ -2,8 +2,8 @@ package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import endpoints.ApplicationTransaction;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Document;
 
@@ -18,18 +18,24 @@ public class DataSource {
     public final @Nonnull List<DataSourceCommand> commands = new ArrayList<>();
 
     /** Checks that no variables other than those supplied are necessary to execute all commands */
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
         for (var c : commands) {
-            try { c.assertParametersSuffice(params); }
+            try { c.assertParametersSuffice(params, visibleIntermediateValues); }
             catch (ConfigurationException e) { throw new ConfigurationException(c.getClass().getSimpleName(), e); }
         }
     }
 
+    /** @param visibleIntermediateValues these values are already produced by the time this method is called. */
     public @Nonnull Runnable scheduleExecution(
-        @Nonnull TransformationContext context, @Nonnull Consumer<Document> afterDataSource
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
+        @Nonnull Consumer<Document> afterDataSource
     ) throws TransformationFailedException {
         var futures = new ArrayList<DataSourceCommandResult>(commands.size());
-        for (var c : commands) futures.add(c.scheduleExecution(context));
+        for (var c : commands) futures.add(c.scheduleExecution(context, visibleIntermediateValues));
         
         Runnable createDocument = () -> {
             var result = DomParser.newDocumentBuilder().newDocument();

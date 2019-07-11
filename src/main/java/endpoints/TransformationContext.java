@@ -3,16 +3,18 @@ package endpoints;
 import com.databasesandlife.util.ThreadPool;
 import com.offerready.xslt.BufferedDocumentGenerationDestination;
 import endpoints.config.Application;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static java.util.Collections.singletonList;
+import static java.util.Collections.synchronizedMap;
 
 /**
  * Represents certain things that the execution of transformations and data sources need.
@@ -30,19 +32,45 @@ public class TransformationContext {
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads = new ThreadPool();
     public final @Nonnull Map<ParameterName, String> params;
+    public final @Nonnull Map<IntermediateValueName, String> intermediateValues = synchronizedMap(new HashMap<>());
     public final @Nonnull List<? extends UploadedFile> fileUploads;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
-    
+
     public static class TransformerExecutor implements Runnable {
         public final @Nonnull BufferedDocumentGenerationDestination result = new BufferedDocumentGenerationDestination();
         @Override public void run() { }
     }
     
-    public synchronized @Nonnull TransformerExecutor scheduleTransformation(@Nonnull Transformer transformer) 
-    throws TransformationFailedException {
+    public synchronized @Nonnull TransformerExecutor scheduleTransformation(
+        @Nonnull Transformer transformer,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws TransformationFailedException {
         var result = new TransformerExecutor();
-        var process = transformer.scheduleExecution(this, result.result);
+        var process = transformer.scheduleExecution(this, visibleIntermediateValues, result.result);
         threads.addTaskWithDependencies(singletonList(process), result);
         return result;
     }
+    
+    public @Nonnull Map<IntermediateValueName, String> getVisibleIntermediateValues(@Nonnull Set<IntermediateValueName> visible) {
+        var result = new HashMap<>(intermediateValues);
+        result.keySet().retainAll(visible);
+        for (var n : visible) {
+            if ( ! result.containsKey(n)) 
+                throw new RuntimeException("Should never happen: Intermediate value '" + n.name + "' " +
+                    "required but has not been produced yet");
+        }
+        return result;
+    }
+
+    public @Nonnull Map<String, String> getStringParametersIncludingIntermediateValues(
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
+        Map<String, String> result = new HashMap<>();
+        result.putAll(params
+            .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
+        result.putAll(getVisibleIntermediateValues(visibleIntermediateValues)
+            .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
+        return result;
+    }
+
 }

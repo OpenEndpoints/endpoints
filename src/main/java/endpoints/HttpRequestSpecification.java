@@ -16,6 +16,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.EndpointExecutor.RequestInvalidException;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.datasource.TransformationFailedException;
 import lombok.SneakyThrows;
@@ -33,7 +34,6 @@ import org.xml.sax.helpers.AttributesImpl;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
@@ -45,17 +45,19 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
 import static endpoints.EndpointExecutor.logXmlForDebugging;
-import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.datasource.ParametersCommand.createParametersElement;
 import static java.lang.Boolean.parseBoolean;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 public class HttpRequestSpecification {
 
@@ -63,7 +65,7 @@ public class HttpRequestSpecification {
         GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE;
     }
 
-    protected final boolean ignoreIfError;
+    public final boolean ignoreIfError;
     protected final @Nonnull String urlPattern;
     protected final @Nonnull HttpMethod method;
     protected final @Nonnull Map<String, String> getParameterPatterns;
@@ -92,7 +94,7 @@ public class HttpRequestSpecification {
         }
     }
 
-    protected static @Nonnull JsonNode expandJson(@Nonnull Map<ParameterName, String> parameters, @Nonnull JsonNode input)
+    protected static @Nonnull JsonNode expandJson(@Nonnull Map<String, String> parameters, @Nonnull JsonNode input)
     throws VariableNotFoundException {
         if (input instanceof ArrayNode) {
             var result = ((ArrayNode) input).arrayNode();
@@ -108,7 +110,7 @@ public class HttpRequestSpecification {
             return result;
         }
         else if (input instanceof TextNode) {
-            return new TextNode(PlaintextParameterReplacer.replacePlainTextParameters(input.asText(), parameters));
+            return new TextNode(replacePlainTextParameters(input.asText(), parameters));
         }
         else return input;
     }
@@ -160,7 +162,8 @@ public class HttpRequestSpecification {
     public HttpRequestSpecification(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull Element command
     ) throws ConfigurationException {
-        assertNoOtherElements(command, "url", "method", "get-parameter", "request-header",
+        assertNoOtherElements(command, "input-intermediate-value", "output-intermediate-value",
+            "url", "method", "get-parameter", "request-header",
             "basic-access-authentication", "xml-body", "json-body");
 
         ignoreIfError = parseBoolean(getOptionalAttribute(command, "ignore-if-error"));
@@ -230,29 +233,33 @@ public class HttpRequestSpecification {
             throw new ConfigurationException("Only one of <xml-body> and <json-body> may be set");
     }
 
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
-        PlaintextParameterReplacer.assertParametersSuffice(params, urlPattern, "<url> element");
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
+        var stringKeys = new HashSet<String>();
+        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
+        var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
+
+        PlaintextParameterReplacer.assertParametersSuffice(stringKeys, urlPattern, "<url> element");
         for (var e : getParameterPatterns.entrySet())
-            PlaintextParameterReplacer.assertParametersSuffice(params, e.getValue(), "<get-parameter name='"+e.getKey()+"'> element");
+            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, e.getValue(), "<get-parameter name='"+e.getKey()+"'> element");
         for (var e : requestHeaderPatterns.entrySet())
-            PlaintextParameterReplacer.assertParametersSuffice(params, e.getValue(), "<request-header name='"+e.getKey()+"'> element");
-        PlaintextParameterReplacer.assertParametersSuffice(params, usernamePatternOrNull, "'username' attribute");
-        PlaintextParameterReplacer.assertParametersSuffice(params, passwordPatternOrNull, "'password' attribute");
+            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, e.getValue(), "<request-header name='"+e.getKey()+"'> element");
+        PlaintextParameterReplacer.assertParametersSuffice(stringKeys, usernamePatternOrNull, "'username' attribute");
+        PlaintextParameterReplacer.assertParametersSuffice(stringKeys, passwordPatternOrNull, "'password' attribute");
 
         try {
-            if (requestBodyXmlTemplate != null) {
-                var emptyParams = params.stream().collect(toMap(param -> param.name, param -> ""));
+            if (requestBodyXmlTemplate != null)
                 DomVariableExpander.expand(dollarThenBraces, emptyParams, requestBodyXmlTemplate);
-            }
-            if (requestBodyJsonTemplate != null) {
-                var emptyParams = params.stream().collect(toMap(param -> param, param -> ""));
+            if (requestBodyJsonTemplate != null)
                 expandJson(emptyParams, requestBodyJsonTemplate);
-            }
         }
         catch (VariableNotFoundException e) { throw new ConfigurationException(e); }
     }
 
-    protected void throwException(@Nonnull String url, @Nonnull Exception e) {
+    public void throwException(@Nonnull String url, @Nonnull Exception e) {
         if (e instanceof IOException) {
             e = new HttpRequestFailedException(url, null, "URL '" + url + "'", e);
         }
@@ -268,16 +275,18 @@ public class HttpRequestSpecification {
     }
 
     /** @param after URLConnection is null if an error occurred and this request is set to ignore errors */
-    @SneakyThrows({TransformerConfigurationException.class, TransformerException.class, DocumentTemplateInvalidException.class})
-    public @Nonnull Runnable scheduleExecutionAndAssertNoError(
-        @Nonnull TransformationContext context, @Nonnull Consumer<URLConnection> after
-    ) throws TransformationFailedException {
-        var baseUrl = replacePlainTextParameters(urlPattern, context.params); // without ?x=y parameters
+    public void scheduleExecutionAndAssertNoError(
+        @Nonnull TransformationContext context,    
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
+        @Nonnull Consumer<URLConnection> after
+    )  {
+        var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+        var baseUrl = replacePlainTextParameters(urlPattern, stringParams); // without ?x=y parameters
         var precursorTasks = new ArrayList<Runnable>();
         try (var ignored = new Timer("Prepare HTTP request to '" + baseUrl + "'")) {
             var getParameters = new HashMap<String, String>();
             for (var e : getParameterPatterns.entrySet())
-                getParameters.put(e.getKey(), replacePlainTextParameters(e.getValue(), context.params));
+                getParameters.put(e.getKey(), replacePlainTextParameters(e.getValue(), stringParams));
             var urlAndParams = getParameterPatterns.isEmpty()
                 ? baseUrl
                 : baseUrl + "?" + WebEncodingUtils.encodeGetParameters(getParameters);
@@ -286,11 +295,11 @@ public class HttpRequestSpecification {
             urlConnection.setRequestMethod(method.name());
 
             for (var e : requestHeaderPatterns.entrySet())
-                urlConnection.setRequestProperty(e.getKey(), replacePlainTextParameters(e.getValue(), context.params));
+                urlConnection.setRequestProperty(e.getKey(), replacePlainTextParameters(e.getValue(), stringParams));
 
             if (usernamePatternOrNull != null && passwordPatternOrNull != null) {
-                var user = replacePlainTextParameters(usernamePatternOrNull, context.params);
-                var pw = replacePlainTextParameters(passwordPatternOrNull, context.params);
+                var user = replacePlainTextParameters(usernamePatternOrNull, stringParams);
+                var pw = replacePlainTextParameters(passwordPatternOrNull, stringParams);
                 var encodedAuth = Base64.encodeBase64String((user + ":" + pw).getBytes(UTF_8));
                 urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
             }
@@ -302,10 +311,9 @@ public class HttpRequestSpecification {
                 // Get XML (either fixed in <xml-body>, or result of XSLT) 
                 final Document body;
                 if (requestBodyXmlTemplate != null) {
-                    var stringParams = context.params.entrySet().stream().collect(toMap(e -> e.getKey().name, e -> e.getValue()));
                     body = DomVariableExpander.expand(dollarThenBraces, stringParams, requestBodyXmlTemplate);
                 } else if (requestBodyXmlTransformer != null) {
-                    var parametersXml = createParametersElement("parameters", context.params, context.fileUploads);
+                    var parametersXml = createParametersElement("parameters", context, visibleIntermediateValues);
                     var bodyDocument = new DOMResult();
                     requestBodyXmlTransformer.newTransformer().transform(
                         new DOMSource(parametersXml.getOwnerDocument()), bodyDocument);
@@ -335,9 +343,10 @@ public class HttpRequestSpecification {
                 
                 // Add base64 XSLT results if necessary (e.g. PDFs)
                 // Then do the request (always in a "task" so that we are not blocked by slow HTTP servers) 
-                if (replaceXmlElementsWithTransformerResults)
-                    precursorTasks.add(new XmlWithBase64TransformationsExpander(context, bodyAfterUploadFiles).schedule(makeRequest));
-                else {
+                if (replaceXmlElementsWithTransformerResults) {
+                    var xmlExpander = new XmlWithBase64TransformationsExpander(context, bodyAfterUploadFiles);
+                    precursorTasks.add(xmlExpander.schedule(visibleIntermediateValues, makeRequest));
+                } else {
                     Runnable req = () -> makeRequest.accept(bodyAfterUploadFiles);
                     context.threads.addTaskOffPool(req);
                     precursorTasks.add(req);
@@ -351,10 +360,10 @@ public class HttpRequestSpecification {
                 Runnable sendRequest = () -> { 
                     try (var o = urlConnection.getOutputStream()) {
                         if (requestBodyJsonTemplate != null) {
-                            var body = expandJson(context.params, requestBodyJsonTemplate);
+                            var body = expandJson(stringParams, requestBodyJsonTemplate);
                             new ObjectMapper().writeValue(o, body);
                         } else if (requestBodyJsonTransformer != null) {
-                            var parametersXml = createParametersElement("parameters", context.params, context.fileUploads);
+                            var parametersXml = createParametersElement("parameters", context, visibleIntermediateValues);
                             StringWriter json = new StringWriter();
                             requestBodyJsonTransformer.newTransformer().transform(
                                 new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
@@ -402,7 +411,6 @@ public class HttpRequestSpecification {
                     }
 
                     after.accept(urlConnection);
-
                 }
                 catch (IOException | HttpRequestFailedException e) { 
                     throwException(baseUrl, e);
@@ -410,21 +418,20 @@ public class HttpRequestSpecification {
                 }
             };
             context.threads.addTaskWithDependenciesOffPool(precursorTasks, executeRequest);
-            return executeRequest;
         }
-        catch (IOException e) { 
+        catch (TransformationFailedException | IOException | DocumentTemplateInvalidException | TransformerException e) {
             throwException(baseUrl, e);
-            Runnable task = () -> after.accept(null);
-            context.threads.addTask(task);
-            return task;
+            after.accept(null);
         }
     }
 
     /** @param after if an error occurred and this request is set to ignore errors. Does not expand variables in response */
-    public @Nonnull Runnable scheduleExecutionAndParseResponse(
-        @Nonnull TransformationContext context, @Nonnull Consumer<Element> after
-    ) throws TransformationFailedException {
-        return scheduleExecutionAndAssertNoError(context, urlConnection -> {
+    public void scheduleExecutionAndParseResponse(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
+        @Nonnull Consumer<Element> after
+    ) {
+        scheduleExecutionAndAssertNoError(context, visibleIntermediateValues, urlConnection -> {
             if (urlConnection == null) { after.accept(null); return; }
 
             var url = urlConnection.getURL();

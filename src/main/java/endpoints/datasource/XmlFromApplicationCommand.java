@@ -8,6 +8,7 @@ import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
@@ -17,6 +18,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,7 +28,7 @@ import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 import static com.databasesandlife.util.DomParser.getOptionalAttribute;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
-import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
+import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.lang.Boolean.parseBoolean;
 
 public class XmlFromApplicationCommand extends DataSourceCommand {
@@ -46,15 +49,23 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     }
 
     @Override
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
-        super.assertParametersSuffice(params);
-        PlaintextParameterReplacer.assertParametersSuffice(params, filenamePattern, "'file' attribute");
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
+        super.assertParametersSuffice(params, visibleIntermediateValues);
+
+        var stringKeys = new HashSet<String>();
+        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
+
+        PlaintextParameterReplacer.assertParametersSuffice(stringKeys, filenamePattern, "'file' attribute");
         
         checkContents: if ( ! filenamePattern.contains("$")) {
             try {
-                var element = executeImmediately(params.stream().collect(Collectors.toMap(param -> param, param -> "")));
+                var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
+                var element = executeImmediately(emptyParams);
                 if (element == null) break checkContents;
-                var emptyParams = params.stream().collect(Collectors.toMap(param -> param.name, param -> ""));
                 DomVariableExpander.expand(dollarThenBraces, emptyParams, element);
             }
             catch (VariableNotFoundException | TransformationFailedException e) { throw new ConfigurationException(e); }
@@ -62,7 +73,7 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     }
 
     @SneakyThrows(IOException.class)
-    protected @CheckForNull Element executeImmediately(@Nonnull Map<ParameterName, String> params) throws TransformationFailedException {
+    protected @CheckForNull Element executeImmediately(@Nonnull Map<String, String> params) throws TransformationFailedException {
         try {
             var leafname = replacePlainTextParameters(filenamePattern, params);
             var file = new File(xmlFromApplicationDir, leafname);
@@ -85,11 +96,14 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+    public @Nonnull DataSourceCommandResult scheduleExecution(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
         var result = new DataSourceCommandResult() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
-                var stringParams = context.params.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue()));
-                var fileElement = executeImmediately(context.params);
+                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var fileElement = executeImmediately(stringParams);
                 if (fileElement == null) return new Element[0];
                 var expanded = DomVariableExpander.expand(dollarThenBraces, stringParams, fileElement).getDocumentElement();
                 return new Element[] { expanded };

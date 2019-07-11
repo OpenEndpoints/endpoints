@@ -1,22 +1,23 @@
 package endpoints.task;
 
+import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueProducerConsumer;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
+import java.util.*;
 
-public abstract class Task {
+public abstract class Task extends IntermediateValueProducerConsumer {
     
-    protected @Nonnull TaskCondition condition;
+    /** Note the condition cannot reference "intermediate values" */
+    public final @Nonnull TaskCondition condition;
     
     // Subclass must implement this constructor, as it is called by reflection
     @SuppressWarnings("unused") 
@@ -24,6 +25,7 @@ public abstract class Task {
         @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, Element config
     ) throws ConfigurationException {
+        super(config);
         condition = new TaskCondition(config);
     }
 
@@ -37,28 +39,34 @@ public abstract class Task {
     public boolean requiresEmailServer() { return false; }
     
     public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException { 
-        condition.assertParametersSuffice(params);
+        condition.assertParametersSuffice(params, inputIntermediateValues);
     }
     
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
     
-    protected abstract @Nonnull void scheduleTaskExecutionUnconditionally(@Nonnull TransformationContext context) 
-    throws TaskExecutionFailedException;
+    /** Note: All intermediate values have been calculated by the time this method is called. */
+    protected abstract void executeThenScheduleSynchronizationPoint(
+        @Nonnull TransformationContext context,
+        @Nonnull SynchronizationPoint workComplete
+    );
     
     /**
-     * Starts execution of this task, and creates a runnable which will complete execution of this task.
-     *    <p>
-     * To use this method:
-     * <ol>
-     * <li>Create an {@link ExecutorService}</li>
-     * <li>On all tasks, call this method. (This will create "futures" for e.g. XSLT processing, so that can happen
-     * concurrently across all tasks at the same time.)</li>
-     * <li>On all tasks, run the {@link Runnable}. (This will await the results of the futures, and execute the task.)
-     * <li>Shutdown the {@link ExecutorService}
-     * </ol>
+     * @return this will be scheduled in the thread pool once the execution is complete and intermediate values are available. 
      */
-    public @Nonnull void scheduleTaskExecution(@Nonnull TransformationContext context) throws TaskExecutionFailedException {
-        if (condition.evaluate(context.params))
-            scheduleTaskExecutionUnconditionally(context);
+    public @Nonnull SynchronizationPoint scheduleTaskExecutionIfNecessary(
+        @Nonnull List<SynchronizationPoint> dependencies, 
+        @Nonnull TransformationContext context
+    ) {
+        var workComplete = new SynchronizationPoint();
+        
+        context.threads.addTaskWithDependencies(dependencies, () -> {
+            var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+            if (condition.evaluate(stringParams))
+                executeThenScheduleSynchronizationPoint(context, workComplete);
+            else
+                context.threads.addTask(workComplete);
+        });
+
+        return workComplete;
     }
 }

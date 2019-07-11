@@ -6,11 +6,14 @@ import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
@@ -37,7 +40,10 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(@Nonnull TransformationContext context) {
+    public @Nonnull DataSourceCommandResult scheduleExecution(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
         var result = new DataSourceCommandResult() {
             @Override protected @Nonnull Element[] populateOrThrow() {
                 var result = DomParser.newDocumentBuilder().newDocument();

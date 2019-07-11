@@ -13,7 +13,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
@@ -24,8 +23,11 @@ public class Transformer {
     protected @Nonnull DocumentGenerator generator;
 
     /** Check that no parameters, other than the ones passed to this method, are necessary to perform the transformation */
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
-        source.assertParametersSuffice(params);
+    public void assertParametersSuffice(
+        @Nonnull Set<ParameterName> params,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
+        source.assertParametersSuffice(params, visibleIntermediateValues);
     }
     
     public void assertTemplatesValid() throws DocumentTemplateInvalidException {
@@ -33,9 +35,11 @@ public class Transformer {
     }
 
     public @Nonnull Runnable scheduleExecution(
-        @Nonnull TransformationContext context, @Nonnull DocumentGenerationDestination dest
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
+        @Nonnull DocumentGenerationDestination dest
     ) throws TransformationFailedException {
-        return source.scheduleExecution(context, document -> {
+        return source.scheduleExecution(context, visibleIntermediateValues, document -> {
             try { generator.transform(dest, document, true, null); }
             catch (DocumentTemplateInvalidException e) { throw new RuntimeException(e); }
         });
@@ -53,6 +57,4 @@ public class Transformer {
 
         return result;
     }
-
-
 }
