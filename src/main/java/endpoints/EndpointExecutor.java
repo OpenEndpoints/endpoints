@@ -429,8 +429,7 @@ public class EndpointExecutor {
                 tx.commit();
                 responder.respond(responseContent);
             }
-            catch (RequestInvalidException | ParameterTransformationHadErrorException
-                    | TransformationFailedException | TaskExecutionFailedException | HttpRequestFailedException e) {
+            catch (Exception e) {
                 try (var tx = new ApplicationTransaction(application);
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
@@ -462,10 +461,6 @@ public class EndpointExecutor {
                 catch (RequestInvalidException | TransformationFailedException ee) {
                     throw new EndpointExecutionFailedException(500, "Error occurred; but <error> has an error: "+ee, ee);
                 }
-            }
-            catch (Exception e) {
-                throw new EndpointExecutionFailedException(500, "An internal error occurred, " +
-                    "application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'", "An internal error occurred", e);
             }
         }
         catch (Exception e) { throw new EndpointExecutionFailedException(500, "An internal error occurred", e); }
