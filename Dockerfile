@@ -4,7 +4,9 @@ ENV ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checko
 EXPOSE 8080
 
 # See https://www.databasesandlife.com/jetty-redirect-keep-https/
+USER root
 RUN echo "--module=http-forwarded" > /var/lib/jetty/start.d/http-forwarded.ini
+USER jetty
 
 # Some things (e.g. Subversion, FOP) need to create dot-directories in Jetty's home dir
 USER root
