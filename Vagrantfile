@@ -107,7 +107,7 @@ Vagrant.configure(2) do |config|
 
     echo '--- Set up "example-application" and Service portal access'
     ln -s /vagrant/example-application /var/endpoints/applications-checkout/example-application-symlink
-    (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_config VALUES ('example-application', false, 'Example Application', 5000), ('from-git', false, 'From Git', null)")
+    (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_config VALUES ('example-application', false, 'Example Application'), ('from-git', false, 'From Git')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_publish VALUES ('example-application', 'symlink', 'live')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO service_portal_login VALUES ('admin', '\$2a\$10\$VOBc53Fu0louc.K4AGLUJuiTdbPimluy4feYeShLIrOrQy//U.UpO')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO service_portal_login_application VALUES ('admin', 'example-application'), ('admin', 'from-git')")
