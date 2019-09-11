@@ -8,8 +8,8 @@
         <from-java-functions-during-xslt>
             <uuid><xsl:value-of select="uuid:randomUUID()" xmlns:uuid="java:java.util.UUID"/></uuid>
             <sha256><xsl:value-of select="digest:sha256Hex('foo')" xmlns:digest="java:org.apache.commons.codec.digest.DigestUtils"/></sha256>
+            <reCaptcha><xsl:value-of select="reCaptchaV3:check('foo', 'bar')" xmlns:reCaptchaV3="java:com.offerready.xslt.xsltfunction.ReCaptchaV3Client"/></reCaptcha>
         </from-java-functions-during-xslt>
     </xsl:template>
 
 </xsl:stylesheet>
-
