@@ -54,6 +54,7 @@ public class LogToDatabaseTask extends Task {
     }
     
     @Override
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
     protected void executeThenScheduleSynchronizationPoint(
         @Nonnull TransformationContext context,
         @Nonnull SynchronizationPoint workComplete
@@ -62,14 +63,16 @@ public class LogToDatabaseTask extends Task {
         if (jdbcUrlOrNull == null) db = context.tx.db;
         else context.tx.addDatabaseConnection(db = new DbTransaction(jdbcUrlOrNull));
 
-        try {
-            var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
-            var cols = patternForColumn.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
-                e -> replacePlainTextParameters(e.getValue(), stringParams)));
-            db.insert(table, cols);
-        }
-        catch (SqlException e) {
-            throw new RuntimeException(new TaskExecutionFailedException("Error occurred inserting to table '"+table+"'", e));
+        synchronized (db) {
+            try {
+                var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+                var cols = patternForColumn.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(),
+                    e -> replacePlainTextParameters(e.getValue(), stringParams)));
+                db.insert(table, cols);
+            }
+            catch (SqlException e) {
+                throw new RuntimeException(new TaskExecutionFailedException("Error occurred inserting to table '"+table+"'", e));
+            }
         }
         
         context.threads.addTask(workComplete);
