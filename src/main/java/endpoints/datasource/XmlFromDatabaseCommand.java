@@ -68,6 +68,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
             PlaintextParameterReplacer.assertParametersSuffice(params, visibleIntermediateValues, p, "<param>");
     }
 
+    @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter") 
     protected @Nonnull Element[] execute(@Nonnull DbTransaction tx, @Nonnull Object[] paramsExpanded) {
         var resultDocument = DomParser.newDocumentBuilder().newDocument();
         var root = resultDocument.createElement(outputTag);
