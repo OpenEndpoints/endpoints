@@ -1555,6 +1555,12 @@ There must be one or more
 \end_layout
 
 \begin_layout Subsubsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Making-an-HTTP-Request"
+
+\end_inset
+
 Making an HTTP Request
 \end_layout
 
@@ -2390,8 +2396,18 @@ ${foo}
 <xml-from-url>
 \family default
  This will fetch content from a URL.
- The data source command has sub-elements with the same format as the HttpReques
-tTask described above.
+ The data source command has sub-elements with the same format as the 
+\family typewriter
+HttpRequestTask
+\family default
+ described in section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:Making-an-HTTP-Request"
+
+\end_inset
+
+.
  
 \end_layout
 
