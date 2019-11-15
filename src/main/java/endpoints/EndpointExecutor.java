@@ -34,6 +34,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+import java.net.InetAddress;
 import java.net.URL;
 import java.time.Instant;
 import java.util.*;
@@ -63,6 +64,7 @@ import static org.jooq.impl.DSL.max;
 public class EndpointExecutor {
 
     public interface Request {
+        @CheckForNull InetAddress getClientIpAddress();
         /** Can return empty string */
         @Nonnull String getUserAgent();
         /** Returns content type or "GET" for GET requests */ 
@@ -154,7 +156,7 @@ public class EndpointExecutor {
     protected @Nonnull Map<ParameterName, String> transformXmlIntoParameters(
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull Endpoint endpoint, @Nonnull Request req, boolean debugAllowed, boolean debugRequested, 
-        @Nonnull ParameterTransformationLogger parameterTransformationLogger,
+       @Nonnull ParameterTransformationLogger parameterTransformationLogger,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull ParameterTransformation parameterTransformation, long autoIncrement, @Nonnull RandomRequestId random,
         @Nonnull Node... inputFromRequestContents
@@ -169,6 +171,8 @@ public class EndpointExecutor {
             inputParametersDocument.getDocumentElement().appendChild(inputFromRequestElement);
             if (debugRequested) inputFromRequestElement.appendChild(inputParametersDocument.createElement("debug-requested"));
             for (var n : inputFromRequestContents) inputFromRequestElement.appendChild(inputParametersDocument.importNode(n, true));
+            appendTextElement(inputFromRequestElement, "ip-address",
+                req.getClientIpAddress() == null ? null : req.getClientIpAddress().getHostAddress());
 
             // Add <input-from-application>
             var inputFromApplicationElement = inputParametersDocument.createElement("input-from-application");

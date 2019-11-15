@@ -10,6 +10,7 @@ import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.NodeName;
 import endpoints.config.ParameterName;
+import endpoints.serviceportal.wicket.ServicePortalApplication;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.SneakyThrows;
@@ -24,6 +25,7 @@ import org.apache.wicket.request.resource.BaseDataResource;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.InputStream;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -94,6 +96,8 @@ public class EndpointPanel extends Panel {
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
             var endpoint = application.getEndpoints().findEndpointOrThrow(endpointName);
             var request = new EndpointExecutor.Request() {
+                @Override public @CheckForNull InetAddress getClientIpAddress() {
+                    return ServicePortalApplication.get().getRequestIpAddress(); }
                 @Override public @Nonnull String getUserAgent() { return "Service Portal"; }
                 @Override public @Nonnull String getContentType() { return "GET"; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }
