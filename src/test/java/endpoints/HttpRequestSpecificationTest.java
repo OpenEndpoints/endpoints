@@ -6,6 +6,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.ApplicationTransaction;
 import endpoints.HttpRequestSpecification;
+import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.UploadedFile;
 import endpoints.TransformationContext;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
@@ -95,7 +96,8 @@ public class HttpRequestSpecificationTest extends TestCase {
 
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
-                var context = new TransformationContext(application, tx, params, emptyList(), emptyMap());
+                var context = new TransformationContext(application, tx, params,
+                    ParameterNotFoundPolicy.error, emptyList(), emptyMap());
                 var resultContainer = new Object() {
                     public Element element;
                 };

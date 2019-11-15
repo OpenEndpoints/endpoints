@@ -28,10 +28,13 @@ import static java.util.Collections.synchronizedMap;
 @RequiredArgsConstructor
 public class TransformationContext {
 
+    public enum ParameterNotFoundPolicy { error, emptyString };
+
     public final @Nonnull Application application;
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads = new ThreadPool();
     public final @Nonnull Map<ParameterName, String> params;
+    public final @Nonnull ParameterNotFoundPolicy parameterNotFoundPolicy;
     public final @Nonnull Map<IntermediateValueName, String> intermediateValues = synchronizedMap(new HashMap<>());
     public final @Nonnull List<? extends UploadedFile> fileUploads;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
@@ -65,12 +68,17 @@ public class TransformationContext {
     public @Nonnull Map<String, String> getStringParametersIncludingIntermediateValues(
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        Map<String, String> result = new HashMap<>();
+        Map<String, String> result = new HashMap<>() {
+            @Override public String get(Object key) {
+                var result = super.get(key);
+                if (parameterNotFoundPolicy == ParameterNotFoundPolicy.emptyString && result == null) result = "";
+                return result;
+            }
+        };
         result.putAll(params
             .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
         result.putAll(getVisibleIntermediateValues(visibleIntermediateValues)
             .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
         return result;
     }
-
 }

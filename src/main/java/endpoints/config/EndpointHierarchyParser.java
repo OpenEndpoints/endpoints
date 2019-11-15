@@ -139,11 +139,9 @@ public class EndpointHierarchyParser extends DomParser {
                     new StyleVisionXslt(parameterTransformerFile));
 
             var dataSourceCommands = new ArrayList<DataSourceCommand>();
-            for (var command : getSubElements(element, "*")) {
-                var cmd = DataSourceCommand.newForConfig(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
-                cmd.assertParametersSuffice(Collections.emptySet(), Collections.emptySet());
-                dataSourceCommands.add(cmd);
-            }
+            for (var command : getSubElements(element, "*"))
+                dataSourceCommands.add(DataSourceCommand.newForConfig(
+                    tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command));
 
             var result = new ParameterTransformation();
             result.dataSourceCommands = dataSourceCommands;
