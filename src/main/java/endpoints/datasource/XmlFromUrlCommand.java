@@ -1,5 +1,6 @@
 package endpoints.datasource;
 
+import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.ThreadPool.ScheduleDependencyInAnyOrder;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
@@ -11,14 +12,17 @@ import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Set;
 
+import static com.databasesandlife.util.DomParser.getOptionalAttribute;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
 
 public class XmlFromUrlCommand extends DataSourceCommand {
-    
+
+    protected final @CheckForNull String outputWrapperElementName;
     protected final @Nonnull HttpRequestSpecification spec;
     
     public XmlFromUrlCommand(
@@ -27,6 +31,7 @@ public class XmlFromUrlCommand extends DataSourceCommand {
         @Nonnull Element config
     ) throws ConfigurationException {
         super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, config);
+        outputWrapperElementName = getOptionalAttribute(config, "tag");
         spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
     }
 
@@ -52,7 +57,15 @@ public class XmlFromUrlCommand extends DataSourceCommand {
             @Override protected @Nonnull Element[] populateOrThrow() {
                 if (unexpanded == null) return new Element[0];
                 var expanded = DomVariableExpander.expand(dollarThenBraces, stringParams, unexpanded).getDocumentElement();
-                return new Element[] { expanded };
+
+                Element wrapped;
+                if (outputWrapperElementName == null) wrapped = expanded;
+                else {
+                    wrapped = expanded.getOwnerDocument().createElement(outputWrapperElementName);
+                    wrapped.appendChild(expanded);
+                }
+
+                return new Element[] { wrapped };
             }
         };
         spec.scheduleExecutionAndParseResponse(context, visibleIntermediateValues, element -> {
