@@ -60,10 +60,16 @@
   
       <endpoint name="json">
         <parameter name="written-to-by-parameter-transformation-output" default-value="from-endpoints-xml"/>
+        <parameter name="value-of-param-via-xml-from-url-identity"/>
+        <parameter name="value-of-unknown-param-via-xml-from-url-identity"/>
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
         <parameter-transformation xslt="add-one-param.xslt">
           <xml-from-application file="xml-subdirectory/spheres.fo"/>
-          <literal-xml><this-is-some-literal-xml/></literal-xml>
+          <xml-from-url tag="from-xml-from-url">
+            <url>https://postman-echo.com/get</url>
+            <get-parameter name="param">${param-in-hash}</get-parameter>
+            <get-parameter name="unknown-param">${lkdfjkjjjfgkjerlkcoi}</get-parameter>
+          </xml-from-url>
         </parameter-transformation>
         <task class="endpoints.task.HttpRequestTask">
           <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>

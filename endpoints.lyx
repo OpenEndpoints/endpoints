@@ -703,6 +703,28 @@ If the request is a POST with an XML body then the XML is taken as is.
 
 \end_deeper
 \begin_layout Enumerate
+Any specified data sources are executed.
+ Any GET and POST parameters may be accessed with the 
+\family typewriter
+${x}
+\family default
+ syntax (see the data source descriptions for where parameters may be used).
+ Any parameter which is referenced but not supplied with the request is
+ left empty (an error is 
+\emph on
+not
+\emph default
+ produced) as the point of the parameter transformation is to determine
+ errors.
+ An error being produced by a missing parameter would then not allow the
+ parameter transformation to produce an 
+\family typewriter
+<error>
+\family default
+ output.
+\end_layout
+
+\begin_layout Enumerate
 They are placed into an XML into the 
 \family typewriter
 <input-from-request>

@@ -9,6 +9,7 @@ import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
+import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.config.*;
 import endpoints.datasource.DataSourceCommandResult;
 import endpoints.datasource.ParametersCommand;
@@ -157,9 +158,10 @@ public class EndpointExecutor {
     protected @Nonnull Map<ParameterName, String> transformXmlIntoParameters(
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull Endpoint endpoint, @Nonnull Request req, boolean debugAllowed, boolean debugRequested, 
-       @Nonnull ParameterTransformationLogger parameterTransformationLogger,
+        @Nonnull ParameterTransformationLogger parameterTransformationLogger,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull ParameterTransformation parameterTransformation, long autoIncrement, @Nonnull RandomRequestId random,
+        @Nonnull Map<ParameterName, String> requestParameters,
         @Nonnull Node... inputFromRequestContents
     ) throws RequestInvalidException, TransformationFailedException, ParameterTransformationHadErrorException, HttpRequestFailedException {
         try {
@@ -189,7 +191,8 @@ public class EndpointExecutor {
             appendTextElement(inputFromApplicationElement, "http-header-user-agent", req.getUserAgent());
 
             // Add data sources e.g. <xml-from-application>
-            var context = new TransformationContext(application, tx, emptyMap(), req.getUploadedFiles(), autoInc);
+            var context = new TransformationContext(application, tx, requestParameters,
+                ParameterNotFoundPolicy.emptyString, req.getUploadedFiles(), autoInc);
             var dataSourceResults = new ArrayList<DataSourceCommandResult>();
             for (var c : parameterTransformation.dataSourceCommands)
                 dataSourceResults.add(c.scheduleExecution(context, emptySet()));
@@ -260,7 +263,7 @@ public class EndpointExecutor {
                 } else {
                     transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req,
                         debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                        endpoint.parameterTransformation, autoIncrement, random,
+                        endpoint.parameterTransformation, autoIncrement, random, inputParameters,
                         ParametersCommand.createParametersElements(inputParameters, emptyMap(), req.getUploadedFiles()));
                 }
                 break;
@@ -272,7 +275,7 @@ public class EndpointExecutor {
                     var requestDocument = DomParser.from(req.getInputStream());
                     transformedParameters = transformXmlIntoParameters(applicationName, application, tx, endpoint, req,
                         debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                        endpoint.parameterTransformation, autoIncrement, random, requestDocument);
+                        endpoint.parameterTransformation, autoIncrement, random, emptyMap(), requestDocument);
                 }
                 catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }
                 break;
@@ -455,7 +458,8 @@ public class EndpointExecutor {
 
                 final HttpDestination responseContent;
                 try (var ignored3 = new Timer("Execute <task>s and generate response")) {
-                    var context = new TransformationContext(application, tx, parameters, req.getUploadedFiles(), autoInc);
+                    var context = new TransformationContext(application, tx, parameters,
+                        ParameterNotFoundPolicy.error, req.getUploadedFiles(), autoInc);
 
                     responseContent = scheduleTasksAndSuccess(context, endpoint);
 
@@ -483,7 +487,8 @@ public class EndpointExecutor {
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
                     var autoInc = newLazyNumbers(applicationName, environment, now);
-                    var context = new TransformationContext(application, tx, new HashMap<>(), emptyList(), autoInc);
+                    var context = new TransformationContext(application, tx, new HashMap<>(),
+                        ParameterNotFoundPolicy.error, emptyList(), autoInc);
                     var errorResponseContent = scheduleResponseGeneration(emptyList(), context, endpoint.error, false);
                     
                     try { context.threads.execute(); }
