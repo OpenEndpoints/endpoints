@@ -14,6 +14,7 @@ import endpoints.datasource.DataSourceCommandResult;
 import endpoints.datasource.ParametersCommand;
 import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
+import endpoints.task.Task;
 import endpoints.task.Task.TaskExecutionFailedException;
 import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
@@ -381,7 +382,8 @@ public class EndpointExecutor {
         @Nonnull TransformationContext context, @Nonnull Endpoint endpoint
     ) {
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
-        var tasksToExecute = new ArrayList<>(endpoint.tasks);
+        @SuppressWarnings("Convert2Diamond")  // IntelliJ Windows requires the <Task> here
+        var tasksToExecute = new ArrayList<Task>(endpoint.tasks);
         
         int infiniteLoopProtection = 0;
         while ( ! tasksToExecute.isEmpty())
