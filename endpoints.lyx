@@ -2402,6 +2402,24 @@ If XML is received then that XML is the result of this data source.
 \end_layout
 
 \begin_layout Standard
+The optional 
+\family typewriter
+tag="xyz"
+\family default
+ attribute may be present in the 
+\family typewriter
+<xml-from-url>
+\family default
+ element.
+ If it is present, the response in the output is wrapped in an 
+\family typewriter
+<xyz>
+\family default
+ tag.
+ Otherwise, the XML is included as is, without being wrapped.
+\end_layout
+
+\begin_layout Standard
 Variables are expanded in the bodies of fetched elements, and in all attributes.
 \end_layout
 
