@@ -211,7 +211,6 @@ public class HttpRequestSpecification {
             if ( ! fixedJsonBody.isEmpty()) {
                 try { requestBodyJsonTemplate = new ObjectMapper().readTree(fixedJsonBody); }
                 catch (JsonProcessingException e) { throw new ConfigurationException("<json-body>", e); }
-                catch (IOException e) { throw new RuntimeException(e); }
             }
 
             var xsltFileName = getOptionalAttribute(requestBodyJsonElement, "xslt-file");
