@@ -25,7 +25,7 @@ public class RandomRequestId implements Serializable {
             // 10 digits, starting with a non-zero so it is always 10 characters long
             var candidate = new RandomRequestId(Long.parseLong(random(1, "123456789") + randomNumeric(9)));
 
-            int existingCount = tx.jooq()
+            var existingCount = tx.jooq()
                 .selectCount()
                 .from(REQUEST_LOG)
                 .where(REQUEST_LOG.RANDOM_ID_PER_APPLICATION.eq(candidate))

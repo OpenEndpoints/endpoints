@@ -388,7 +388,7 @@ public class EndpointExecutor {
         @SuppressWarnings("Convert2Diamond")  // IntelliJ Windows requires the <Task> here
         var tasksToExecute = new ArrayList<Task>(endpoint.tasks);
         
-        int infiniteLoopProtection = 0;
+        var infiniteLoopProtection = 0;
         while ( ! tasksToExecute.isEmpty())
             tasks: for (var taskIter = tasksToExecute.iterator(); taskIter.hasNext(); ) {
                 var task = taskIter.next();
@@ -446,7 +446,7 @@ public class EndpointExecutor {
                         .forUpdate().execute();
                 }
 
-                long autoIncrement = getNextAutoIncrement(tx.db, applicationName, environment, endpoint.name);
+                var autoIncrement = getNextAutoIncrement(tx.db, applicationName, environment, endpoint.name);
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
