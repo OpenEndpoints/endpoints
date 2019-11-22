@@ -96,7 +96,7 @@ public class EndpointServlet extends HttpServlet {
             var bytes = e.toByteArray();
 
             var hexString = new StringBuilder();
-            int length = bytes.length;
+            var length = bytes.length;
             if (length > 10) length = 10;
             for (int i=0;i<length;i++) {
                 String x = "0" + Integer.toHexString(0xFF & bytes[i]);
