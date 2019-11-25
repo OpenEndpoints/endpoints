@@ -28,7 +28,7 @@ public class RedirectResponseConfiguration extends ResponseConfiguration {
     }
 
     @Override
-    public void assertParametersSuffice(Set<ParameterName> params) throws ConfigurationException {
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, urlPattern, "<redirect-to>");
     }
 }
