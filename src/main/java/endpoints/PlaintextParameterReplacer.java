@@ -22,10 +22,12 @@ public class PlaintextParameterReplacer {
         if (template == null) return;
         var m = Pattern.compile("\\$\\{([\\w-]+)\\}").matcher(template);
         while (m.find())
-            if ( ! params.contains(m.group(1)))
+            if ( ! params.contains(m.group(1))) {
+                var availableParameters = params.isEmpty() ? "no parameters are available" : "available parameters are " +
+                    params.stream().sorted().map(p -> "${"+p+"}").collect(joining(", "));
                 throw new ConfigurationException(msg+": Pattern '"+template+"' contains parameter ${"+m.group(1)+"}" +
-                    " but it is not available; available parameters are; " +
-                    params.stream().sorted().map(p -> "${"+p+"}").collect(joining(", ")));
+                    " but it is not available; " + availableParameters);
+            }
     }
 
     public static void assertParametersSuffice(
