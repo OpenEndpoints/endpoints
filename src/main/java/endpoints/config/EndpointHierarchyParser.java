@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
 import static java.util.stream.Collectors.toList;
@@ -55,28 +56,12 @@ public class EndpointHierarchyParser extends DomParser {
 
         final ResponseConfiguration result;
         
-        if (responseTransformationElement != null) {
-            assertNoOtherElements(element, "response-transformation", "input-intermediate-value");
-            var transform = new TransformationResponseConfiguration(element);
-            var transformerName = getMandatoryAttribute(responseTransformationElement, "name");
-            transform.transformer = transformers.get(transformerName);
-            if (transform.transformer == null) throw new ConfigurationException("Transformer name='"+transformerName+"' not found");
-            transform.downloadFilenamePatternOrNull = getOptionalAttribute(responseTransformationElement, "download-filename");
-            result = transform;
-        }
-        else if (redirectToElement != null) {
-            assertNoOtherElements(element, "redirect-to", "redirect-prefix-whitelist-entry", "input-intermediate-value");
-            var redirect = new RedirectResponseConfiguration(element);
-            redirect.urlPattern = redirectToElement.getTextContent().trim();
-            redirect.whitelist = new UrlPrefixWhiteList();
-            for (var e : getSubElements(element, "redirect-prefix-whitelist-entry"))
-                redirect.whitelist.urlPrefixWhiteList.add(e.getTextContent().trim());
-            result = redirect;
-        }
-        else {
-            assertNoOtherElements(element);
-            result = new EmptyResponseConfiguration();
-        }
+        if (responseTransformationElement != null)
+            result = new TransformationResponseConfiguration(transformers, element, responseTransformationElement);
+        else if (redirectToElement != null)
+            result = new RedirectResponseConfiguration(element, redirectToElement);
+        else
+            result = new EmptyResponseConfiguration(element);
         
         result.assertParametersSuffice(params);
         
