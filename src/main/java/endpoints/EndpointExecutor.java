@@ -11,12 +11,15 @@ import endpoints.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.config.*;
+import endpoints.config.ApplicationFactory.ApplicationConfig;
+import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.datasource.DataSourceCommandResult;
 import endpoints.datasource.ParametersCommand;
 import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.task.Task;
 import endpoints.task.Task.TaskExecutionFailedException;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -313,50 +316,93 @@ public class EndpointExecutor {
         }
     }
     
-    protected abstract static class HttpDestination 
-    extends BufferedHttpResponseDocumentGenerationDestination 
-    implements Runnable { }
+    @RequiredArgsConstructor
+    protected class Response implements Runnable {
+        protected final @Nonnull TransformationContext context;
+        protected final @Nonnull ResponseConfiguration config;
+        protected final boolean success;
+        
+        public BufferedHttpResponseDocumentGenerationDestination destination = new BufferedHttpResponseDocumentGenerationDestination();
 
-    /**
-     * Either execute the response (in case of redirect or OK), or write the response to a buffer (in the case of content).
-     * <p>The content is written to the buffer because there is much that can go wrong half way through writing the response;
-     * in this case we want to write an error to the browser, which we cannot do, if the first half of the successful
-     * response has already been streamed to the client. 
-     * @return response which must still be delivered to the user, or null if it has already been delivered.
-     */
-    protected @Nonnull HttpDestination scheduleResponseGeneration(
-        @Nonnull List<Runnable> dependencies,
-        @Nonnull TransformationContext context,
-        @Nonnull ResponseConfiguration config, boolean success
-    ) {
-        var result = new HttpDestination() {
-            @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
-            @Override public void run() {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+        @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
+        @Override public void run() {
+            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
-                int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
+            int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
 
-                if (config instanceof EmptyResponseConfiguration) {
-                    setStatusCode(statusCode);
-                }
-                else if (config instanceof RedirectResponseConfiguration) {
-                    var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
-                    if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
-                        throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
-                    setRedirectUrl(new URL(url));
-                }
-                else if (config instanceof TransformationResponseConfiguration) {
-                    var r = (TransformationResponseConfiguration) config;
-                    setStatusCode(statusCode);
-                    r.transformer.scheduleExecution(context, config.inputIntermediateValues, this);
-                    if (r.downloadFilenamePatternOrNull != null)
-                        setContentDispositionToDownload(replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
-                }
-                else throw new IllegalStateException("Unexpected config: " + config);
+            if (config instanceof EmptyResponseConfiguration) {
+                destination.setStatusCode(statusCode);
             }
-        };
-        context.threads.addTaskWithDependencies(dependencies, result);
-        return result;
+            else if (config instanceof RedirectResponseConfiguration) {
+                var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
+                if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
+                    throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
+                destination.setRedirectUrl(new URL(url));
+            }
+            else if (config instanceof TransformationResponseConfiguration) {
+                var r = (TransformationResponseConfiguration) config;
+                destination.setStatusCode(statusCode);
+                r.transformer.scheduleExecution(context, config.inputIntermediateValues, destination);
+                if (r.downloadFilenamePatternOrNull != null)
+                    destination.setContentDispositionToDownload(
+                        replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
+            }
+            else throw new IllegalStateException("Unexpected config: " + config);
+        }
+    }
+
+    protected class ResponseIncludingForward extends Response {
+        protected final @Nonnull PublishEnvironment environment;
+        protected final @Nonnull ApplicationName applicationName;
+        protected final @Nonnull Application application;
+        protected final @Nonnull ApplicationConfig appConfig;
+        protected final @Nonnull Long autoIncrement;
+        protected final @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
+        protected final @Nonnull RandomRequestId random;
+        
+        public ResponseIncludingForward(@Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
+            @Nonnull Application application, @Nonnull TransformationContext context,
+            @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, @Nonnull ResponseConfiguration config,
+            boolean success, @Nonnull ApplicationConfig appConfig, @Nonnull Long autoIncrement, @Nonnull RandomRequestId random
+        ) {
+            super(context, config, success);
+            this.environment = environment;
+            this.applicationName = applicationName;
+            this.application = application;
+            this.appConfig = appConfig;
+            this.autoIncrement = autoIncrement;
+            this.autoInc = autoInc;
+            this.random = random;
+        }
+
+        @SneakyThrows({RequestInvalidException.class, TransformationFailedException.class,
+            NodeNotFoundException.class, EndpointExecutionFailedException.class,
+            HttpRequestFailedException.class, TaskExecutionFailedException.class, ParameterTransformationHadErrorException.class})
+        @Override public void run() {
+            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+
+            if (config instanceof ForwardToEndpointResponseConfiguration) {
+                var request = new Request() {
+                    @Override public @CheckForNull InetAddress getClientIpAddress() { return null; }
+                    @Override public @Nonnull String getUserAgent() { return "<forward-to-endpoint>"; }
+                    @Override public @CheckForNull String getContentTypeIfPost() { return null; }
+                    @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
+                    @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
+                    @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
+                        return ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns.entrySet().stream()
+                            .collect(toMap(e -> e.getKey(), e -> List.of(replacePlainTextParameters(e.getValue(), stringParams))));
+                    }
+                };
+
+                // This will itself create a thread pool parallel to this thread pool, which isn't very elegant,
+                // but is simple, and works.
+                destination = attemptSuccess(environment, applicationName, application, appConfig,
+                    application.getEndpoints().findEndpointOrThrow(((ForwardToEndpointResponseConfiguration) config).endpoint),
+                    context.tx, false, new ParameterTransformationLogger(), autoInc, autoIncrement,
+                    random, null, request);
+            }
+            else super.run();
+        }
     }
 
     protected @Nonnull RequestLogRecord newRequestLogRecord(
@@ -380,8 +426,11 @@ public class EndpointExecutor {
         return r;
     }
     
-    protected @Nonnull HttpDestination scheduleTasksAndSuccess(
-        @Nonnull TransformationContext context, @Nonnull Endpoint endpoint
+    protected @Nonnull Response scheduleTasksAndSuccess(
+        @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName, @Nonnull ApplicationConfig appConfig,
+        @Nonnull TransformationContext context, @Nonnull Endpoint endpoint,
+        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
+        @Nonnull RandomRequestId random
     ) {
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
         @SuppressWarnings("Convert2Diamond")  // IntelliJ Windows requires the <Task> here
@@ -414,7 +463,51 @@ public class EndpointExecutor {
             successDependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
         }
 
-        return scheduleResponseGeneration(successDependencies, context, endpoint.success, true);
+        var result = new ResponseIncludingForward(environment, applicationName, context.application,
+            context, autoInc, endpoint.success, true, appConfig, autoIncrement, random);
+        context.threads.addTaskWithDependencies(successDependencies, result);
+        return result;
+    }
+    
+    protected @Nonnull BufferedHttpResponseDocumentGenerationDestination attemptSuccess(
+        @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
+        @Nonnull Application application, @Nonnull ApplicationConfig appConfig, @Nonnull Endpoint endpoint,
+        @Nonnull ApplicationTransaction tx,
+        boolean debugRequested, @Nonnull ParameterTransformationLogger parameterTransformationLogger,
+        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
+        @Nonnull RandomRequestId random,
+        @CheckForNull String hashToCheck, @Nonnull Request req
+    ) throws EndpointExecutionFailedException, RequestInvalidException,
+             TransformationFailedException, TaskExecutionFailedException, HttpRequestFailedException,
+             ParameterTransformationHadErrorException {
+        
+        var parameters = getParameters(applicationName, application, tx, endpoint, req,
+            appConfig.debugAllowed, debugRequested, parameterTransformationLogger,
+            autoInc, autoIncrement, random);
+
+        if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
+
+        final Response responseContentGenerator;
+        try (var ignored3 = new Timer("Execute <task>s and generate response")) {
+            var context = new TransformationContext(application, tx, parameters,
+                ParameterNotFoundPolicy.error, req.getUploadedFiles(), autoInc);
+
+            responseContentGenerator = scheduleTasksAndSuccess(environment, applicationName, appConfig, 
+                context, endpoint, autoInc, autoIncrement, random);
+
+            try { context.threads.execute(); }
+            catch (RuntimeException e) {
+                unwrapException(e, RequestInvalidException.class);
+                unwrapException(e, TransformationFailedException.class);
+                unwrapException(e, EndpointExecutionFailedException.class);
+                unwrapException(e, HttpRequestFailedException.class);
+                unwrapException(e, TaskExecutionFailedException.class);
+                unwrapException(e, ParameterTransformationHadErrorException.class);
+                throw e;
+            }
+        }
+        
+        return responseContentGenerator.destination;
     }
 
     /**
@@ -449,28 +542,9 @@ public class EndpointExecutor {
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
-                var parameters = getParameters(applicationName, application, tx, endpoint, req, 
-                    appConfig.debugAllowed, debugRequested, parameterTransformationLogger, 
-                    autoInc, autoIncrement, random);
-
-                if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
-
-                final HttpDestination responseContent;
-                try (var ignored3 = new Timer("Execute <task>s and generate response")) {
-                    var context = new TransformationContext(application, tx, parameters,
-                        ParameterNotFoundPolicy.error, req.getUploadedFiles(), autoInc);
-
-                    responseContent = scheduleTasksAndSuccess(context, endpoint);
-
-                    try { context.threads.execute(); }
-                    catch (RuntimeException e) {
-                        unwrapException(e, RequestInvalidException.class);
-                        unwrapException(e, TransformationFailedException.class);
-                        unwrapException(e, TaskExecutionFailedException.class);
-                        unwrapException(e, HttpRequestFailedException.class);
-                        throw e;
-                    }
-                }
+                var responseContent = attemptSuccess(environment, applicationName, application, appConfig, 
+                    endpoint, tx, debugRequested, parameterTransformationLogger, autoInc, autoIncrement, random, 
+                    hashToCheck, req);
 
                 var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, parameterTransformationLogger,
                     autoInc, responseContent);
@@ -488,7 +562,8 @@ public class EndpointExecutor {
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(application, tx, new HashMap<>(),
                         ParameterNotFoundPolicy.error, emptyList(), autoInc);
-                    var errorResponseContent = scheduleResponseGeneration(emptyList(), context, endpoint.error, false);
+                    var errorResponseContent = new Response(context, endpoint.error, false);
+                    context.threads.addTask(errorResponseContent);
                     
                     try { context.threads.execute(); }
                     catch (RuntimeException e2) {
@@ -498,7 +573,7 @@ public class EndpointExecutor {
                     }
 
                     var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, req, parameterTransformationLogger, 
-                        autoInc, errorResponseContent);
+                        autoInc, errorResponseContent.destination);
                     r.setExceptionMessage(e.getMessage());
                     r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
                         ? (((HttpRequestFailedException) e).url) : null);
@@ -509,7 +584,7 @@ public class EndpointExecutor {
                     tx.db.insert(r);
 
                     tx.commit();
-                    responder.respond(errorResponseContent);
+                    responder.respond(errorResponseContent.destination);
                 }
                 catch (RequestInvalidException | TransformationFailedException ee) {
                     throw new EndpointExecutionFailedException(500, "Error occurred; but <error> has an error: "+ee, ee);

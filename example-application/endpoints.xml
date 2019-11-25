@@ -77,11 +77,27 @@
         </task>
         <success>
           <input-intermediate-value name="swagger-version"/>
-          <response-transformation name="produce-json"/>
+          <forward-to-endpoint endpoint-name="json2">
+            <input-parameter name="param-in-hash">inner value from json</input-parameter>
+          </forward-to-endpoint>
         </success>
         <error>
           <response-transformation name="produce-html"/>
         </error>
+      </endpoint>
+      
+      <endpoint name="json2">
+        <success>
+          <forward-to-endpoint endpoint-name="json3">
+            <input-parameter name="param-in-hash">inner value from json2</input-parameter>
+          </forward-to-endpoint>
+        </success>
+      </endpoint>
+
+      <endpoint name="json3">
+        <success>
+          <response-transformation name="produce-json"/>
+        </success>
       </endpoint>
       
       <endpoint name="pdf">
