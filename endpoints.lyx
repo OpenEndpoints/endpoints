@@ -520,6 +520,188 @@ ${invoice-number}.pdf">
 \end_layout
 
 \end_deeper
+\begin_layout Itemize
+If the tag 
+\family typewriter
+<success>
+\family default
+ contains 
+\family typewriter
+<forward-to-endpoint endpoint-name="foo"/>
+\family default
+ then that endpoint (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+foo
+\family default
+) is executed and the result of that endpoint (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+foo
+\family default
+) is returned as the result of the call being processed.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+The variables passed to the endpoint (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+foo
+\family default
+) are explicitly listed.
+ In the following example, the value of 
+\family typewriter
+${variable}
+\family default
+ is passed as the parameter 
+\family typewriter
+p
+\family default
+ to the second endpoint (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+foo
+\family default
+).
+ 
+\end_layout
+
+\begin_layout Standard
+It's possible to chain the execution of any number of endpoints in this
+ manner (e.g.
+ endpoint 
+\family typewriter
+e1
+\family default
+ forwards to 
+\family typewriter
+e2
+\family default
+ which itself forwards to 
+\family typewriter
+e3
+\family default
+).
+ A circular chain of such references is not allowed.
+\end_layout
+
+\begin_layout Standard
+Only one 
+\begin_inset Quotes eld
+\end_inset
+
+request log
+\begin_inset Quotes erd
+\end_inset
+
+ gets written, despite a chain of multiple endpoints being processed.
+ Only the first 
+\begin_inset Quotes eld
+\end_inset
+
+parameter transformation input/output
+\begin_inset Quotes erd
+\end_inset
+
+ is saved with that 
+\begin_inset Quotes eld
+\end_inset
+
+request log
+\begin_inset Quotes erd
+\end_inset
+
+ entry, despite each endpoint in the chain potentially having a parameter
+ transformation.
+\end_layout
+
+\begin_layout Standard
+Placing 
+\family typewriter
+<forward-to-endpoint>
+\family default
+ inside 
+\family typewriter
+<error>
+\family default
+ is not supported, as this would require 
+\begin_inset Quotes eld
+\end_inset
+
+auto increment
+\begin_inset Quotes erd
+\end_inset
+
+ numbers to be  assigned even in the case of 
+\family typewriter
+<error>
+\family default
+ (as any arbitrary endpoint might be called, which might require them).
+ It is an explicit design goal to only support auto-increment numbers (e.g.
+\begin_inset space \space{}
+\end_inset
+
+for invoice numbers) in the case of 
+\family typewriter
+<success>
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+The 
+\begin_inset Quotes eld
+\end_inset
+
+redirect
+\begin_inset Quotes erd
+\end_inset
+
+ from one endpoint to another happens within the Endpoints software; no
+ redirect is actually sent to the user's browser.
+\end_layout
+
+\begin_layout LyX-Code
+<success>
+\end_layout
+
+\begin_layout LyX-Code
+  
+\family typewriter
+<input-intermedate-value ...>
+\end_layout
+
+\begin_layout LyX-Code
+  <forward-to-endpoint endpoint-name="foo">
+\end_layout
+
+\begin_layout LyX-Code
+    <input-parameter name="p">${variable}</input-parameter>
+\end_layout
+
+\begin_layout LyX-Code
+  </forward-to-endpoint>
+\end_layout
+
+\begin_layout LyX-Code
+</success>
+\end_layout
+
+\end_deeper
 \begin_layout Standard
 The 
 \family typewriter

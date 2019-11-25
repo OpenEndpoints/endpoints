@@ -25,6 +25,14 @@ import static java.util.stream.Collectors.toList;
 
 public class EndpointHierarchyParser extends DomParser {
     
+    public static Map<ParameterName, String> parseParameterMap(Element container, String elementName, String keyAttribute)
+        throws ConfigurationException {
+        Map<ParameterName, String> result = new HashMap<>();
+        for (Element e : getSubElements(container, elementName))
+            result.put(new ParameterName(getMandatoryAttribute(e, keyAttribute)), e.getTextContent());
+        return result;
+    }
+
     /** @return map with one entry (similar to a "pair", but more convenient) */
     protected static @Nonnull Map<ParameterName, Parameter> parseParameter(@Nonnull Element element)
     throws ConfigurationException {
@@ -53,6 +61,7 @@ public class EndpointHierarchyParser extends DomParser {
 
         var responseTransformationElement = getOptionalSingleSubElement(element, "response-transformation");
         var redirectToElement = getOptionalSingleSubElement(element, "redirect-to");
+        var forwardToEndpointElement = getOptionalSingleSubElement(element, "forward-to-endpoint");
 
         final ResponseConfiguration result;
         
@@ -60,6 +69,8 @@ public class EndpointHierarchyParser extends DomParser {
             result = new TransformationResponseConfiguration(transformers, element, responseTransformationElement);
         else if (redirectToElement != null)
             result = new RedirectResponseConfiguration(element, redirectToElement);
+        else if (forwardToEndpointElement != null)
+            result = new ForwardToEndpointResponseConfiguration(element, forwardToEndpointElement);
         else
             result = new EmptyResponseConfiguration(element);
         
@@ -173,6 +184,9 @@ public class EndpointHierarchyParser extends DomParser {
                 getOptionalSingleSubElement(element, "error")); }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }
             
+            if (result.error instanceof ForwardToEndpointResponseConfiguration)
+                throw new ConfigurationException("<forward-to-endpoint> was used in <error>, may only be used in <success>");
+            
             if ( ! result.error.inputIntermediateValues.isEmpty()) 
                 throw new ConfigurationException("<error> may not have consume <input-intermediate-value>s, " +
                     "as the tasks which produce those intermediate values might not have been successful");
@@ -227,6 +241,51 @@ public class EndpointHierarchyParser extends DomParser {
         else throw new RuntimeException("Unreachable: " + n.getClass());
     }
     
+    protected static void collectEndpointForwards(@Nonnull Map<NodeName, Set<NodeName>> result, @Nonnull EndpointHierarchyNode n) {
+        if (n instanceof Endpoint) {
+            var endpoint = (Endpoint) n;
+            result.putIfAbsent(endpoint.name, new HashSet<>());
+            if (endpoint.success instanceof ForwardToEndpointResponseConfiguration)
+                result.get(endpoint.name).add(((ForwardToEndpointResponseConfiguration) endpoint.success).endpoint);
+            if (endpoint.error instanceof ForwardToEndpointResponseConfiguration)
+                result.get(endpoint.name).add(((ForwardToEndpointResponseConfiguration) endpoint.error).endpoint);
+        }
+        else if (n instanceof EndpointHierarchyFolderNode) {
+            for (var child : ((EndpointHierarchyFolderNode) n).children)
+                collectEndpointForwards(result, child);
+        }
+        else throw new RuntimeException("Unreachable: " + n.getClass());
+    }
+
+    protected static void assertNoCircularReferencesStartingFrom(
+        Map<NodeName, Set<NodeName>> references, List<NodeName> soFar, NodeName current
+    ) throws ConfigurationException {
+        if (soFar.contains(current)) {
+            soFar.add(current);
+            throw new ConfigurationException("Circular references in <forward-to-endpoint> chain: " +
+                soFar.stream().map(x -> "'" + x.name + "'").collect(Collectors.joining(" -> ")));
+        }
+        
+        soFar.add(current);
+        for (var dest : references.get(current))
+            assertNoCircularReferencesStartingFrom(references, soFar, dest);
+    }
+
+    protected static void assertEndpointForwardsExitAndNoCircularReferences(@Nonnull EndpointHierarchyNode root) 
+    throws ConfigurationException {
+        var forwardTo = new HashMap<NodeName, Set<NodeName>>();
+        collectEndpointForwards(forwardTo, root);
+        
+        for (var from : forwardTo.keySet())
+            for (var to : forwardTo.get(from))
+                if ( ! forwardTo.containsKey(to))
+                    throw new ConfigurationException("Endpoint '" + from.name + "' has <forward-to-endpoint> " +
+                        "to '" + to.name + "', but there is no endpoint called '" + to.name + "'");
+        
+        for (var start : forwardTo.keySet())
+            assertNoCircularReferencesStartingFrom(forwardTo, new ArrayList<>(), start);
+    }
+    
     public static @Nonnull EndpointHierarchyFolderNode parse(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
@@ -242,6 +301,7 @@ public class EndpointHierarchyParser extends DomParser {
                 parameterTransformerXsltDirectory, null, root);
             
             assertUniqueEndpointNames(new HashSet<>(), result);
+            assertEndpointForwardsExitAndNoCircularReferences(result);
             
             return result;
         }
