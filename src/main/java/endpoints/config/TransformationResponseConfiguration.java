@@ -32,7 +32,7 @@ public class TransformationResponseConfiguration extends ResponseConfiguration {
         downloadFilenamePatternOrNull = getOptionalAttribute(responseTransformationElement, "download-filename");
     }
 
-    @Override public void assertParametersSuffice(Set<ParameterName> params) throws ConfigurationException {
+    @Override public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         transformer.assertParametersSuffice(params, inputIntermediateValues);
         if (downloadFilenamePatternOrNull != null)
             PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, 

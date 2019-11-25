@@ -5,6 +5,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidEx
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import java.util.Set;
 
 public abstract class ResponseConfiguration extends IntermediateValueProducerConsumer {
@@ -13,6 +14,6 @@ public abstract class ResponseConfiguration extends IntermediateValueProducerCon
         super(config);
     }
 
-    public void assertParametersSuffice(Set<ParameterName> params) throws ConfigurationException { }
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException { }
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
 }
