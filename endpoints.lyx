@@ -959,6 +959,10 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
+    <http-header-user-agent>Mozilla/1.0N (Windows)</http-header-user-agent>
+\end_layout
+
+\begin_layout LyX-Code
     <ip-address>1.2.3.4</ip-address> <!-- or missing -->
 \end_layout
 
@@ -992,10 +996,6 @@ status open
 
 \begin_layout LyX-Code
     <random-id-per-application>8764598230</random-id-per-application>
-\end_layout
-
-\begin_layout LyX-Code
-    <http-header-user-agent>Mozilla/1.0N (Windows)</http-header-user-agent>
 \end_layout
 
 \begin_layout LyX-Code

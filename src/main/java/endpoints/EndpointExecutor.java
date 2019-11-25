@@ -176,6 +176,7 @@ public class EndpointExecutor {
             inputParametersDocument.getDocumentElement().appendChild(inputFromRequestElement);
             if (debugRequested) inputFromRequestElement.appendChild(inputParametersDocument.createElement("debug-requested"));
             for (var n : inputFromRequestContents) inputFromRequestElement.appendChild(inputParametersDocument.importNode(n, true));
+            appendTextElement(inputFromRequestElement, "http-header-user-agent", req.getUserAgent());
             appendTextElement(inputFromRequestElement, "ip-address",
                 req.getClientIpAddress() == null ? null : req.getClientIpAddress().getHostAddress());
 
@@ -190,7 +191,6 @@ public class EndpointExecutor {
             appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
             appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(autoIncrement));
             appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.getId()));
-            appendTextElement(inputFromApplicationElement, "http-header-user-agent", req.getUserAgent());
 
             // Add data sources e.g. <xml-from-application>
             var context = new TransformationContext(application, tx, requestParameters,
