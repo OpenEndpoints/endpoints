@@ -159,8 +159,10 @@ public class EndpointServlet extends HttpServlet {
                 @Override public @Nonnull String getUserAgent() {
                     return Optional.of(req.getHeader("User-Agent")).orElse("");
                 }
-                @Override public @Nonnull String getContentType() {
-                    return Optional.ofNullable(req.getContentType()).orElse("GET").replaceAll(";.*$", "");
+                @Override public @CheckForNull String getContentTypeIfPost() {
+                    return Optional.ofNullable(req.getContentType())
+                        .map(x -> x.replaceAll(";.*$", ""))
+                        .orElse(null);
                 }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                     return req.getParameterMap().entrySet().stream()

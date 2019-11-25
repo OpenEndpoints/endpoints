@@ -69,8 +69,7 @@ public class EndpointExecutor {
         @CheckForNull InetAddress getClientIpAddress();
         /** Can return empty string */
         @Nonnull String getUserAgent();
-        /** Returns content type or "GET" for GET requests */ 
-        @Nonnull String getContentType();
+        @CheckForNull String getContentTypeIfPost();
         @Nonnull Map<ParameterName, List<String>> getParameters();
         @Nonnull List<? extends UploadedFile> getUploadedFiles();
         @Nonnull InputStream getInputStream() throws EndpointExecutionFailedException;
@@ -250,8 +249,8 @@ public class EndpointExecutor {
              EndpointExecutionFailedException, HttpRequestFailedException {
         final Map<ParameterName, String> transformedParameters;
 
-        switch (req.getContentType()) {
-            case "GET":
+        switch (Optional.ofNullable(req.getContentTypeIfPost()).orElse("null")) {
+            case "null":
             case "application/x-www-form-urlencoded":
             case "multipart/form-data":
                 var inputParameters = req.getParameters().entrySet().stream().collect(toMap(
@@ -281,7 +280,7 @@ public class EndpointExecutor {
                 break;
 
             default:
-                throw new RequestInvalidException("Unexpected content type '" + req.getContentType()
+                throw new RequestInvalidException("Unexpected content type '" + req.getContentTypeIfPost()
                     + "': expected 'application/x-www-form-urlencoded', 'multipart/form-data' or 'application/xml'");
         }
 

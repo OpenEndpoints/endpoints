@@ -99,7 +99,7 @@ public class EndpointPanel extends Panel {
                 @Override public @CheckForNull InetAddress getClientIpAddress() {
                     return ServicePortalApplication.get().getRequestIpAddress(); }
                 @Override public @Nonnull String getUserAgent() { return "Service Portal"; }
-                @Override public @Nonnull String getContentType() { return "GET"; }
+                @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }
                 @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return uploadedFiles; }
                 @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
