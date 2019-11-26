@@ -2,6 +2,7 @@ package endpoints;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.TemporaryFile;
+import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.ApplicationTransaction;
@@ -96,7 +97,7 @@ public class HttpRequestSpecificationTest extends TestCase {
 
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
-                var context = new TransformationContext(application, tx, params,
+                var context = new TransformationContext(application, tx, new ThreadPool(), params,
                     ParameterNotFoundPolicy.error, emptyList(), emptyMap());
                 var resultContainer = new Object() {
                     public Element element;
