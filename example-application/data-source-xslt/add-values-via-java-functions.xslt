@@ -16,6 +16,11 @@
                         select="math:random()" 
                         xmlns:math="java:java.lang.Math"/>
             </random-between-0-and-1>
+            <random-lowercase-letter>
+                <xsl:value-of
+                        select="strings:randomLowercaseLetter()"
+                        xmlns:strings="java:com.offerready.xslt.xsltfunction.Strings"/>
+            </random-lowercase-letter>
             <sha256>
                 <xsl:value-of 
                         select="digest:sha256Hex('foo')" 
