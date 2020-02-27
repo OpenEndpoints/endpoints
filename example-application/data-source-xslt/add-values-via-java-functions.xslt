@@ -21,6 +21,16 @@
                         select="strings:randomLowercaseLetter()"
                         xmlns:strings="java:com.offerready.xslt.xsltfunction.Strings"/>
             </random-lowercase-letter>
+            <base64-encode>
+                <xsl:value-of
+                        select="base64:encode('wt')"
+                        xmlns:base64="java:com.offerready.xslt.xsltfunction.Base64"/>
+            </base64-encode>
+            <base64-decode>
+                <xsl:value-of
+                        select="base64:decode('d3Q=')"
+                        xmlns:base64="java:com.offerready.xslt.xsltfunction.Base64"/>
+            </base64-decode>
             <sha256>
                 <xsl:value-of 
                         select="digest:sha256Hex('foo')" 
