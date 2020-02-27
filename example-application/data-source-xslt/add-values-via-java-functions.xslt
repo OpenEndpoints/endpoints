@@ -11,6 +11,11 @@
                         select="uuid:randomUUID()"
                         xmlns:uuid="java:java.util.UUID"/>
             </uuid>
+            <random-between-0-and-1>
+                <xsl:value-of 
+                        select="math:random()" 
+                        xmlns:math="java:java.lang.Math"/>
+            </random-between-0-and-1>
             <sha256>
                 <xsl:value-of 
                         select="digest:sha256Hex('foo')" 
