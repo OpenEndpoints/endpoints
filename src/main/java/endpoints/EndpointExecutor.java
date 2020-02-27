@@ -168,6 +168,7 @@ public class EndpointExecutor {
         // Add <input-from-request>
         var inputFromRequestElement = inputParametersDocument.createElement("input-from-request");
         inputParametersDocument.getDocumentElement().appendChild(inputFromRequestElement);
+        appendTextElement(inputFromRequestElement, "endpoint", endpoint.name.name);
         if (debugRequested) inputFromRequestElement.appendChild(inputParametersDocument.createElement("debug-requested"));
         for (var n : inputFromRequestContents) inputFromRequestElement.appendChild(inputParametersDocument.importNode(n, true));
         appendTextElement(inputFromRequestElement, "http-header-user-agent", req.getUserAgent());
