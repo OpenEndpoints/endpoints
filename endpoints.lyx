@@ -935,6 +935,10 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
+    <endpoint>my-endpoint</endpoint>
+\end_layout
+
+\begin_layout LyX-Code
     <debug-requested/>   <!-- or missing -->
 \end_layout
 
