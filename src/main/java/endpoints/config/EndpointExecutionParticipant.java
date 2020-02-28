@@ -15,11 +15,11 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
-public abstract class IntermediateValueProducerConsumer {
+public abstract class EndpointExecutionParticipant {
 
     public final @Nonnull Set<IntermediateValueName> inputIntermediateValues;
     
-    public IntermediateValueProducerConsumer(@CheckForNull Element config) throws ConfigurationException {
+    public EndpointExecutionParticipant(@CheckForNull Element config) throws ConfigurationException {
         if (config == null) inputIntermediateValues = emptySet();
         else inputIntermediateValues = DomParser.parseSet(config, "input-intermediate-value", "name")
             .stream().map(IntermediateValueName::new).collect(Collectors.toSet());
@@ -30,9 +30,9 @@ public abstract class IntermediateValueProducerConsumer {
     }
     
     protected static void assertNoCircularDependenciesStartingFrom(
-        @Nonnull List<IntermediateValueProducerConsumer> nodes, 
-        @Nonnull List<IntermediateValueProducerConsumer> alreadyVisited,
-        @Nonnull IntermediateValueProducerConsumer toVisit
+        @Nonnull List<EndpointExecutionParticipant> nodes, 
+        @Nonnull List<EndpointExecutionParticipant> alreadyVisited,
+        @Nonnull EndpointExecutionParticipant toVisit
     ) throws ConfigurationException {
         if (alreadyVisited.contains(toVisit)) 
             throw new ConfigurationException("Intermediate Values: Circular Dependencies");
@@ -50,7 +50,7 @@ public abstract class IntermediateValueProducerConsumer {
         }
     }
     
-    public static void assertNoCircularDependencies(@Nonnull List<IntermediateValueProducerConsumer> nodes)
+    public static void assertNoCircularDependencies(@Nonnull List<EndpointExecutionParticipant> nodes)
     throws ConfigurationException {
         for (var x : nodes) 
             assertNoCircularDependenciesStartingFrom(nodes, emptyList(), x);

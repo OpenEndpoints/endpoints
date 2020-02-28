@@ -8,7 +8,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.Set;
 
-public abstract class ResponseConfiguration extends IntermediateValueProducerConsumer {
+public abstract class ResponseConfiguration extends EndpointExecutionParticipant {
 
     public ResponseConfiguration(@CheckForNull Element config) throws ConfigurationException {
         super(config);
