@@ -195,10 +195,10 @@ public class EndpointHierarchyParser extends DomParser {
                 result.tasks.add(parseTask(threads, httpXsltDirectory, 
                     transformers, staticDir, result.aggregateParametersOverParents().keySet(), taskElement));
             
-            var successAndTasks = new ArrayList<IntermediateValueProducerConsumer>();
+            var successAndTasks = new ArrayList<EndpointExecutionParticipant>();
             successAndTasks.add(result.success);
             successAndTasks.addAll(result.tasks);
-            IntermediateValueProducerConsumer.assertNoCircularDependencies(successAndTasks);
+            EndpointExecutionParticipant.assertNoCircularDependencies(successAndTasks);
 
             return result;
         }

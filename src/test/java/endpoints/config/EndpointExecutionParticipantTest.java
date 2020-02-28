@@ -7,16 +7,14 @@ import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
-import static endpoints.config.IntermediateValueProducerConsumer.assertNoCircularDependencies;
+import static endpoints.config.EndpointExecutionParticipant.assertNoCircularDependencies;
 import static java.util.Arrays.asList;
 
-public class IntermediateValueProducerConsumerTest extends TestCase {
+public class EndpointExecutionParticipantTest extends TestCase {
     
-    protected static class Task extends IntermediateValueProducerConsumer {
+    protected static class Task extends EndpointExecutionParticipant {
         public @Nonnull Set<IntermediateValueName> outputs;
         public Task(@Nonnull Element element) throws ConfigurationException { super(element); }
         @Override public @Nonnull Set<IntermediateValueName> getOutputIntermediateValues() { return outputs; }

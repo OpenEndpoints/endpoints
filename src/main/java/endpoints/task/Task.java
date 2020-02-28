@@ -5,7 +5,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.TransformationContext;
-import endpoints.config.IntermediateValueProducerConsumer;
+import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import org.w3c.dom.Element;
@@ -14,7 +14,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 
-public abstract class Task extends IntermediateValueProducerConsumer {
+public abstract class Task extends EndpointExecutionParticipant {
     
     /** Note the condition cannot reference "intermediate values" */
     public final @Nonnull TaskCondition condition;
