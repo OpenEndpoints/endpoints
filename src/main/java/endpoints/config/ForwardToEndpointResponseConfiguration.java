@@ -36,8 +36,8 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
     }
 
     // For unit test
-    public ForwardToEndpointResponseConfiguration(@Nonnull NodeName endpoint) throws ConfigurationException {
-        super(null);
+    public ForwardToEndpointResponseConfiguration(@Nonnull Element config, @Nonnull NodeName endpoint) throws ConfigurationException {
+        super(config);
         this.endpoint = endpoint;
         this.inputParameterPatterns = new HashMap<>();
     }

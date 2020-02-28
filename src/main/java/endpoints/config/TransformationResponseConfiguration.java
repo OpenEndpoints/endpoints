@@ -25,7 +25,7 @@ public class TransformationResponseConfiguration extends ResponseConfiguration {
     ) throws ConfigurationException {
         super(config);
 
-        assertNoOtherElements(config, "response-transformation", "input-intermediate-value");
+        assertNoOtherElements(config, "response-transformation", "after", "input-intermediate-value");
         var transformerName = getMandatoryAttribute(responseTransformationElement, "name");
         transformer = transformers.get(transformerName);
         if (transformer == null) throw new ConfigurationException("Transformer name='"+transformerName+"' not found");

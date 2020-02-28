@@ -10,11 +10,6 @@ import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 
 public class EmptyResponseConfiguration extends ResponseConfiguration {
 
-    public EmptyResponseConfiguration() throws ConfigurationException {
-        super(null);
-    }
-
-    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public EmptyResponseConfiguration(@Nonnull Element config) throws ConfigurationException {
         super(config);
         assertNoOtherElements(config);

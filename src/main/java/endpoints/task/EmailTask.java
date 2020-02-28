@@ -125,11 +125,11 @@ public class EmailTask extends Task {
 
     public EmailTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, @Nonnull Element config
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, transformers, staticDir, config);
+        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
         
-        assertNoOtherElements(config, "input-intermediate-value", "from", "to", "subject", "body-transformation",
+        assertNoOtherElements(config, "after", "input-intermediate-value","from", "to", "subject", "body-transformation",
             "attachment-static", "attachment-transformation", "attachments-from-request-file-uploads");
 
         this.staticDir = staticDir;

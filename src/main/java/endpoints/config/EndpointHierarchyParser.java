@@ -55,10 +55,12 @@ public class EndpointHierarchyParser extends DomParser {
     }
     
     protected static @Nonnull ResponseConfiguration parseResponseConfiguration(
-        @Nonnull Map<String, Transformer> transformers, @Nonnull Set<ParameterName> params, @CheckForNull Element element
+        @Nonnull Map<String, Transformer> transformers, @Nonnull Set<ParameterName> params,
+        @Nonnull Element parent, @Nonnull String tagName
     ) throws ConfigurationException {
-        if (element == null) return new EmptyResponseConfiguration();
-
+        var element = getOptionalSingleSubElement(parent, tagName);
+        if (element == null) element = DomParser.newDocumentBuilder().newDocument().createElement(tagName);
+    
         var responseTransformationElement = getOptionalSingleSubElement(element, "response-transformation");
         var redirectToElement = getOptionalSingleSubElement(element, "redirect-to");
         var forwardToEndpointElement = getOptionalSingleSubElement(element, "forward-to-endpoint");
@@ -84,14 +86,15 @@ public class EndpointHierarchyParser extends DomParser {
     protected static @Nonnull Task parseTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
-        @Nonnull Set<ParameterName> params, @Nonnull Element element
+        @Nonnull Set<ParameterName> params, int indexFromZero, @Nonnull Element element
     ) throws ConfigurationException {
         var taskClassName = getMandatoryAttribute(element, "class");
         try {
             try {
                 @SuppressWarnings("unchecked") var taskClass = (Class<? extends Task>) Class.forName(taskClassName);
-                var constructor = taskClass.getConstructor(XsltCompilationThreads.class, File.class, Map.class, File.class, Element.class);
-                var result = constructor.newInstance(threads, httpXsltDirectory, transformers, staticDir, element);
+                var constructor = taskClass.getConstructor(XsltCompilationThreads.class, File.class, Map.class,
+                    File.class, int.class, Element.class);
+                var result = constructor.newInstance(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, element);
                 result.assertParametersSuffice(params);
                 
                 if ( ! result.getOutputIntermediateValues().isEmpty() && result.condition.isOptional())
@@ -176,12 +179,16 @@ public class EndpointHierarchyParser extends DomParser {
                     throw new ConfigurationException("Endpoint has <include-in-hash> parameter '" + p.name + "'" +
                         " but this endpoint does not have a parameter of that name");
 
-            try { result.success = parseResponseConfiguration(transformers, result.aggregateParametersOverParents().keySet(),
-                getOptionalSingleSubElement(element, "success")); }
+            try { 
+                result.success = parseResponseConfiguration(
+                    transformers, result.aggregateParametersOverParents().keySet(), element, "success"); 
+            }
             catch (ConfigurationException e) { throw new ConfigurationException("<success>", e); }
             
-            try { result.error = parseResponseConfiguration(transformers, new HashSet<>(),  // errors don't have access to params
-                getOptionalSingleSubElement(element, "error")); }
+            try { 
+                result.error = parseResponseConfiguration(
+                    transformers, new HashSet<>() /* errors don't have access to params*/,  element, "error"); 
+            }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }
             
             if (result.error instanceof ForwardToEndpointResponseConfiguration)
@@ -191,9 +198,10 @@ public class EndpointHierarchyParser extends DomParser {
                 throw new ConfigurationException("<error> may not have consume <input-intermediate-value>s, " +
                     "as the tasks which produce those intermediate values might not have been successful");
             
-            for (var taskElement : getSubElements(element, "task"))
+            var taskElements = getSubElements(element, "task");
+            for (int t = 0; t < taskElements.size(); t++)
                 result.tasks.add(parseTask(threads, httpXsltDirectory, 
-                    transformers, staticDir, result.aggregateParametersOverParents().keySet(), taskElement));
+                    transformers, staticDir, result.aggregateParametersOverParents().keySet(), t, taskElements.get(t)));
             
             var successAndTasks = new ArrayList<EndpointExecutionParticipant>();
             successAndTasks.add(result.success);

@@ -162,7 +162,7 @@ public class HttpRequestSpecification {
     public HttpRequestSpecification(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull Element command
     ) throws ConfigurationException {
-        assertNoOtherElements(command, "input-intermediate-value", "output-intermediate-value",
+        assertNoOtherElements(command, "after", "input-intermediate-value", "output-intermediate-value",
             "url", "method", "get-parameter", "request-header",
             "basic-access-authentication", "xml-body", "json-body");
 
