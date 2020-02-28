@@ -15,6 +15,7 @@ import java.util.Set;
 
 public class ApplicationIntrospectionCommand extends DataSourceCommand {
 
+    final @Nonnull File xmlFromApplicationDir;
     final @Nonnull File dir;
 
     public ApplicationIntrospectionCommand(
@@ -22,7 +23,8 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element command
     ) throws ConfigurationException {
         super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
-        dir = applicationDir;
+        this.xmlFromApplicationDir = xmlFromApplicationDir;
+        this.dir = applicationDir;
     }
 
     /** Adds all children of "directory" as children to "container" */
@@ -37,8 +39,13 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
                 addChildElements(childElement, childFile);
             } else if (childFile.isFile()) {
                 if (childFile.getName().toLowerCase().endsWith(".xml")) {
-                    childElement = container.getOwnerDocument().createElement("xml-file");
-                    try { childElement.appendChild(container.getOwnerDocument().importNode(DomParser.from(childFile), true)); }
+                    try {
+                        childElement = container.getOwnerDocument().createElement("xml-file");
+                        if ( ! childFile.getAbsolutePath().startsWith(xmlFromApplicationDir.getAbsolutePath())) {
+                            var fileXml = DomParser.from(childFile);
+                            childElement.appendChild(container.getOwnerDocument().importNode(fileXml, true));
+                        }
+                    }
                     catch (ConfigurationException e) { throw new TransformationFailedException(e); }
                 } else {
                     childElement = container.getOwnerDocument().createElement("file");

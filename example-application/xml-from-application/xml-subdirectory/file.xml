@@ -1,0 +1,2 @@
+<!-- to test that application introspection command does not include xml-from-application files -->
+<foo/>
