@@ -3,8 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.hostname = "endpoints"
-  config.vm.box = "debian/contrib-stretch64"
-  config.vm.box_version = "9.3.0"
+  config.vm.box = "ubuntu/bionic64"   # We only support deployment via Docker 
   config.vm.network "forwarded_port", guest: 8080, host: 9758   # jetty or docker
   config.vm.network "forwarded_port", guest: 9999, host: 9759   # Java debugging
   config.vm.network "forwarded_port", guest: 5432, host: 9760   # PostgreSQL
@@ -14,8 +13,8 @@ Vagrant.configure(2) do |config|
   end
 
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = 500       # On Adrian's iMac Pro, increasing memory had little effect on speed
-    vb.cpus = 2           # On Adrian's iMac Pro, "mvn clean package", 23d28c, 1m51 with 1 core, 1m09 with 2, 1m17 with 4
+    vb.memory = 2000      # On Adrian's iMac Pro, increasing memory had little effect on speed
+    vb.cpus = 2           # On Adrian's MacBook Pro 13" 2015, Git 394be, 1m30s with 2c, 1m50s with 4c, and 2c uses less battery
   end
   
   # runs as root within the VM
@@ -36,9 +35,9 @@ Vagrant.configure(2) do |config|
     for bin in /usr/lib/jvm/jdk-11.0.2/bin/*; do update-alternatives --set $(basename $bin) $bin; done
 
     echo -- PostgreSQL
-    apt-get -qy install postgresql-9.6
-    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/9.6/main/pg_hba.conf
-    sed -i 's/^#listen_addresses = .*$/listen_addresses = '"'"'*'"'"'/' /etc/postgresql/9.6/main/postgresql.conf
+    apt-get -qy install postgresql-10
+    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
+    sed -i 's/^#listen_addresses = .*$/listen_addresses = '"'"'*'"'"'/' /etc/postgresql/10/main/postgresql.conf
     /etc/init.d/postgresql restart
     (cd /tmp && sudo -u postgres psql -c "alter user postgres password 'postgres'" postgres)  # os user postgres cannot see /root dir
     echo 'sudo -u postgres psql -c "drop database endpoints" && sudo -u postgres psql -c "create database endpoints"' >> ~vagrant/.bash_history
@@ -46,16 +45,14 @@ Vagrant.configure(2) do |config|
     echo localhost:5432:endpoints:postgres:postgres >> ~vagrant/.pgpass && chown vagrant ~vagrant/.pgpass && chmod go-rwX ~vagrant/.pgpass
 
     echo --- MySQL
-    echo "mysql-community-server mysql-community-server/root-pass password root" | sudo debconf-set-selections
-    echo "mysql-community-server mysql-community-server/re-root-pass password root" | sudo debconf-set-selections
-    echo -e "deb http://repo.mysql.com/apt/debian/ stretch mysql-5.7\ndeb-src http://repo.mysql.com/apt/debian/ stretch mysql-5.7" > /etc/apt/sources.list.d/mysql.list
-    wget -O /tmp/RPM-GPG-KEY-mysql https://repo.mysql.com/RPM-GPG-KEY-mysql
-    apt-key add /tmp/RPM-GPG-KEY-mysql
-    apt update
-    apt-get -qy install mysql-client mysql-server
+    apt-get install -qy mysql-server mysql-client
     echo "bind-address = 0.0.0.0" >> /etc/mysql/mysql.conf.d/mysqld.cnf
-    mysql -uroot -proot -e 'CREATE USER '"'"'root'"'"'@'"'"'%'"'"' IDENTIFIED BY '"'"'root'"'"''
-    mysql -uroot -proot -e 'GRANT ALL ON *.* TO '"'"'root'"'"'@'"'"'%'"'"''
+    mysql -e 'CREATE USER '"'"'root'"'"'@'"'"'%'"'"' IDENTIFIED BY '"'"'root'"'"''
+    mysql -e 'GRANT ALL ON *.* TO '"'"'root'"'"'@'"'"'%'"'"''
+    mysql -e 'UPDATE mysql.user SET plugin="mysql_native_password" WHERE User="root"'
+    mysql -e "UPDATE mysql.user SET authentication_string=PASSWORD('root')  WHERE  User='root';"
+    mysql -e 'FLUSH PRIVILEGES'
+    /etc/init.d/mysql restart
     echo 'mysql -uroot -proot example_application' >> ~vagrant/.bash_history
 
     echo --- Set DeploymentParameters
@@ -127,8 +124,8 @@ Vagrant.configure(2) do |config|
 
     echo --- Install docker \(to test deployment\)
     apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common
-    curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     apt-get update
     apt-get install -qy docker-ce
   }
