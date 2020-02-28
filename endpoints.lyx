@@ -2552,8 +2552,13 @@ For files called
 *.xml
 \family default
 .
- The XML contents of the file is placed inside this element.
- Parameters like 
+ The XML contents of the file is placed inside this element, apart from
+ if this file is an application-from-xml file.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Parameters like 
 \family typewriter
 ${foo}
 \family default
@@ -2566,6 +2571,21 @@ ${foo}
  
 \end_layout
 
+\begin_layout Standard
+If the file is in the 
+\family typewriter
+xml-from-application
+\family default
+ directory, the file's contents are not placed inside the tag.
+ This is because these files are often very large.
+ If access is needed to an application-from-xml file, the 
+\family typewriter
+<application-from-xml>
+\family default
+ data source can be used in addition to this one.
+\end_layout
+
+\end_deeper
 \end_deeper
 \begin_layout Description
 
