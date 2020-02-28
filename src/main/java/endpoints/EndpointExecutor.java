@@ -20,6 +20,7 @@ import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.task.Task;
 import endpoints.task.Task.TaskExecutionFailedException;
+import endpoints.task.TaskId;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
@@ -438,23 +439,36 @@ public class EndpointExecutor {
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
         @Nonnull RandomRequestId random, @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> consumeResponse
     ) {
+        var synchronizationPointForTaskId = new HashMap<TaskId, SynchronizationPoint>();
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
         @SuppressWarnings("Convert2Diamond")  // IntelliJ Windows requires the <Task> here
-        var tasksToExecute = new ArrayList<Task>(endpoint.tasks);
+        var tasksToSchedule = new ArrayList<Task>(endpoint.tasks);
         
         var infiniteLoopProtection = 0;
-        while ( ! tasksToExecute.isEmpty())
-            tasks: for (var taskIter = tasksToExecute.iterator(); taskIter.hasNext(); ) {
-                var task = taskIter.next();
+        while ( ! tasksToSchedule.isEmpty())
+            tasks: for (var tasksToScheduleIter = tasksToSchedule.iterator(); tasksToScheduleIter.hasNext(); ) {
+                var task = tasksToScheduleIter.next();
                 var taskDependencies = new ArrayList<SynchronizationPoint>();
+                
+                // What tasks do we depend on? Ignore the task for now in case our dependencies haven't been scheduled yet
+                for (var predecessor : task.predecessors) {
+                    if ( ! synchronizationPointForTaskId.containsKey(predecessor)) continue tasks;
+                    taskDependencies.add(synchronizationPointForTaskId.get(predecessor));
+                }
                 for (var neededInputValue : task.inputIntermediateValues) {
                     if ( ! synchronizationPointForOutputValue.containsKey(neededInputValue)) continue tasks;
                     taskDependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
                 }
                 
+                // Schedule the task (after our dependencies)
                 var taskRunnable = task.scheduleTaskExecutionIfNecessary(taskDependencies, context);
-                taskIter.remove();
                 
+                // Remove the task from the list of tasks still to schedule
+                tasksToScheduleIter.remove();
+                
+                // Record our runnable for this task, in case future tasks need to depend on us
+                if (task.getTaskIdOrNull() != null)
+                    synchronizationPointForTaskId.put(task.getTaskIdOrNull(), taskRunnable);
                 for (var outputValue : task.getOutputIntermediateValues()) 
                     synchronizationPointForOutputValue.put(outputValue, taskRunnable);
             }

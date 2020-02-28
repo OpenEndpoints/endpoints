@@ -2,19 +2,25 @@ package endpoints.task;
 
 import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
 import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import org.w3c.dom.Element;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 
+import static com.databasesandlife.util.DomParser.getOptionalAttribute;
+
 public abstract class Task extends EndpointExecutionParticipant {
+    
+    protected final int taskIndexFromZero;
+    protected final @CheckForNull TaskId id;
     
     /** Note the condition cannot reference "intermediate values" */
     public final @Nonnull TaskCondition condition;
@@ -22,11 +28,31 @@ public abstract class Task extends EndpointExecutionParticipant {
     // Subclass must implement this constructor, as it is called by reflection
     @SuppressWarnings("unused") 
     public Task(
-        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
         super(config);
+        taskIndexFromZero = indexFromZero;
+        id = Optional.ofNullable(getOptionalAttribute(config, "id")).map(x -> new TaskId(x)).orElse(null);
         condition = new TaskCondition(config);
+    }
+
+    public @CheckForNull TaskId getTaskIdOrNull() {
+        return id;
+    }
+    
+    protected @Nonnull String ordinal(int n) {
+        switch (n) {
+            case 1: return "1st";
+            case 2: return "2nd";
+            case 3: return "3rd";
+            default: return n + "th";
+        }
+    }
+
+    protected @Nonnull String getHumanReadableId() {
+        if (id == null) return ordinal(taskIndexFromZero+1) + " <task>";
+        else return "<task id='" + id.id + "'/>";
     }
 
     public static class TaskExecutionFailedException extends Exception {

@@ -1,5 +1,6 @@
 package endpoints.config;
 
+import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import junit.framework.TestCase;
 
@@ -13,8 +14,8 @@ public class EndpointHierarchyParserTest extends TestCase {
     protected @Nonnull Endpoint newEndpoint(@Nonnull String name, @CheckForNull String forwardTo) throws Exception {
         Endpoint result = new Endpoint();
         result.name = new NodeName(name);
-        result.success = forwardTo == null ? new EmptyResponseConfiguration() 
-            : new ForwardToEndpointResponseConfiguration(new NodeName(forwardTo));
+        result.success = forwardTo == null ? new EmptyResponseConfiguration(DomParser.from("<unit-test/>")) 
+            : new ForwardToEndpointResponseConfiguration(DomParser.from("<unit-test/>"), new NodeName(forwardTo));
         return result;
     }
 

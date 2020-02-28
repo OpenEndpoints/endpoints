@@ -1375,6 +1375,134 @@ bar
 \end_layout
 
 \begin_layout Subsubsection
+Parallel Execution of Tasks
+\end_layout
+
+\begin_layout Standard
+Because tasks are often contacting external resources, for example fetching
+ a URL, and there is often no dependency between the tasks, there is no
+ reason why they need to be performed sequentially.
+ By default, therefore, all tasks, as well as the processing of the 
+\family typewriter
+<success>
+\family default
+ response, are performed in parallel.
+\end_layout
+
+\begin_layout Standard
+The exception to this rule is if one task requires an intermediate value
+ from a previous task (in which the task must wait for the previous task
+ to finish executing before it can begin; see section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:Intermediate-Values"
+
+\end_inset
+
+), and in the case that a task has an explicit 
+\family typewriter
+<after>
+\family default
+ dependency (see section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:after"
+
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Subsubsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:after"
+
+\end_inset
+
+Sequential Execution of Tasks with 
+\family typewriter
+<after>
+\end_layout
+
+\begin_layout Standard
+It may be necessary to perform a number of sequential actions, for example
+ to create a user in an external service, and then to provision that user
+ with data in the external service.
+ The external service returns an error if attributes are provisioned before
+ the user has been created.
+ That makes it necessary to set an explicit dependency between tasks, that
+ one task may only begin after another has successfully completed executing.
+\end_layout
+
+\begin_layout Standard
+Any task may be marked with an optional 
+\begin_inset Quotes eld
+\end_inset
+
+id
+\begin_inset Quotes erd
+\end_inset
+
+, and any task or 
+\family typewriter
+<success>
+\family default
+ block may have any number of 
+\family typewriter
+<after>
+\family default
+ elements referencing previous 
+\begin_inset Quotes eld
+\end_inset
+
+ids
+\begin_inset Quotes erd
+\end_inset
+
+.
+ For example:
+\end_layout
+
+\begin_layout LyX-Code
+<task id="first" ....>
+\end_layout
+
+\begin_layout LyX-Code
+   ...
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout LyX-Code
+<task>
+\end_layout
+
+\begin_layout LyX-Code
+   <after task-id="first"/>
+\end_layout
+
+\begin_layout LyX-Code
+   <after task-id="..."/>
+\end_layout
+
+\begin_layout LyX-Code
+   ...
+\end_layout
+
+\begin_layout LyX-Code
+</task>
+\end_layout
+
+\begin_layout Subsubsection
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:Intermediate-Values"
+
+\end_inset
+
 Intermediate Values: Passing Results From One Task To Another
 \end_layout
 
