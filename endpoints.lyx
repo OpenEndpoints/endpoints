@@ -3429,7 +3429,20 @@ reference "subsec:singleapp"
 
 \end_inset
 
-), then the following variables are also mandatory:
+), then the following variables are also mandatory.
+ If you are using the software with 
+\begin_inset Quotes eld
+\end_inset
+
+single application
+\begin_inset Quotes erd
+\end_inset
+
+ mode then these variables must 
+\emph on
+not
+\emph default
+ be set.
 \end_layout
 
 \begin_layout Description
@@ -3617,6 +3630,14 @@ publish
 
 \begin_layout Standard
 The database is still needed, for example for the request log.
+\end_layout
+
+\begin_layout Standard
+The environment variable 
+\family typewriter
+ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN
+\family default
+ must not be set.
 \end_layout
 
 \begin_layout Standard
