@@ -44,8 +44,12 @@ public class DeploymentParameters {
         return sharedInstance;
     }
 
+    /** @return never return empty string */
     protected String getOptionalParameterOrNull(@Nonnull String var) {
-        return System.getenv(var);
+        var result = System.getenv(var);
+        if (result == null) return null;
+        if (result.isEmpty()) return null;  // It is useful to "-e FOO=" to disable environment variables
+        return result;
     }
 
     protected File getOptionalFileParameterOrNull(@Nonnull String var) {
