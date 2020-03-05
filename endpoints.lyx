@@ -3638,7 +3638,7 @@ The URLs served by the application have the normal format, that is to say
  ever be one application with this setup.
  The requests must use the application with the fixed name name 
 \family typewriter
-application
+endpoints
 \family default
 , and must be for the default (live) environment.
 \end_layout
