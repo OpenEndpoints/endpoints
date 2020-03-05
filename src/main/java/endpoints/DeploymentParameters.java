@@ -8,6 +8,7 @@ import endpoints.config.ApplicationFactory;
 import endpoints.config.ApplicationName;
 import endpoints.config.FixedPathApplicationFactory;
 import endpoints.config.PublishedApplicationFactory;
+import org.apache.log4j.Logger;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -64,6 +65,10 @@ public class DeploymentParameters {
         if (result == null) throw new RuntimeException("Environment variable '" + var + "' is not set");
         return result;
     }
+    
+    protected boolean isFixedApplicationMode() {
+        return gitRepositoryDefaultPattern == null;
+    }
 
     protected DeploymentParameters() {
         jdbcUrl = getMandatoryParameter("ENDPOINTS_JDBC_URL");
@@ -73,12 +78,17 @@ public class DeploymentParameters {
         xsltDebugLog = Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_XSLT_DEBUG_LOG", "false"));
         gitRepositoryDefaultPattern = getOptionalParameterOrNull("ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN");
         servicePortalEnvironmentDisplayName = getOptionalParameterOrNull("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME");
+
+        Logger.getLogger(getClass()).info("Endpoints server application is in " + 
+            (isFixedApplicationMode() 
+                ? "SINGLE APPLICATION mode" 
+                : "MULTIPLE APPLICATIONS mode (via service portal, publishing from Git)"));
     }
     
     public synchronized ApplicationFactory getApplications(@Nonnull DbTransaction tx) {
         if (applications == null) {
             var threads = new XsltCompilationThreads();
-            if (gitRepositoryDefaultPattern == null) applications = new FixedPathApplicationFactory(tx, threads);
+            if (isFixedApplicationMode()) applications = new FixedPathApplicationFactory(tx, threads);
             else applications = new PublishedApplicationFactory(tx, threads, publishedApplicationsDirectory);
             threads.execute();
         }
