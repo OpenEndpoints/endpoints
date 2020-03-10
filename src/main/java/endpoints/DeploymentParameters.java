@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -37,6 +38,7 @@ public class DeploymentParameters {
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
     public final @CheckForNull String gitRepositoryDefaultPattern;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
+    public final @CheckForNull ZoneId singleApplicationModeTimezoneId;
     
     protected @CheckForNull ApplicationFactory applications = null;
     
@@ -59,7 +61,7 @@ public class DeploymentParameters {
         return result.get();
     }
     
-    protected boolean isFixedApplicationMode() {
+    public boolean isFixedApplicationMode() {
         return gitRepositoryDefaultPattern == null;
     }
 
@@ -77,6 +79,8 @@ public class DeploymentParameters {
             getOptionalParameter("ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN").orElse(null);
         servicePortalEnvironmentDisplayName =
             getOptionalParameter("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME").orElse(null);
+        singleApplicationModeTimezoneId = 
+            getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
 
         Logger.getLogger(getClass()).info("Endpoints server application is in " + 
             (isFixedApplicationMode() 

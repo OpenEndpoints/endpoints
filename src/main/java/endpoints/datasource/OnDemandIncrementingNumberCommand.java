@@ -4,6 +4,7 @@ import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
+import endpoints.DeploymentParameters;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
@@ -37,6 +38,11 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
                 Arrays.stream(OnDemandIncrementingNumberType.values()).map(x -> "'" + x.name() + "'")
                     .collect(Collectors.joining(", ")));
         }
+        
+        var dp = DeploymentParameters.get();
+        if (dp.isFixedApplicationMode() && dp.singleApplicationModeTimezoneId == null) 
+            throw new ConfigurationException("Endpoints is running in single application mode and <" + command.getNodeName() + "> " +
+                "was used, yet ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID was not set");
     }
 
     @Override

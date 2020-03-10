@@ -3418,6 +3418,82 @@ password=postgres
  At this point in time PostgreSQL 10 is supported.
 \end_layout
 
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID
+\family default
+ A string timezone ID such as 
+\family typewriter
+Europe/Berlin
+\family default
+.
+ See the column 
+\begin_inset Quotes eld
+\end_inset
+
+TZ database name
+\begin_inset Quotes erd
+\end_inset
+
+ in the table at Wikipedia
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+ for a full list.
+ The string 
+\begin_inset Quotes eld
+\end_inset
+
+UTC
+\begin_inset Quotes erd
+\end_inset
+
+ may also be used.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+This is used by the 
+\begin_inset Quotes eld
+\end_inset
+
+On-Demand Incrementing Number
+\begin_inset Quotes erd
+\end_inset
+
+ feature, which allocates unique values within, for example, a month.
+ Exactly at what point in time the month begins/ends is influenced by this
+ timezone.
+ The environment variable is mandatory if the 
+\begin_inset Quotes eld
+\end_inset
+
+On-Demand Incrementing Number
+\begin_inset Quotes erd
+\end_inset
+
+ feature is used within the application.
+\end_layout
+
+\end_deeper
 \begin_layout Subsubsection
 Multiple Application Mode
 \end_layout

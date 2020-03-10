@@ -75,6 +75,7 @@ Vagrant.configure(2) do |config|
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=VAGRANT ENVIRONMENT (DOCKER)' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_POSTGRESQL_JDBC=jdbc:postgresql://localhost/example_application?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_MYSQL_JDBC=jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID=Europe/Vienna'
 
     echo --- /var dirs
     mkdir -p -m 0777 /var/endpoints/applications-checkout
