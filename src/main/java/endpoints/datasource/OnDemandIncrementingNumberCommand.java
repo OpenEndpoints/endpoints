@@ -40,7 +40,7 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
         }
         
         var dp = DeploymentParameters.get();
-        if (dp.isFixedApplicationMode() && dp.singleApplicationModeTimezoneId == null) 
+        if (dp.isSingleApplicationMode() && dp.singleApplicationModeTimezoneId == null) 
             throw new ConfigurationException("Endpoints is running in single application mode and <" + command.getNodeName() + "> " +
                 "was used, yet ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID was not set");
     }

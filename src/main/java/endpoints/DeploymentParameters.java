@@ -61,7 +61,7 @@ public class DeploymentParameters {
         return result.get();
     }
     
-    public boolean isFixedApplicationMode() {
+    public boolean isSingleApplicationMode() {
         return gitRepositoryDefaultPattern == null;
     }
 
@@ -83,7 +83,7 @@ public class DeploymentParameters {
             getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
 
         Logger.getLogger(getClass()).info("Endpoints server application is in " + 
-            (isFixedApplicationMode() 
+            (isSingleApplicationMode() 
                 ? "SINGLE APPLICATION mode" 
                 : "MULTIPLE APPLICATIONS mode (via service portal, publishing from Git)"));
     }
@@ -91,7 +91,7 @@ public class DeploymentParameters {
     public synchronized ApplicationFactory getApplications(@Nonnull DbTransaction tx) {
         if (applications == null) {
             var threads = new XsltCompilationThreads();
-            if (isFixedApplicationMode()) {
+            if (isSingleApplicationMode()) {
                 applications = new FixedPathApplicationFactory(tx, threads);
             }
             else {
