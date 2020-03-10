@@ -3415,8 +3415,7 @@ user=postgres&
 password=postgres
 \family default
 .
- PostgreSQL 9.6 and upwards are supported; perhaps previous versions will
- work as well?
+ At this point in time PostgreSQL 10 is supported.
 \end_layout
 
 \begin_layout Subsubsection
