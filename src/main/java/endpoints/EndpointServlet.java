@@ -1,5 +1,6 @@
 package endpoints;
 
+import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.jdbc.DbTransaction.CannotConnectToDatabaseException;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
@@ -25,7 +26,6 @@ import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -63,18 +63,6 @@ public class EndpointServlet extends HttpServlet {
         resp.setHeader("Access-Control-Allow-Methods", req.getMethod());
         resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
         resp.flushBuffer();
-    }
-
-    protected @CheckForNull InetAddress getRequestIpAddress(HttpServletRequest request) {
-        try {
-            var ipAddress = request.getHeader("X-Forwarded-For");
-            if (ipAddress == null) ipAddress = request.getRemoteAddr();
-            return ipAddress == null ? null : InetAddress.getByName(ipAddress);
-        }
-        catch (UnknownHostException e) {
-            Logger.getLogger(getClass()).warn("Unexpected exception when fetching IP address, will ignore", e);
-            return null;
-        }
     }
 
     protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull EndpointExecutor.Request request) {
@@ -155,7 +143,9 @@ public class EndpointServlet extends HttpServlet {
             catch (NodeNotFoundException e) { resp.sendError(400, endpointName+" not found"); return; }
 
             var request = new EndpointExecutor.Request() {
-                @Override public @CheckForNull InetAddress getClientIpAddress() { return getRequestIpAddress(req); }
+                @Override public @CheckForNull InetAddress getClientIpAddress() { 
+                    return new IpAddressDeterminer().getRequestIpAddress(req); 
+                }
                 @Override public @Nonnull String getUserAgent() {
                     return Optional.of(req.getHeader("User-Agent")).orElse("");
                 }

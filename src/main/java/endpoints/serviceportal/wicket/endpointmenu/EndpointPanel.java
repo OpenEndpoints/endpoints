@@ -1,5 +1,6 @@
 package endpoints.serviceportal.wicket.endpointmenu;
 
+import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.DeploymentParameters;
 import endpoints.EndpointExecutor;
@@ -10,7 +11,6 @@ import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.NodeName;
 import endpoints.config.ParameterName;
-import endpoints.serviceportal.wicket.ServicePortalApplication;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.SneakyThrows;
@@ -19,7 +19,9 @@ import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Response;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.BaseDataResource;
 
 import javax.annotation.CheckForNull;
@@ -97,7 +99,9 @@ public class EndpointPanel extends Panel {
             var endpoint = application.getEndpoints().findEndpointOrThrow(endpointName);
             var request = new EndpointExecutor.Request() {
                 @Override public @CheckForNull InetAddress getClientIpAddress() {
-                    return ServicePortalApplication.get().getRequestIpAddress(); }
+                    return new IpAddressDeterminer().getRequestIpAddress(
+                        (((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest()));
+                }
                 @Override public @Nonnull String getUserAgent() { return "Service Portal"; }
                 @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }
