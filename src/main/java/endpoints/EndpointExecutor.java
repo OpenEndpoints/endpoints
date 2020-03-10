@@ -179,10 +179,11 @@ public class EndpointExecutor {
         // Add <input-from-application>
         var inputFromApplicationElement = inputParametersDocument.createElement("input-from-application");
         inputParametersDocument.getDocumentElement().appendChild(inputFromApplicationElement);
-        var databaseConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
+        @CheckForNull var databaseConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
             .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne();
         appendTextElement(inputFromApplicationElement, "application", applicationName.name);
-        appendTextElement(inputFromApplicationElement, "application-display-name", databaseConfig.getDisplayName());
+        appendTextElement(inputFromApplicationElement, "application-display-name", 
+            databaseConfig == null ? null : databaseConfig.getDisplayName());
         if (debugAllowed) inputFromApplicationElement.appendChild(inputParametersDocument.createElement("debug-allowed"));
         appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
         appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(autoIncrement));

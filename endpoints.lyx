@@ -984,6 +984,7 @@ status open
 
 \begin_layout LyX-Code
     <application-display-name>The Application</application-display-name>
+ <!-- or missing -->
 \end_layout
 
 \begin_layout LyX-Code
