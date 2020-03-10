@@ -7,21 +7,15 @@ import endpoints.DeploymentParameters;
 import endpoints.serviceportal.ServicePortalUsername;
 import endpoints.serviceportal.wicket.converter.ServicePortalUsernameConverter;
 import endpoints.serviceportal.wicket.page.*;
-import org.apache.log4j.Logger;
 import org.apache.wicket.ConverterLocator;
 import org.apache.wicket.IConverterLocator;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebApplication;
-import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
-import org.apache.wicket.request.cycle.RequestCycle;
 import org.flywaydb.core.Flyway;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
@@ -65,19 +59,6 @@ public class ServicePortalApplication extends WebApplication {
         mountPage("/publish", PublishPage.class);
         mountPage("/calculate-hash", CalculateHashPage.class);
         mountPage("/secret-key", GenerateNewSecretKeyPage.class);
-    }
-
-    public @CheckForNull InetAddress getRequestIpAddress() {
-        try {
-            var request = (((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest());
-            var ipAddress = request.getHeader("X-Forwarded-For");
-            if (ipAddress == null) ipAddress = request.getRemoteAddr();
-            return ipAddress == null ? null : InetAddress.getByName(ipAddress);
-        }
-        catch (UnknownHostException e) {
-            Logger.getLogger(getClass()).warn("Unexpected exception when fetching IP address, will ignore", e);
-            return null;
-        }
     }
 
     @Override public @Nonnull ServicePortalSession newSession(@Nonnull Request request, @Nonnull Response response) {
