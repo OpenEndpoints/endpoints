@@ -3301,29 +3301,77 @@ Installation
 \end_layout
 
 \begin_layout Subsection
-Memory
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:singleapp"
+
+\end_inset
+
+Via Docker, with a Single Application
 \end_layout
 
 \begin_layout Standard
-According to AWS, 162MB is used after Endpoints starts with a sample application.
- It would seem reasonable to allocate at least 250MB to the application.
+Rather than using the 
+\begin_inset Quotes eld
+\end_inset
+
+publish
+\begin_inset Quotes erd
+\end_inset
+
+ mechanism, it is possible to create a Docker image which already contains
+ a single application, and into which no further publish is possible.
+ (Philosophically, there is no need for Endpoints to provide a publish mechanism
+ as the Docker image mechanism does this job.)
 \end_layout
 
 \begin_layout Standard
-Test your workload with 
+The database is still needed, for example for the request log.
+\end_layout
+
+\begin_layout Standard
+The environment variable 
 \family typewriter
--verbose:gc
+ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN
 \family default
- enabled to see if your workload requires more memory to avoid frequent
- GCs.
+ must not be set.
+\end_layout
+
+\begin_layout Standard
+A Dockerfile such as the following can be used to create a Docker image
+ running a single application:
+\end_layout
+
+\begin_layout LyX-Code
+FROM offerready/endpoints-he
+\end_layout
+
+\begin_layout LyX-Code
+COPY application /var/endpoints/fixed-application
+\end_layout
+
+\begin_layout Standard
+The URLs served by the application have the normal format, that is to say
+ the application name must be specified, even though there is and can only
+ ever be one application with this setup.
+ The requests must use the application with the fixed name name 
+\family typewriter
+endpoints
+\family default
+, and must be for the default (live) environment.
 \end_layout
 
 \begin_layout Subsection
 Environment variables
 \end_layout
 
+\begin_layout Subsubsection
+Single Application Mode
+\end_layout
+
 \begin_layout Standard
-The following are mandatory:
+The following environment variables are mandatory in Single Application
+ Mode:
 \end_layout
 
 \begin_layout Description
@@ -3371,79 +3419,21 @@ password=postgres
  work as well?
 \end_layout
 
-\begin_layout Standard
-The following are optional:
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
-ENDPOINTS_CHECK_HASH
-\family default
- Default true.
- Can be "false".
- If this is set to "false", no hash checking is done.
- This is useful when Endpoints is not world-visible, for example part of
- a multi-image Kubernetes Hub, etc.
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
-ENDPOINTS_DISPLAY_EXPECTED_HASH
-\family default
- For debugging, set this to "true" in order to display the expected value
- of security hashes.
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
-ENDPOINTS_XSLT_DEBUG_LOG
-\family default
- Default false.
- For debugging, display the input and output to the parameter transformation
- XSLT in the logfile, and also bodies produced by XSLT which will be sent
- to HTTP servers.
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
-JAVA_OPTIONS
-\family default
- things such as Java heap size.
- By default, Java takes care of assigning the right amount of memory for
- the Docker container.
+\begin_layout Subsubsection
+Multiple Application Mode
 \end_layout
 
 \begin_layout Standard
-If you are using the software with service portal and publishing (that is
- to say, 
-\emph on
-not
-\emph default
- using the software in the manner described in section 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "subsec:singleapp"
+The following environment variables are mandatory in Multiple Application
+ Mode:
+\end_layout
 
-\end_inset
+\begin_layout Description
 
-), then the following variables are also mandatory.
- If you are using the software with 
-\begin_inset Quotes eld
-\end_inset
-
-single application
-\begin_inset Quotes erd
-\end_inset
-
- mode then these variables must 
-\emph on
-not
-\emph default
- be set.
+\family typewriter
+ENDPOINTS_JDBC_URL
+\family default
+ See above
 \end_layout
 
 \begin_layout Description
@@ -3604,65 +3594,68 @@ Name}
  to specify the application's name.
 \end_layout
 
+\begin_layout Subsubsection
+Optional Environment Variables
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_CHECK_HASH
+\family default
+ Default true.
+ Can be "false".
+ If this is set to "false", no hash checking is done.
+ This is useful when Endpoints is not world-visible, for example part of
+ a multi-image Kubernetes Hub, etc.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_DISPLAY_EXPECTED_HASH
+\family default
+ For debugging, set this to "true" in order to display the expected value
+ of security hashes.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_XSLT_DEBUG_LOG
+\family default
+ Default false.
+ For debugging, display the input and output to the parameter transformation
+ XSLT in the logfile, and also bodies produced by XSLT which will be sent
+ to HTTP servers.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+JAVA_OPTIONS
+\family default
+ things such as Java heap size.
+ By default, Java takes care of assigning the right amount of memory for
+ the Docker container.
+\end_layout
+
 \begin_layout Subsection
-\begin_inset CommandInset label
-LatexCommand label
-name "subsec:singleapp"
-
-\end_inset
-
-Via Docker, with a Single Application
+Memory
 \end_layout
 
 \begin_layout Standard
-Rather than using the 
-\begin_inset Quotes eld
-\end_inset
-
-publish
-\begin_inset Quotes erd
-\end_inset
-
- mechanism, it is possible to create a Docker image which already contains
- a single application, and into which no further publish is possible.
- (Philosophically, there is no need for Endpoints to provide a publish mechanism
- as the Docker image mechanism does this job.)
+According to AWS, 162MB is used after Endpoints starts with a sample application.
+ It would seem reasonable to allocate at least 250MB to the application.
 \end_layout
 
 \begin_layout Standard
-The database is still needed, for example for the request log.
-\end_layout
-
-\begin_layout Standard
-The environment variable 
+Test your workload with 
 \family typewriter
-ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN
+-verbose:gc
 \family default
- must not be set.
-\end_layout
-
-\begin_layout Standard
-A Dockerfile such as the following can be used to create a Docker image
- running a single application:
-\end_layout
-
-\begin_layout LyX-Code
-FROM offerready/endpoints-he
-\end_layout
-
-\begin_layout LyX-Code
-COPY application /var/endpoints/fixed-application
-\end_layout
-
-\begin_layout Standard
-The URLs served by the application have the normal format, that is to say
- the application name must be specified, even though there is and can only
- ever be one application with this setup.
- The requests must use the application with the fixed name name 
-\family typewriter
-endpoints
-\family default
-, and must be for the default (live) environment.
+ enabled to see if your workload requires more memory to avoid frequent
+ GCs.
 \end_layout
 
 \begin_layout Section
