@@ -9,10 +9,7 @@ import org.jooq.Field;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Map;
@@ -83,7 +80,9 @@ public class OnDemandIncrementingNumber {
                     .select(APPLICATION_CONFIG.TIMEZONE)
                     .from(APPLICATION_CONFIG)
                     .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(application))
-                    .fetchOne().value1();
+                    .fetchOptional().map(r -> r.value1()).orElse(DeploymentParameters.get().singleApplicationModeTimezoneId);
+                if (timezone == null) throw new RuntimeException("Unreachable: " +
+                    "Neither 'application_config' row is present, nor is environment variable set");
 
                 var max = tx.jooq()
                     .select(max(type.getRequestLogField()))
