@@ -51,7 +51,7 @@ public class EndpointExecutorTest extends TestCase {
             }
         }
         
-        int threadCount = 25;
+        int threadCount = 10;
         
         ThreadPool p = new ThreadPool();
         p.setThreadCount(threadCount);
