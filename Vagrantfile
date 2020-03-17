@@ -3,7 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.hostname = "endpoints"
-  config.vm.box = "ubuntu/bionic64"   # We only support deployment via Docker 
+  config.vm.box = "ubuntu/bionic64"   # 18.04, We only support deployment via Docker 
   config.vm.network "forwarded_port", guest: 8080, host: 9758   # jetty or docker
   config.vm.network "forwarded_port", guest: 9999, host: 9759   # Java debugging
   config.vm.network "forwarded_port", guest: 5432, host: 9760   # PostgreSQL
@@ -25,10 +25,11 @@ Vagrant.configure(2) do |config|
     echo --- General OS installation
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qy    # grub upgrade warnings mess with the terminal
-    apt-get -qy install vim ant ntp unattended-upgrades less
+    apt-get -qy install vim ntp unattended-upgrades less
 
     echo --- Install Java 11 \(OpenJDK\)
     wget -q https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz -O /tmp/openjdk-11.tar.gz
+    mkdir /usr/lib/jvm
     tar xfvz /tmp/openjdk-11.tar.gz --directory /usr/lib/jvm
     rm -f /tmp/openjdk-11.tar.gz
     for bin in /usr/lib/jvm/jdk-11.0.2/bin/*; do update-alternatives --install /usr/bin/$(basename $bin) $(basename $bin) $bin 100; done
@@ -40,9 +41,6 @@ Vagrant.configure(2) do |config|
     sed -i 's/^#listen_addresses = .*$/listen_addresses = '"'"'*'"'"'/' /etc/postgresql/10/main/postgresql.conf
     /etc/init.d/postgresql restart
     (cd /tmp && sudo -u postgres psql -c "alter user postgres password 'postgres'" postgres)  # os user postgres cannot see /root dir
-    echo 'sudo -u postgres psql -c "drop database endpoints" && sudo -u postgres psql -c "create database endpoints"' >> ~vagrant/.bash_history
-    echo 'psql -hlocalhost endpoints postgres' >> ~vagrant/.bash_history
-    echo localhost:5432:endpoints:postgres:postgres >> ~vagrant/.pgpass && chown vagrant ~vagrant/.pgpass && chmod go-rwX ~vagrant/.pgpass
 
     echo --- MySQL
     apt-get install -qy mysql-server mysql-client
@@ -82,6 +80,9 @@ Vagrant.configure(2) do |config|
 
     echo --- Create endpoints PostgreSQL database
     (cd /tmp && sudo -u postgres psql -c "create database endpoints")
+    echo 'sudo -u postgres psql -c "drop database endpoints" && sudo -u postgres psql -c "create database endpoints"' >> ~vagrant/.bash_history
+    echo 'psql -hlocalhost endpoints postgres' >> ~vagrant/.bash_history
+    echo localhost:5432:endpoints:postgres:postgres >> ~vagrant/.pgpass && chown vagrant ~vagrant/.pgpass && chmod go-rwX ~vagrant/.pgpass
 
     echo --- Install Maven
     apt-get -qy install maven
