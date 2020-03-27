@@ -147,7 +147,7 @@ public class EndpointServlet extends HttpServlet {
                     return new IpAddressDeterminer().getRequestIpAddress(req); 
                 }
                 @Override public @Nonnull String getUserAgent() {
-                    return Optional.of(req.getHeader("User-Agent")).orElse("");
+                    return Optional.ofNullable(req.getHeader("User-Agent")).orElse("");
                 }
                 @Override public @CheckForNull String getContentTypeIfPost() {
                     return Optional.ofNullable(req.getContentType())
