@@ -61,7 +61,7 @@ public class HttpRequestTaskTest extends TestCase {
     }
     
     protected @Nonnull String output(String desc) {
-        return "<output-intermediate-value name='var' regex='\\w+' " + desc + "/>";
+        return "<output-intermediate-value name='var' regex='[\\w.]+' " + desc + "/>";
     }
 
     public void testParseResults() throws Exception {
@@ -177,12 +177,46 @@ public class HttpRequestTaskTest extends TestCase {
             assertTrue(e.getCause().getMessage().contains("regex"));
         }
 
-        // JSONPath is found in JSON, OK
+        // JSONPath returns an array, whereas string required
+        try {
+            newTask(output("jsonpath='$.text'"), false).parseResults(Map.of(),
+                new Connection("application/json", "{ \"text\": [123] }"));
+            fail();
+        }
+        catch (RuntimeException e) {
+            assertTrue(e.getCause().getMessage().contains("array"));
+        }
+
+        // JSONPath returns a map, whereas string required
+        try {
+            newTask(output("jsonpath='$.text'"), false).parseResults(Map.of(),
+                new Connection("application/json", "{ \"text\": {\"key\":123} }"));
+            fail();
+        }
+        catch (RuntimeException e) {
+            assertTrue(e.getCause().getMessage().contains("object"));
+        }
+
+        // JSONPath String is found in JSON, OK
         {
             var results = new HashMap<IntermediateValueName, String>();
             newTask(output("jsonpath='$.text'"), false).parseResults(results,
                 new Connection("application/json", "{ \"text\": \"value\" }"));
             assertEquals("value", results.get(new IntermediateValueName("var")));
+        }
+
+        // JSONPath Number is found in JSON, OK
+        {
+            var results = new HashMap<IntermediateValueName, String>();
+            newTask(output("jsonpath='$.text'"), false).parseResults(results,
+                new Connection("application/json", "{ \"text\": 123 }"));   // Integer
+            assertEquals("123", results.get(new IntermediateValueName("var")));
+            newTask(output("jsonpath='$.text'"), false).parseResults(results,
+                new Connection("application/json", "{ \"text\": 123.2 }")); // Double
+            assertEquals("123.2", results.get(new IntermediateValueName("var")));
+            newTask(output("jsonpath='$.text'"), false).parseResults(results,
+                new Connection("application/json", "{ \"text\": 123123123123123 }"));   // Long
+            assertEquals("123123123123123", results.get(new IntermediateValueName("var")));
         }
     }
 }
