@@ -96,11 +96,19 @@ public class HttpRequestTask extends Task {
                         if ( ! (x instanceof HttpJsonOutputIntermediateValue))
                             throw new HttpRequestFailedException(url.toExternalForm(), null,
                                 "URL '" + url + "' returned JSON, yet output variables request XPath");
-                        var value = (String) ((HttpJsonOutputIntermediateValue) x).jsonPath.read(inputStream);
-                        if (x.regex != null && ! x.regex.matcher(value).matches())
+                        // JsonSmartJsonProvider, net.minidev.json.parser
+                        var value = ((HttpJsonOutputIntermediateValue) x).jsonPath.read(inputStream);
+                        if (value instanceof List)
                             throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "': " +
-                                "JSONPath returned '"+value+"' which does not match regex '" + x.regex.pattern() + "'");
-                        outputValues.put(x.name, value);
+                                "JSONPath returned an array, whereas a string or number is required");
+                        if (value instanceof Map)
+                            throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "': " +
+                                "JSONPath returned a JSON object node (= key-value map), whereas a string or number is required");
+                        var stringValue = value.toString(); // Discovered at least: String, Integer, Double, Long
+                        if (x.regex != null && ! x.regex.matcher(stringValue).matches())
+                            throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "': " +
+                                "JSONPath returned '"+stringValue+"' which does not match regex '" + x.regex.pattern() + "'");
+                        outputValues.put(x.name, stringValue);
                     }
                 }
                 catch (InvalidJsonException e) {
