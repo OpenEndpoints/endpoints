@@ -159,7 +159,7 @@ public class EndpointServlet extends HttpServlet {
                         .filter(e -> ! e.getKey().equalsIgnoreCase("debug"))
                         .collect(toMap(
                             e -> new ParameterName(e.getKey()),
-                            e -> asList(e.getValue())
+                            e -> List.of(e.getValue())
                         ));
                 }
                 @SneakyThrows({ServletException.class, IOException.class})

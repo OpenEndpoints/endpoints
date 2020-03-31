@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static com.databasesandlife.util.ThreadPool.unwrapException;
@@ -136,7 +137,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             UTF_8.name()));
         
         var destXml = HttpRequestSpecification.replaceXmlElementWithFileUploads(
-            Collections.singletonList(uploadedFile), sourceXml.getOwnerDocument());
+            List.of(uploadedFile), sourceXml.getOwnerDocument());
 
         var root = destXml.getDocumentElement();
         assertEquals("foo", root.getNodeName());
