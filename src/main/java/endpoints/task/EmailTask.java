@@ -36,7 +36,6 @@ import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.offerready.xslt.EmailPartDocumentDestination.newMimeBodyForDestination;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 public class EmailTask extends Task {
@@ -242,7 +241,7 @@ public class EmailTask extends Task {
             }
         };
         
-        context.threads.addTaskWithDependencies(singletonList(htmlExecutor), task);
+        context.threads.addTaskWithDependencies(List.of(htmlExecutor), task);
         partTasks.add(task);
         
         return bodyPart;

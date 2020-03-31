@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Set;
 
 import static endpoints.config.EndpointExecutionParticipant.assertNoCircularDependencies;
-import static java.util.Arrays.asList;
 
 public class EndpointExecutionParticipantTest extends TestCase {
     
@@ -74,11 +73,11 @@ public class EndpointExecutionParticipantTest extends TestCase {
         var c = new IntermediateValueName("c");
         
         // No dependencies
-        assertNoCircularDependencies(asList(newTask(Set.of(), Set.of()), newTask(Set.of(), Set.of())));
+        assertNoCircularDependencies(List.of(newTask(Set.of(), Set.of()), newTask(Set.of(), Set.of())));
         
         // Missing dependency
         try {
-            assertNoCircularDependencies(asList(newTask(Set.of(), Set.of()), newTask(Set.of(a), Set.of())));
+            assertNoCircularDependencies(List.of(newTask(Set.of(), Set.of()), newTask(Set.of(a), Set.of())));
             fail();
         }
         catch (ConfigurationException e) {
@@ -86,17 +85,17 @@ public class EndpointExecutionParticipantTest extends TestCase {
         }
 
         // Produces unused dependency is OK
-        assertNoCircularDependencies(asList(newTask(Set.of(), Set.of(a)), newTask(Set.of(), Set.of())));
+        assertNoCircularDependencies(List.of(newTask(Set.of(), Set.of(a)), newTask(Set.of(), Set.of())));
 
         // Normal linear chain is OK
         // Ordering doesn't matter
-        assertNoCircularDependencies(asList(
+        assertNoCircularDependencies(List.of(
             newTask(Set.of(a), Set.of(b)),
             newTask(Set.of(), Set.of(a)),
             newTask(Set.of(b), Set.of(c))));
 
         // Multiple values are OK
-        assertNoCircularDependencies(asList(
+        assertNoCircularDependencies(List.of(
             newTask(Set.of(), Set.of(a, b, c)),
             newTask(Set.of(a), Set.of()),
             newTask(Set.of(a), Set.of()),
@@ -105,7 +104,7 @@ public class EndpointExecutionParticipantTest extends TestCase {
 
         // Multiple producers
         try {
-            assertNoCircularDependencies(asList(
+            assertNoCircularDependencies(List.of(
                 newTask(Set.of(), Set.of(a)),
                 newTask(Set.of(), Set.of(a)),
                 newTask(Set.of(a), Set.of())));
@@ -117,7 +116,7 @@ public class EndpointExecutionParticipantTest extends TestCase {
 
         // Circular
         try {
-            assertNoCircularDependencies(asList(
+            assertNoCircularDependencies(List.of(
                 newTask(Set.of(a), Set.of(b)),
                 newTask(Set.of(b), Set.of(a))));
             fail();

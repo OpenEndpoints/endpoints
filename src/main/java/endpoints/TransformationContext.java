@@ -13,7 +13,6 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.singletonList;
 import static java.util.Collections.synchronizedMap;
 
 /**
@@ -50,7 +49,7 @@ public class TransformationContext {
     ) throws TransformationFailedException {
         var result = new TransformerExecutor();
         var process = transformer.scheduleExecution(this, visibleIntermediateValues, result.result);
-        threads.addTaskWithDependencies(singletonList(process), result);
+        threads.addTaskWithDependencies(List.of(process), result);
         return result;
     }
     

@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
 public abstract class EndpointPage extends AbstractLoggedInPage {

@@ -8,6 +8,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -27,7 +28,7 @@ public class ParametersCommandTest extends TestCase {
 
     public void testCreateParametersElements() {
         var element = ParametersCommand.createParametersElements(Map.of(), 
-            Map.of(), asList(new TestFile("foo"), new TestFile("<foo/>")));
+            Map.of(), List.of(new TestFile("foo"), new TestFile("<foo/>")));
         assertEquals(2, element.length);
         assertEquals("file-upload", element[0].getTagName());
         assertEquals(0, element[0].getChildNodes().getLength());

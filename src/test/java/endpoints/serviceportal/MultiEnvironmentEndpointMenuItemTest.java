@@ -9,11 +9,11 @@ import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironment
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointMenuFolder;
 import junit.framework.TestCase;
 
+import java.util.List;
+import java.util.Set;
+
 import static endpoints.PublishEnvironment.live;
 import static endpoints.PublishEnvironment.preview;
-import static java.util.Arrays.asList;
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static java.util.EnumSet.allOf;
 
 public class MultiEnvironmentEndpointMenuItemTest extends TestCase {
@@ -54,24 +54,24 @@ public class MultiEnvironmentEndpointMenuItemTest extends TestCase {
         
         var allEnv = allOf(PublishEnvironment.class);
 
-        var liveA = new ServicePortalEndpointContentMenuItem("A", singleton(live), new NodeName("a"));
-        var liveB = new ServicePortalEndpointContentMenuItem("B", singleton(preview), new NodeName("b"));
+        var liveA = new ServicePortalEndpointContentMenuItem("A", Set.of(live), new NodeName("a"));
+        var liveB = new ServicePortalEndpointContentMenuItem("B", Set.of(preview), new NodeName("b"));
         var liveC = new ServicePortalEndpointContentMenuItem("C", allEnv, new NodeName("live-c"));
         var liveD = new ServicePortalEndpointContentMenuItem("D", allEnv, new NodeName("d"));
-        var live1 = new ServicePortalEndpointMenuFolder("1", allEnv, asList(liveA, liveB, liveC, liveD));
+        var live1 = new ServicePortalEndpointMenuFolder("1", allEnv, List.of(liveA, liveB, liveC, liveD));
         var live2Child = new ServicePortalEndpointContentMenuItem("2 Child", allEnv, new NodeName("2c"));
-        var live2 = new ServicePortalEndpointMenuFolder("2", allEnv, singletonList(live2Child));
-        var liveRoot = new ServicePortalEndpointMenuFolder("Root", allEnv, asList(live1, live2));
+        var live2 = new ServicePortalEndpointMenuFolder("2", allEnv, List.of(live2Child));
+        var liveRoot = new ServicePortalEndpointMenuFolder("Root", allEnv, List.of(live1, live2));
         
-        var preA = new ServicePortalEndpointContentMenuItem("A", singleton(live), new NodeName("a"));
-        var preB = new ServicePortalEndpointContentMenuItem("B", singleton(preview), new NodeName("b"));
+        var preA = new ServicePortalEndpointContentMenuItem("A", Set.of(live), new NodeName("a"));
+        var preB = new ServicePortalEndpointContentMenuItem("B", Set.of(preview), new NodeName("b"));
         var preC = new ServicePortalEndpointContentMenuItem("C", allEnv, new NodeName("pre-c"));
         var preD = new ServicePortalEndpointContentMenuItem("E", allEnv, new NodeName("e"));
-        var pre1 = new ServicePortalEndpointMenuFolder("1", allEnv, asList(preA, preB, preC, preD));
+        var pre1 = new ServicePortalEndpointMenuFolder("1", allEnv, List.of(preA, preB, preC, preD));
         var pre2 = new ServicePortalEndpointContentMenuItem("2", allEnv, new NodeName("2"));
-        var preItemPruned = new ServicePortalEndpointContentMenuItem("Pruned", singleton(live), new NodeName("p"));
-        var preFolderPruned = new ServicePortalEndpointMenuFolder("Pruned", allEnv, singletonList(preItemPruned));
-        var preRoot = new ServicePortalEndpointMenuFolder("Root", allEnv, asList(pre1, pre2, preFolderPruned));
+        var preItemPruned = new ServicePortalEndpointContentMenuItem("Pruned", Set.of(live), new NodeName("p"));
+        var preFolderPruned = new ServicePortalEndpointMenuFolder("Pruned", allEnv, List.of(preItemPruned));
+        var preRoot = new ServicePortalEndpointMenuFolder("Root", allEnv, List.of(pre1, pre2, preFolderPruned));
         
         var result = new MultiEnvironmentEndpointMenuFolder("Root");
         result.mergeChildren(live, liveRoot);
@@ -91,11 +91,11 @@ public class MultiEnvironmentEndpointMenuItemTest extends TestCase {
         assertEquals("D", folder.children.get(3).menuItemName);
         assertEquals("E", folder.children.get(4).menuItemName);
 
-        assertEquals(singleton(live),    ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(0)).itemForEnvironment.keySet());
-        assertEquals(singleton(preview), ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(1)).itemForEnvironment.keySet());
+        assertEquals(Set.of(live),    ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(0)).itemForEnvironment.keySet());
+        assertEquals(Set.of(preview), ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(1)).itemForEnvironment.keySet());
         assertEquals(allEnv,             ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(2)).itemForEnvironment.keySet());
-        assertEquals(singleton(live),    ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(3)).itemForEnvironment.keySet());
-        assertEquals(singleton(preview), ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(4)).itemForEnvironment.keySet());
+        assertEquals(Set.of(live),    ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(3)).itemForEnvironment.keySet());
+        assertEquals(Set.of(preview), ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(4)).itemForEnvironment.keySet());
         
         assertEquals("a", ((ServicePortalEndpointContentMenuItem) 
             ((MultiEnvironmentEndpointLeafMenuItem)folder.children.get(0)).itemForEnvironment.get(live)).content.name);

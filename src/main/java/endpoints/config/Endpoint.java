@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static java.util.Collections.singleton;
-
 // Endpoint is not serializable on purpose; because it references compiled XSLT templates
 // If you need to serialize an Endpoint, reference a NodeName instead and find it from the application when needed
 public class Endpoint extends EndpointHierarchyNode {
@@ -23,7 +21,7 @@ public class Endpoint extends EndpointHierarchyNode {
 
     @Override
     public @Nonnull Set<NodeName> getEndpointNames() {
-        return singleton(name);
+        return Set.of(name);
     }
 
     @Override
