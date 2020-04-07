@@ -1,6 +1,5 @@
 package endpoints.datasource;
 
-import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.ThreadPool.ScheduleDependencyInAnyOrder;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
@@ -28,9 +27,9 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     public XmlFromUrlCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull Element config
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, config);
+        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
         outputWrapperElementName = getOptionalAttribute(config, "tag");
         spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
     }
@@ -45,7 +44,7 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandFetcher scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {

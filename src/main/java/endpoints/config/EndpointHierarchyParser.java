@@ -126,7 +126,7 @@ public class EndpointHierarchyParser extends DomParser {
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, 
         @Nonnull File xmlFromApplicationDir, @Nonnull File parameterTransformerXsltDirectory, 
-        @CheckForNull Element element
+        @Nonnull File dataSourcePostProcessingXsltDir, @CheckForNull Element element
     ) throws ConfigurationException {
         try {
             if (element == null) return null;
@@ -140,7 +140,7 @@ public class EndpointHierarchyParser extends DomParser {
             var dataSourceCommands = new ArrayList<DataSourceCommand>();
             for (var command : getSubElements(element, "*"))
                 dataSourceCommands.add(DataSourceCommand.newForConfig(
-                    tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command));
+                    tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
 
             var result = new ParameterTransformation();
             result.dataSourceCommands = dataSourceCommands;
@@ -153,7 +153,7 @@ public class EndpointHierarchyParser extends DomParser {
     protected static @Nonnull Endpoint parseEndpoint(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory,
+        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
         @Nonnull EndpointHierarchyFolderNode parentOrNull, @Nonnull Element element
     ) throws ConfigurationException {
         var name = new NodeName(getMandatoryAttribute(element, "name"));
@@ -167,8 +167,8 @@ public class EndpointHierarchyParser extends DomParser {
             
             result.name = new NodeName(getMandatoryAttribute(element, "name"));
             result.parameterTransformation = parseParameterTransformation(tx, threads, applicationDir, 
-                httpXsltDirectory, xmlFromApplicationDir,
-                parameterTransformerXsltDirectory, getOptionalSingleSubElement(element, "parameter-transformation"));
+                httpXsltDirectory, xmlFromApplicationDir, parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir,
+                getOptionalSingleSubElement(element, "parameter-transformation"));
 
             var includeInHashElement = getOptionalSingleSubElement(element, "include-in-hash");
             var includeInHashParameters = includeInHashElement == null ? new ArrayList<String>() 
@@ -216,7 +216,7 @@ public class EndpointHierarchyParser extends DomParser {
     protected static @Nonnull EndpointHierarchyFolderNode parseFolderNode(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory,
+        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
         @CheckForNull EndpointHierarchyFolderNode parentOrNull, @Nonnull Element element
     ) throws ConfigurationException {
         assertNoOtherElements(element, "parameter", "endpoint-folder", "endpoint");
@@ -227,10 +227,10 @@ public class EndpointHierarchyParser extends DomParser {
         var children = new ArrayList<EndpointHierarchyNode>();
         for (var el : getSubElements(element, "endpoint-folder"))
             children.add(parseFolderNode(tx, threads, transformers, applicationDir, httpXsltDirectory, xmlFromApplicationDir, staticDir,
-                parameterTransformerXsltDirectory, result, el));
+                parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, result, el));
         for (var el : getSubElements(element, "endpoint"))
             children.add(parseEndpoint(tx, threads, transformers, applicationDir, httpXsltDirectory, xmlFromApplicationDir, staticDir,
-                parameterTransformerXsltDirectory, result, el));
+                parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, result, el));
         result.children = children.toArray(new EndpointHierarchyNode[0]);
         
         return result;
@@ -297,7 +297,7 @@ public class EndpointHierarchyParser extends DomParser {
     public static @Nonnull EndpointHierarchyFolderNode parse(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory,
+        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
         @Nonnull InputStream xml
     ) throws ConfigurationException {
         try (var ignored = new Timer(EndpointHierarchyFolderNode.class.getSimpleName()+".parse")){
@@ -306,7 +306,7 @@ public class EndpointHierarchyParser extends DomParser {
             if ( ! "endpoint-folder".equals(root.getNodeName()))
                 throw new ConfigurationException("Root element must be <endpoint-folder>");
             var result = parseFolderNode(tx, threads, transformers, applicationDir, httpXsltDirectory, xmlFromApplicationDir, staticDir,
-                parameterTransformerXsltDirectory, null, root);
+                parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, null, root);
             
             assertUniqueEndpointNames(new HashSet<>(), result);
             assertEndpointForwardsExitAndNoCircularReferences(result);
@@ -318,12 +318,12 @@ public class EndpointHierarchyParser extends DomParser {
     public static @Nonnull EndpointHierarchyFolderNode parse(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory,
+        @Nonnull File staticDir, @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
         @Nonnull File file
     ) throws ConfigurationException {
         try (var i = new FileInputStream(file)) {
             return parse(tx, threads, transformers, applicationDir, httpXsltDirectory,
-                xmlFromApplicationDir, staticDir, parameterTransformerXsltDirectory, i);
+                xmlFromApplicationDir, staticDir, parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, i);
         }
         catch (Exception e) { throw new ConfigurationException(file.getAbsolutePath(), e); }
     }

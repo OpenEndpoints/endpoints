@@ -24,9 +24,10 @@ public class LiteralXmlCommand extends DataSourceCommand {
 
     public LiteralXmlCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element config
+        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, config);
+        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
         source = config;
     }
     
@@ -47,7 +48,7 @@ public class LiteralXmlCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandFetcher scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {

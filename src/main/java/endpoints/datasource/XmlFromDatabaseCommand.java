@@ -31,11 +31,12 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     
     public XmlFromDatabaseCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element config
+        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, config);
+        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
 
-        assertNoOtherElements(config, "jdbc-connection-string", "sql", "param");
+        assertNoOtherElements(config, "post-process", "jdbc-connection-string", "sql", "param");
         outputTag = getOptionalAttribute(config, "tag", "xml-from-database");
 
         var jdbc = getOptionalSingleSubElement(config, "jdbc-connection-string");
@@ -92,7 +93,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     }
     
     @Override
-    public @Nonnull DataSourceCommandFetcher scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {

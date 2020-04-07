@@ -82,6 +82,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         try (var ignored = new Timer("loadApplication '"+directory+"'")) {
             var httpXsltDirectory = new File(directory, "http-xslt");
             var xmlFromApplicationDirectory = new File(directory, "xml-from-application");
+            var dataSourcePostProcessingXsltDir = new File(directory, "data-source-post-processing-xslt");
             
             var dataSources = new HashMap<String, DataSource>();
             var dataSourcesFiles = new File(directory, "data-sources").listFiles(new FilenameExtensionFilter("xml"));
@@ -89,7 +90,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             for (var ds : dataSourcesFiles) {
                 try { 
                     var d = new DataSource(tx, threads, directory, httpXsltDirectory, 
-                        xmlFromApplicationDirectory, DomParser.from(ds));
+                        xmlFromApplicationDirectory, dataSourcePostProcessingXsltDir, DomParser.from(ds));
                     dataSources.put(ds.getName().replace(".xml", ""), d); 
                 }
                 catch (Exception e) { throw new ConfigurationException(ds.getAbsolutePath(), e); }
@@ -113,7 +114,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             result.transformers = transformers;
             result.endpoints = EndpointHierarchyParser.parse(tx, threads, transformers, directory, httpXsltDirectory,
                 xmlFromApplicationDirectory, new File(directory, "static"), new File(directory, "parameter-xslt"),
-                new File(directory, "endpoints.xml"));
+                dataSourcePostProcessingXsltDir, new File(directory, "endpoints.xml"));
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));
             result.emailServerOrNull = emailServer;
             result.servicePortalEndpointMenuItems = new ServicePortalEndpointMenuItemsParser().parse(result.endpoints,
