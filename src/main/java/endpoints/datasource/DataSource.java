@@ -27,13 +27,14 @@ public class DataSource {
 
     public DataSource(
         @Nonnull DbTransaction tx, @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element script
+        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element script
     ) throws ConfigurationException {
         if ( ! script.getTagName().equals("data-source")) throw new ConfigurationException("Data source should have root tag " +
             "<data-source> but instead has <"+script.getTagName()+">");
         for (var command : getSubElements(script, "*"))
             commands.add(DataSourceCommand.newForConfig(tx, threads,
-                applicationDir, httpXsltDirectory, xmlFromApplicationDir, command));
+                applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
     }
 
     /** Checks that no variables other than those supplied are necessary to execute all commands */

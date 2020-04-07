@@ -12,17 +12,23 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
+import static com.databasesandlife.util.DomParser.getSubElements;
 
 public abstract class DataSourceCommand {
+
+    protected final @Nonnull List<DataSourcePostProcessor> postProcessors;
 
     @SneakyThrows({SecurityException.class, ClassNotFoundException.class, NoSuchMethodException.class,
         IllegalAccessException.class, InstantiationException.class, InvocationTargetException.class})
     public static @Nonnull DataSourceCommand newForConfig(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element command
+        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
         try {
             final String className;
@@ -40,9 +46,9 @@ public abstract class DataSourceCommand {
             }
 
             var constructor = Class.forName(className).getConstructor(DbTransaction.class, XsltCompilationThreads.class,
-                File.class, File.class, File.class, Element.class);
+                File.class, File.class, File.class, File.class, Element.class);
             return (DataSourceCommand) constructor.newInstance(tx, threads,
-                applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
+                applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         }
         catch (InvocationTargetException e) {
             if (e.getCause() instanceof ConfigurationException)
@@ -51,11 +57,32 @@ public abstract class DataSourceCommand {
         }
     }
 
-    // Subclass must have this constructor as it's called by reflection
+    protected static @Nonnull List<DataSourcePostProcessor> parsePostProcessors(
+        @Nonnull XsltCompilationThreads threads, @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+    ) throws ConfigurationException {
+        var postProcessorElements = getSubElements(config, "post-process");
+        var postProcessors = new ArrayList<DataSourcePostProcessor>();
+        for (int i = 0; i < postProcessorElements.size(); i++) {
+            try {
+                postProcessors.add(new DataSourcePostProcessor(threads,
+                    dataSourcePostProcessingXsltDir, postProcessorElements.get(i)));
+            }
+            catch (ConfigurationException e) {
+                var ordinal = i==0 ? "1st" : i==1 ? "2nd" : i==2 ? "3rd" : (i+1)+"th";
+                throw new ConfigurationException(ordinal + " <post-process>", e);
+            }
+        }
+        return postProcessors;
+    }
+
+    @SuppressWarnings("unused") // Unused params are used in subclasses
     public DataSourceCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element config
-    ) throws ConfigurationException { }
+        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+    ) throws ConfigurationException {
+        this.postProcessors = parsePostProcessors(threads, dataSourcePostProcessingXsltDir, config);
+    }
     
     /** Checks that no variables other than those supplied are necessary to execute this command */
     public void assertParametersSuffice(
@@ -63,13 +90,35 @@ public abstract class DataSourceCommand {
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException { }
     
-    /**
-     * A future is returned here, so that all data source commands (for example fetching various URLs) can execute in parallel
-     * @param visibleIntermediateValues these values are already produced by the time this method is called. 
-     * @return parameters have been expanded in resulting XML if necessary
-     */
-    abstract public @Nonnull DataSourceCommandFetcher scheduleExecution(
+    abstract public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws TransformationFailedException;
+    
+    protected @Nonnull DataSourceCommandFetcher schedulePostProcessing(
+        @Nonnull TransformationContext context,
+        @Nonnull DataSourceCommandFetcher fetched
+    ) {
+        return context.threads.addTaskWithDependencies(List.of(fetched), new DataSourceCommandFetcher() {
+            @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
+                var elements = fetched.result;
+                for (int i = 0; i < postProcessors.size(); i++) {
+                    try { elements = postProcessors.get(i).postProcess(elements); }
+                    catch (TransformationFailedException e) {
+                        var ordinal = i==0 ? "1st" : i==1 ? "2nd" : i==2 ? "3rd" : (i+1)+"th";
+                        throw new TransformationFailedException(ordinal + " <post-process>", e);
+                    }
+                }
+                return elements;
+            }
+        });
+    }
+
+    public @Nonnull DataSourceCommandFetcher scheduleExecution(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws TransformationFailedException {
+        var fetched = scheduleFetch(context, visibleIntermediateValues);
+        return schedulePostProcessing(context, fetched);
+    }
 }

@@ -2344,8 +2344,15 @@ The root element of each transformer file is
 <transformer data-source="ds">
 \family default
 .
- The attribute specifies what the XML input for the transformation should
- be (see below for how to configure a data source).
+ In this example, there must be a file 
+\family typewriter
+ds.xml
+\family default
+ in the 
+\family typewriter
+data-sources
+\family default
+ directory of the application.
 \end_layout
 
 \begin_layout Standard
@@ -2384,29 +2391,8 @@ Data Sources
 \end_layout
 
 \begin_layout Standard
-Each transformation references a data source.
- A data source produces XML which the transformer may transform.
-\end_layout
-
-\begin_layout Standard
-If a transformer references a data source like 
-\family typewriter
-<transformer data-source="ds">
-\family default
- then there must be a file 
-\family typewriter
-ds.xml
-\family default
- in the 
-\family typewriter
-data-sources
-\family default
- directory of the application.
-\end_layout
-
-\begin_layout Standard
 A data source is a list of commands (e.g.
- fetch XML from URL).
+ fetch XML from URL) which produce XML.
  Each data source is executed, and the results are appended into an XML
  document (e.g.
  fetch XML from two URLs, then the result of the data source will be an
@@ -2980,6 +2966,86 @@ DataSourceCommand
 \family default
 .
  
+\end_layout
+
+\begin_layout Subsubsection
+Data Source Post-Processing
+\end_layout
+
+\begin_layout Standard
+It is possible to add 
+\begin_inset Quotes eld
+\end_inset
+
+post-processing
+\begin_inset Quotes erd
+\end_inset
+
+ steps to any data source command.
+ For example, within an 
+\family typewriter
+<xml-from-url>
+\family default
+:
+\end_layout
+
+\begin_layout LyX-Code
+<data-source>
+\end_layout
+
+\begin_layout LyX-Code
+  <xml-from-url>
+\end_layout
+
+\begin_layout LyX-Code
+    ...
+\end_layout
+
+\begin_layout LyX-Code
+    <post-process xslt="first.xslt"/>
+\end_layout
+
+\begin_layout LyX-Code
+    <post-process xslt="second.xslt"/>
+\end_layout
+
+\begin_layout LyX-Code
+  </xml-from-url>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
+</data-source>
+\end_layout
+
+\begin_layout Standard
+These XSLT files should be found in the directory 
+\family typewriter
+data-source-post-processing-xslt
+\family default
+ in the application directory.
+\end_layout
+
+\begin_layout Standard
+The XSLTs take a document with the root tag <
+\family typewriter
+data-source-post-processing-input>
+\family default
+ and return a document with root tag 
+\family typewriter
+<data-source-post-processing-output>
+\family default
+.
+ A data source can, in principle, produce more than one element (for example
+ the 
+\family typewriter
+<literal-xml>
+\family default
+ command), and as an XML document (input and output of XSLT) can only have
+ one root element, it is necessary to wrap them.
 \end_layout
 
 \begin_layout Subsection

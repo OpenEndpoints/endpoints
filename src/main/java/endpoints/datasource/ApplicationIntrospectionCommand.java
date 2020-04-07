@@ -19,9 +19,10 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
 
     public ApplicationIntrospectionCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element command
+        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
+        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
+        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         this.xmlFromApplicationDir = xmlFromApplicationDir;
         this.dir = applicationDir;
     }
@@ -55,7 +56,8 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
         }
     }
 
-    @Override public @Nonnull DataSourceCommandFetcher scheduleExecution(
+    @Override 
+    public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {

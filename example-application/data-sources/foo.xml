@@ -1,19 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data-source>
-  <parameters/>
-  <on-demand-incrementing-number type="month"/>
-  <application-introspection/>
+  <parameters>
+    <post-process xslt="values.xslt"/>
+  </parameters>
+  <on-demand-incrementing-number type="month">
+    <post-process xslt="values.xslt"/>
+  </on-demand-incrementing-number>
+  <application-introspection>
+    <post-process xslt="values.xslt"/>
+  </application-introspection>
   <literal-xml>
     <tag>email-address is ${email-address}, invoice number is ${invoice-number}</tag>
     <accents>Some accents to prove UTF-8 is used: äöü €</accents>
+    <post-process xslt="values.xslt"/>
+    <post-process xslt="values.xslt"/>
+    <post-process xslt="values.xslt"/>
   </literal-xml>
-  <md5 id="i-am-an-md5" message-string="foo"/>
-  <xml-from-url><url>https://www.w3schools.com/xml/note.xml</url></xml-from-url>
-  <xml-from-application file="xml-subdirectory/spheres.fo"/>
-  <xml-from-application file="xml-subdirectory/doesnt-exist.fo" ignore-if-not-found="true"/>
+  <md5 id="i-am-an-md5" message-string="foo">
+    <post-process xslt="values.xslt"/>
+  </md5>
+  <xml-from-url>
+    <url>https://www.w3schools.com/xml/note.xml</url>
+    <post-process xslt="values.xslt"/>
+  </xml-from-url>
+  <xml-from-application file="xml-subdirectory/spheres.fo">
+    <post-process xslt="values.xslt"/>
+  </xml-from-application>
+  <xml-from-application file="xml-subdirectory/doesnt-exist.fo" ignore-if-not-found="true">
+    <post-process xslt="values.xslt"/>
+  </xml-from-application>
   <xml-from-database>
     <sql>SELECT * FROM application_publish WHERE application_name=?</sql>
     <param>example-application</param>
+    <post-process xslt="values.xslt"/>
   </xml-from-database>
   <xml-from-database tag="from-mysql">
     <jdbc-connection-string from-environment-variable="EXAMPLE_APPLICATION_MYSQL_JDBC"/>
