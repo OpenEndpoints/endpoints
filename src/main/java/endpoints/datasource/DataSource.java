@@ -34,7 +34,7 @@ public class DataSource {
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
         @Nonnull Consumer<Document> afterDataSource
     ) throws TransformationFailedException {
-        var futures = new ArrayList<DataSourceCommandResult>(commands.size());
+        var futures = new ArrayList<DataSourceCommandFetcher>(commands.size());
         for (var c : commands) futures.add(c.scheduleExecution(context, visibleIntermediateValues));
         
         Runnable createDocument = () -> {

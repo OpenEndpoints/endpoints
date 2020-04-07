@@ -19,7 +19,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -96,11 +95,11 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        var result = new DataSourceCommandResult() {
+        var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
                 var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
                 var fileElement = executeImmediately(stringParams);

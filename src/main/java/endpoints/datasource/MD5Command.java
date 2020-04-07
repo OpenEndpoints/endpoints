@@ -14,7 +14,6 @@ import org.w3c.dom.Element;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.*;
@@ -46,11 +45,11 @@ public class MD5Command extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        var result = new DataSourceCommandResult() {
+        var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() {
                 var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
 

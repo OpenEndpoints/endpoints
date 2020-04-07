@@ -68,7 +68,7 @@ public abstract class DataSourceCommand {
      * @param visibleIntermediateValues these values are already produced by the time this method is called. 
      * @return parameters have been expanded in resulting XML if necessary
      */
-    abstract public @Nonnull DataSourceCommandResult scheduleExecution(
+    abstract public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws TransformationFailedException;

@@ -14,7 +14,7 @@ import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationConfig;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
-import endpoints.datasource.DataSourceCommandResult;
+import endpoints.datasource.DataSourceCommandFetcher;
 import endpoints.datasource.ParametersCommand;
 import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
@@ -192,7 +192,7 @@ public class EndpointExecutor {
         // Schedule execution of e.g. <xml-from-application>
         var context = new TransformationContext(application, tx, threads, requestParameters,
             ParameterNotFoundPolicy.emptyString, req.getUploadedFiles(), autoInc);
-        var dataSourceResults = new ArrayList<DataSourceCommandResult>();
+        var dataSourceResults = new ArrayList<DataSourceCommandFetcher>();
         for (var c : parameterTransformation.dataSourceCommands)
             dataSourceResults.add(c.scheduleExecution(context, emptySet()));
 

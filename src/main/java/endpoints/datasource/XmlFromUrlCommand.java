@@ -45,11 +45,11 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        abstract class LaterResult extends DataSourceCommandResult implements ScheduleDependencyInAnyOrder { }
+        abstract class LaterResult extends DataSourceCommandFetcher implements ScheduleDependencyInAnyOrder { }
         
         var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
         var result = new LaterResult() {
