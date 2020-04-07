@@ -45,7 +45,8 @@ public abstract class DataSourceCommand {
                 applicationDir, httpXsltDirectory, xmlFromApplicationDir, command);
         }
         catch (InvocationTargetException e) {
-            if (e.getCause() instanceof ConfigurationException) throw (ConfigurationException) e.getCause();
+            if (e.getCause() instanceof ConfigurationException)
+                throw new ConfigurationException("<" + command.getTagName() + ">", e.getCause());
             else throw e;
         }
     }
