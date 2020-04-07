@@ -10,7 +10,6 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public class ApplicationIntrospectionCommand extends DataSourceCommand {
@@ -56,11 +55,11 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
         }
     }
 
-    @Override public @Nonnull DataSourceCommandResult scheduleExecution(
+    @Override public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        var result = new DataSourceCommandResult() {
+        var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
                 var result = DomParser.newDocumentBuilder().newDocument().createElement("application-introspection");
                 addChildElements(result, dir);

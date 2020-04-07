@@ -47,11 +47,11 @@ public class LiteralXmlCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        var result = new DataSourceCommandResult() {
+        var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() {
                 var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
                 return getSubElements(source, "*").stream()

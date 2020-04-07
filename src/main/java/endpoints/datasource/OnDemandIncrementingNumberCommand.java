@@ -13,7 +13,6 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -46,11 +45,11 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
     }
 
     @Override
-    public @Nonnull DataSourceCommandResult scheduleExecution(
+    public @Nonnull DataSourceCommandFetcher scheduleExecution(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        var result = new DataSourceCommandResult() {
+        var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() {
                 var result = DomParser.newDocumentBuilder().newDocument();
 

@@ -5,7 +5,7 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 
-public abstract class DataSourceCommandResult implements Runnable {
+public abstract class DataSourceCommandFetcher implements Runnable {
     
     protected Element[] result;
     
@@ -16,6 +16,7 @@ public abstract class DataSourceCommandResult implements Runnable {
         return result;
     }
 
+    // Called from ThreadPool once this is scheduled
     @SneakyThrows(TransformationFailedException.class)
     @Override
     public void run() {
