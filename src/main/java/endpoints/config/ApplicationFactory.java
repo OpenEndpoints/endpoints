@@ -34,19 +34,6 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         public final boolean locked, debugAllowed;
     }
 
-    protected static @Nonnull DataSource parseDataSource(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir, @Nonnull Element script
-    ) throws ConfigurationException {
-        var result = new DataSource();
-        if ( ! script.getTagName().equals("data-source")) throw new ConfigurationException("Data source should have root tag " +
-            "<data-source> but instead has <"+script.getTagName()+">");
-        for (var command : getSubElements(script, "*"))
-            result.commands.add(DataSourceCommand.newForConfig(tx, threads, 
-                applicationDir, httpXsltDirectory, xmlFromApplicationDir, command));
-        return result;
-    }
-    
     protected static @Nonnull Transformer parseTransformer(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, DataSource> dataSources,
         @Nonnull File application, @Nonnull Element element
@@ -101,7 +88,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             if (dataSourcesFiles == null) throw new ConfigurationException("'data-sources' directory missing");
             for (var ds : dataSourcesFiles) {
                 try { 
-                    DataSource d = parseDataSource(tx, threads, directory, httpXsltDirectory, 
+                    var d = new DataSource(tx, threads, directory, httpXsltDirectory, 
                         xmlFromApplicationDirectory, DomParser.from(ds));
                     dataSources.put(ds.getName().replace(".xml", ""), d); 
                 }
