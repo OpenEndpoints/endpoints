@@ -1719,28 +1719,19 @@ if="${foo}" equals="bar"
 \end_layout
 
 \begin_layout Standard
-If the result of the body transformation has the HTML content type, and
- is UTF-8, it may include text such as 
+If the body has a content type like 
+\family typewriter
+text/html; charset=utf-8
+\family default
+ then it may include tags such as 
 \family typewriter
 <img src="cid:foo/bar.jpg">
 \family default
 .
- More precisely, quotes followed by 
-\family typewriter
-cid:
-\family default
- followed by a file path (which tag it is, such as 
-\family typewriter
-<img>
-\family default
-, is irrelevant).
- For any such text found, a file with that path under the application's
- 
-\family typewriter
-static
-\family default
- directory is searched for.
- The file is included as a 
+ The tag is most commonly an <img> but can be any tag.
+ The system then searches in the static directory for any file with that
+ path.
+ The file is included with the image, as a 
 \begin_inset Quotes eld
 \end_inset
 
