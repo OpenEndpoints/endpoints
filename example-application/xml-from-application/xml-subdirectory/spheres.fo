@@ -20,6 +20,12 @@
             <fo:external-graphic src="static-subdirectory/spheres.png"/>
            </fo:wrapper>
         </fo:block>
+        <fo:block>
+           <fo:wrapper>
+             Here is an SVG image from the internet:
+            <fo:external-graphic src="https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/beacon.svg"/>
+           </fo:wrapper>
+        </fo:block>
        </fo:flow>
       </fo:page-sequence>
 
