@@ -57,31 +57,13 @@ public abstract class DataSourceCommand {
         }
     }
 
-    protected static @Nonnull List<DataSourcePostProcessor> parsePostProcessors(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
-    ) throws ConfigurationException {
-        var postProcessorElements = getSubElements(config, "post-process");
-        var postProcessors = new ArrayList<DataSourcePostProcessor>();
-        for (int i = 0; i < postProcessorElements.size(); i++) {
-            try {
-                postProcessors.add(new DataSourcePostProcessor(threads,
-                    dataSourcePostProcessingXsltDir, postProcessorElements.get(i)));
-            }
-            catch (ConfigurationException e) {
-                var ordinal = i==0 ? "1st" : i==1 ? "2nd" : i==2 ? "3rd" : (i+1)+"th";
-                throw new ConfigurationException(ordinal + " <post-process>", e);
-            }
-        }
-        return postProcessors;
-    }
-
     @SuppressWarnings("unused") // Unused params are used in subclasses
     public DataSourceCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        this.postProcessors = parsePostProcessors(threads, dataSourcePostProcessingXsltDir, config);
+        this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, config);
     }
     
     /** Checks that no variables other than those supplied are necessary to execute this command */
@@ -101,15 +83,7 @@ public abstract class DataSourceCommand {
     ) {
         return context.threads.addTaskWithDependencies(List.of(fetched), new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
-                var elements = fetched.result;
-                for (int i = 0; i < postProcessors.size(); i++) {
-                    try { elements = postProcessors.get(i).postProcess(elements); }
-                    catch (TransformationFailedException e) {
-                        var ordinal = i==0 ? "1st" : i==1 ? "2nd" : i==2 ? "3rd" : (i+1)+"th";
-                        throw new TransformationFailedException(ordinal + " <post-process>", e);
-                    }
-                }
-                return elements;
+                return DataSourcePostProcessor.postProcess(postProcessors, fetched.result);
             }
         });
     }

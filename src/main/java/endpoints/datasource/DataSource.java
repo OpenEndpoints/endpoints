@@ -13,17 +13,23 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.databasesandlife.util.DomParser.getSubElements;
+import static java.util.stream.Collectors.toList;
 
 public class DataSource {
     
-    protected final @Nonnull List<DataSourceCommand> commands = new ArrayList<>();
+    protected final @Nonnull List<DataSourceCommand> commands;
+    protected final @Nonnull List<DataSourcePostProcessor> postProcessors;
 
-    public DataSource() { }
+    public DataSource() { 
+        commands = List.of();
+        postProcessors = List.of();
+    }
 
     public DataSource(
         @Nonnull DbTransaction tx, @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
@@ -32,9 +38,13 @@ public class DataSource {
     ) throws ConfigurationException {
         if ( ! script.getTagName().equals("data-source")) throw new ConfigurationException("Data source should have root tag " +
             "<data-source> but instead has <"+script.getTagName()+">");
-        for (var command : getSubElements(script, "*"))
+        commands = new ArrayList<>();
+        for (var command : getSubElements(script, "*")) {
+            if (command.getNodeName().equals("post-process")) continue;
             commands.add(DataSourceCommand.newForConfig(tx, threads,
                 applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
+        }
+        this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, script);
     }
 
     /** Checks that no variables other than those supplied are necessary to execute all commands */
@@ -58,11 +68,15 @@ public class DataSource {
         for (var c : commands) futures.add(c.scheduleExecution(context, visibleIntermediateValues));
         
         Runnable createDocument = () -> {
+            var elements = futures.stream().flatMap(r -> Arrays.stream(r.get())).toArray(Element[]::new);
+            
+            try { elements = DataSourcePostProcessor.postProcess(postProcessors, elements); }
+            catch (TransformationFailedException e) { throw new RuntimeException(e); }
+            
             var result = DomParser.newDocumentBuilder().newDocument();
             result.appendChild(result.createElement("transformation-input"));
-            for (var r : futures) 
-                for (var element : r.get())
-                    result.getDocumentElement().appendChild(result.importNode(element, true));
+            for (var element : elements)
+                result.getDocumentElement().appendChild(result.importNode(element, true));
             afterDataSource.accept(result);
         };
         context.threads.addTaskWithDependencies(futures, createDocument);
