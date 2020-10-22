@@ -423,7 +423,7 @@ public class EndpointExecutor {
         r.setApplication(applicationName);
         r.setEnvironment(environment);
         r.setEndpoint(endpointName);
-        r.setDatetimeUtc(now);
+        r.setDatetime(now);
         r.setStatusCode(response.getStatusCode());
         r.setUserAgent(req.getUserAgent());
         r.setOnDemandPerpetualIncrementingNumber(autoInc.get(perpetual).getValueOrNull());

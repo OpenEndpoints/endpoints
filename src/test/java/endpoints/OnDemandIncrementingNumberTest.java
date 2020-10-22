@@ -24,7 +24,7 @@ public class OnDemandIncrementingNumberTest extends TestCase {
         var r = new RequestLogRecord();
         r.setApplication(app);
         r.setEndpoint(new NodeName("endpoint"));
-        r.setDatetimeUtc(when);
+        r.setDatetime(when);
         r.setStatusCode(200);
         r.setUserAgent("user agent");
         r.setEnvironment(PublishEnvironment.live);

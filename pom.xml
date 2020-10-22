@@ -316,9 +316,8 @@
                                     <inputSchema>public</inputSchema>
                                     <forcedTypes>
                                         <forcedType>
-                                            <userType>java.time.Instant</userType>
-                                            <converter>com.databasesandlife.util.jooq.UtcInstantConverter</converter>
-                                            <expression>.*UTC</expression>
+                                            <name>INSTANT</name>
+                                            <types>(?i:TIMESTAMP\ WITH\ TIME\ ZONE)</types>
                                         </forcedType>
                                         <forcedType>
                                             <userType>java.time.ZoneId</userType>

@@ -66,8 +66,8 @@ public class RequestLogPage extends AbstractLoggedInPage {
     protected @Nonnull Condition getCondition() {
         return REQUEST_LOG.APPLICATION.eq(applicationName)
             .and(REQUEST_LOG.ENVIRONMENT.eq(filterEnvironment))
-            .and(REQUEST_LOG.DATETIME_UTC.ge(dateRange.getStartDateUtc(now(UTC)).atStartOfDay(UTC).toInstant()))
-            .and(REQUEST_LOG.DATETIME_UTC.lt(Optional.ofNullable(dateRange.getEndDateUtc(now(UTC))).orElse(now(UTC))
+            .and(REQUEST_LOG.DATETIME.ge(dateRange.getStartDateUtc(now(UTC)).atStartOfDay(UTC).toInstant()))
+            .and(REQUEST_LOG.DATETIME.lt(Optional.ofNullable(dateRange.getEndDateUtc(now(UTC))).orElse(now(UTC))
                 .plus(1, DAYS).atStartOfDay(UTC).toInstant()))
             .and(filterEndpoint == null ? trueCondition() : REQUEST_LOG.ENDPOINT.eq(filterEndpoint))
             .and(filterStatusCode == null ? trueCondition() : REQUEST_LOG.STATUS_CODE.eq(filterStatusCode));
@@ -94,7 +94,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
                 return tx.jooq().select(fields)
                     .from(REQUEST_LOG)
                     .where(getCondition())
-                    .orderBy(REQUEST_LOG.DATETIME_UTC.desc())
+                    .orderBy(REQUEST_LOG.DATETIME.desc())
                     .limit(500)
                     .fetch(r -> new RequestLogEntry(r.into(REQUEST_LOG), r.get(0, Boolean.class), r.get(1, Boolean.class)))
                     .stream().collect(toCollection(ArrayList::new));
@@ -147,7 +147,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
             var endpointsNamesModel = new EndpointNamesModel(this::getFilterEnvironment);
             var statusCodes = tx.jooq().selectDistinct(REQUEST_LOG.STATUS_CODE).from(REQUEST_LOG)
                 .where(REQUEST_LOG.APPLICATION.eq(applicationName))
-                .and(REQUEST_LOG.DATETIME_UTC.ge(DateRangeOption.getValues(now(UTC)).stream()
+                .and(REQUEST_LOG.DATETIME.ge(DateRangeOption.getValues(now(UTC)).stream()
                     .map(d -> d.getStartDateUtc(now(UTC)))
                     .min(Comparator.naturalOrder())
                     .map(d -> d.atStartOfDay().toInstant(UTC)).orElse(null)))
@@ -188,7 +188,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
                     tableRow.setOutputMarkupId(true);
                     tableRow.add(AttributeAppender.append("class", () -> expandedRows.contains(id) ? "open-row" : ""));
                     tableRow.add(new Label("dateTimeShortUtc", DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
-                        .format(rec.getDatetimeUtc().atOffset(UTC))));
+                        .format(rec.getDatetime().atOffset(UTC))));
                     tableRow.add(new Label("endpoint", rec.getEndpoint().name));
                     tableRow.add(new Label("statusCode", rec.getStatusCode())
                         .add(AttributeAppender.append("class", rec.getStatusCode() >= 300 ? "status-error" : "")));
@@ -201,7 +201,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
                     details.add(AttributeAppender.append("style", () -> expandedRows.contains(id) ? "" : "display:none;"));
                     details.setOutputMarkupId(true);
                     details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
-                        .format(rec.getDatetimeUtc().atZone(UTC))));
+                        .format(rec.getDatetime().atZone(UTC))));
                     details.add(new Label("userAgent", rec.getUserAgent()));
                     details.add(new Label("exceptionMessage", rec.getExceptionMessage())
                         .setVisible(rec.getExceptionMessage() != null));

@@ -35,8 +35,8 @@ public class OnDemandIncrementingNumber {
             public @Override @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) { 
                 var nowLocal = now.atZone(timezone).toLocalDateTime();
                 var startLocal = LocalDateTime.of(nowLocal.getYear(), Month.JANUARY, 1, 0, 0);
-                return REQUEST_LOG.DATETIME_UTC.ge(startLocal.atZone(timezone).toInstant())
-                    .and(REQUEST_LOG.DATETIME_UTC.lt(startLocal.plus(1, ChronoUnit.YEARS).atZone(timezone).toInstant())); 
+                return REQUEST_LOG.DATETIME.ge(startLocal.atZone(timezone).toInstant())
+                    .and(REQUEST_LOG.DATETIME.lt(startLocal.plus(1, ChronoUnit.YEARS).atZone(timezone).toInstant())); 
             }
         },
         month {
@@ -44,8 +44,8 @@ public class OnDemandIncrementingNumber {
             public @Override @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) {
                 var nowLocal = now.atZone(timezone).toLocalDateTime();
                 var startLocal = LocalDateTime.of(nowLocal.getYear(), nowLocal.getMonth(), 1, 0, 0);
-                return REQUEST_LOG.DATETIME_UTC.ge(startLocal.atZone(timezone).toInstant())
-                    .and(REQUEST_LOG.DATETIME_UTC.lt(startLocal.plus(1, ChronoUnit.MONTHS).atZone(timezone).toInstant()));
+                return REQUEST_LOG.DATETIME.ge(startLocal.atZone(timezone).toInstant())
+                    .and(REQUEST_LOG.DATETIME.lt(startLocal.plus(1, ChronoUnit.MONTHS).atZone(timezone).toInstant()));
             }
         };
 
