@@ -25,7 +25,7 @@ public class PostgresXmlDomElementBindingTest extends TestCase {
             var toInsert = new RequestLogRecord();
             toInsert.setApplication(new ApplicationName("foo"));
             toInsert.setEndpoint(new NodeName("foo"));
-            toInsert.setDatetimeUtc(Instant.now());
+            toInsert.setDatetime(Instant.now());
             toInsert.setStatusCode(200);
             toInsert.setUserAgent(userAgent);
             toInsert.setEnvironment(PublishEnvironment.live);
