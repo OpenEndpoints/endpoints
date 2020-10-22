@@ -84,4 +84,5 @@
     <method name="PUT"/>
     <json-body>{"title":"${invoice-number}"}</json-body>
   </xml-from-url>
+  <post-process xslt="values.xslt"/>
 </data-source>

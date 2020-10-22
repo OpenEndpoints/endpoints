@@ -2972,8 +2972,19 @@ post-processing
 \begin_inset Quotes erd
 \end_inset
 
- steps to any data source command.
- For example, within an 
+ steps to the following two stages:
+\end_layout
+
+\begin_layout Enumerate
+After an individual data source has been executed
+\end_layout
+
+\begin_layout Enumerate
+After all data sources have been executed
+\end_layout
+
+\begin_layout Standard
+For example, within an 
 \family typewriter
 <xml-from-url>
 \family default
@@ -2993,11 +3004,11 @@ post-processing
 \end_layout
 
 \begin_layout LyX-Code
-    <post-process xslt="first.xslt"/>
+    <post-process xslt="after-one-1.xslt"/>
 \end_layout
 
 \begin_layout LyX-Code
-    <post-process xslt="second.xslt"/>
+    <post-process xslt="after-one-2.xslt"/>
 \end_layout
 
 \begin_layout LyX-Code
@@ -3006,6 +3017,14 @@ post-processing
 
 \begin_layout LyX-Code
   ...
+\end_layout
+
+\begin_layout LyX-Code
+  <post-process xslt="after-all-1.xslt"/>
+\end_layout
+
+\begin_layout LyX-Code
+  <post-process xslt="after-all-2.xslt"/>
 \end_layout
 
 \begin_layout LyX-Code
@@ -3021,7 +3040,22 @@ data-source-post-processing-xslt
 \end_layout
 
 \begin_layout Standard
-The XSLTs take a document with the root tag <
+If the post-processing only needs a single data source as input, prefer
+ using the post-processing only on the single data source.
+ There is a slight performance advantage, in that post-processing on different
+ individual data source elements may be executed in parallel, whereas the
+ post-processing after all the data sources have executed must execute sequentia
+lly.
+\end_layout
+
+\begin_layout Standard
+The post-processing takes the elements returned by the data source and returns
+ replacement elements to be used in their stead.
+ A data source may return more than one element, which is inconvenient from
+ the perspective of XML as an XML document must have a single root element.
+ Therefore, the elements in and out of the post-processing must be wrapped
+ in an extra root tag.
+ The XSLTs take a document with the root tag <
 \family typewriter
 data-source-post-processing-input>
 \family default
@@ -3030,13 +3064,6 @@ data-source-post-processing-input>
 <data-source-post-processing-output>
 \family default
 .
- A data source can, in principle, produce more than one element (for example
- the 
-\family typewriter
-<literal-xml>
-\family default
- command), and as an XML document (input and output of XSLT) can only have
- one root element, it is necessary to wrap them.
 \end_layout
 
 \begin_layout Subsection

@@ -16,7 +16,9 @@ import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
+import static com.databasesandlife.util.DomParser.getSubElements;
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
 
 public class DataSourcePostProcessor {
@@ -32,6 +34,24 @@ public class DataSourcePostProcessor {
         if ( ! xsltFile.exists()) throw new ConfigurationException("XSLT file '"+xsltName+"' not found");
         xslt = getTransformerOrScheduleCompilation(threads, xsltFile.getAbsolutePath(),
             new DocumentGenerator.StyleVisionXslt(xsltFile));
+    }
+
+    protected static @Nonnull List<DataSourcePostProcessor> parsePostProcessors(
+        @Nonnull XsltCompilationThreads threads, @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+    ) throws ConfigurationException {
+        var postProcessorElements = getSubElements(config, "post-process");
+        var postProcessors = new ArrayList<DataSourcePostProcessor>();
+        for (int i = 0; i < postProcessorElements.size(); i++) {
+            try {
+                postProcessors.add(new DataSourcePostProcessor(threads,
+                    dataSourcePostProcessingXsltDir, postProcessorElements.get(i)));
+            }
+            catch (ConfigurationException e) {
+                var ordinal = i==0 ? "1st" : i==1 ? "2nd" : i==2 ? "3rd" : (i+1)+"th (starting at 1)";
+                throw new ConfigurationException(ordinal + " <post-process>", e);
+            }
+        }
+        return postProcessors;
     }
 
     @SneakyThrows(DocumentTemplateInvalidException.class)
@@ -57,6 +77,18 @@ public class DataSourcePostProcessor {
             return result.toArray(Element[]::new);
         }
         catch (TransformerException e) { throw new TransformationFailedException(e); }
+    }
+    
+    public static @Nonnull Element[] postProcess(@Nonnull List<DataSourcePostProcessor> postProcessors, @Nonnull Element[] elements)
+    throws TransformationFailedException {
+        for (int i = 0; i < postProcessors.size(); i++) {
+            try { elements = postProcessors.get(i).postProcess(elements); }
+            catch (TransformationFailedException e) {
+                var ordinal = i==0 ? "1st" : i==1 ? "2nd" : i==2 ? "3rd" : (i+1)+"th (starting at 1)";
+                throw new TransformationFailedException(ordinal + " <post-process>", e);
+            }
+        }
+        return elements;
     }
 }
  
