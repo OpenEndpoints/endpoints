@@ -72,6 +72,7 @@ public abstract class DataSourceCommand {
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException { }
     
+    /** Also expands variables as necessary, as where variables are to be expanded varies from one data source to another */
     abstract public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
