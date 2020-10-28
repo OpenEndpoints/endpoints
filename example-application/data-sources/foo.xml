@@ -84,5 +84,11 @@
     <method name="PUT"/>
     <json-body>{"title":"${invoice-number}"}</json-body>
   </xml-from-url>
+  <xml-from-url>
+    <url>https://httpbin.org/response-headers?key=Expanded:%20%24%7Bparam-in-hash%7D</url>
+  </xml-from-url>
+  <xml-from-url expand-parameters-in-response="false">
+    <url>https://httpbin.org/response-headers?key=Unexpanded:%20%24%7Bparam-in-hash%7D</url>
+  </xml-from-url>
   <post-process xslt="values.xslt"/>
 </data-source>

@@ -23,6 +23,7 @@ public class XmlFromUrlCommand extends DataSourceCommand {
 
     protected final @CheckForNull String outputWrapperElementName;
     protected final @Nonnull HttpRequestSpecification spec;
+    protected final boolean expandParametersInResponse;
     
     public XmlFromUrlCommand(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
@@ -32,6 +33,7 @@ public class XmlFromUrlCommand extends DataSourceCommand {
         super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
         outputWrapperElementName = getOptionalAttribute(config, "tag");
         spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
+        expandParametersInResponse = Boolean.parseBoolean(getOptionalAttribute(config, "expand-parameters-in-response", "true"));
     }
 
     @Override
@@ -55,7 +57,9 @@ public class XmlFromUrlCommand extends DataSourceCommand {
             public Element unexpanded;
             @Override protected @Nonnull Element[] populateOrThrow() {
                 if (unexpanded == null) return new Element[0];
-                var expanded = DomVariableExpander.expand(dollarThenBraces, stringParams, unexpanded).getDocumentElement();
+                var expanded = expandParametersInResponse
+                    ? DomVariableExpander.expand(dollarThenBraces, stringParams, unexpanded).getDocumentElement()
+                    : unexpanded;
 
                 Element wrapped;
                 if (outputWrapperElementName == null) wrapped = expanded;

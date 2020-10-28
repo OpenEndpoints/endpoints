@@ -2752,6 +2752,20 @@ If XML is received then that XML is the result of this data source.
 \end_layout
 
 \begin_layout Standard
+Variables are expanded in the resulting XML.
+ To prevent expansion, use the attribute 
+\family typewriter
+<xml-from-url 
+\series bold
+expand-parameters-in-response="false"
+\series default
+>
+\family default
+.
+ 
+\end_layout
+
+\begin_layout Standard
 The optional 
 \family typewriter
 <xml-from-url 
@@ -2767,10 +2781,6 @@ tag="xyz"
 \family default
  tag.
  Otherwise, the XML is included as is, without being wrapped.
-\end_layout
-
-\begin_layout Standard
-Variables are expanded in the bodies of fetched elements, and in all attributes.
 \end_layout
 
 \end_deeper
