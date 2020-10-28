@@ -2727,13 +2727,13 @@ reference "subsec:Making-an-HTTP-Request"
 \begin_layout Standard
 The optional 
 \family typewriter
+<xml-from-url 
+\series bold
 ignore-if-error="true"
+\series default
+>
 \family default
- attribute, as described in the task, may be present on the 
-\family typewriter
-<xml-from-url>
-\family default
- tag.
+ attribute may be present.
 \end_layout
 
 \begin_layout Standard
@@ -2754,14 +2754,14 @@ If XML is received then that XML is the result of this data source.
 \begin_layout Standard
 The optional 
 \family typewriter
+<xml-from-url 
+\series bold
 tag="xyz"
+\series default
+>
 \family default
- attribute may be present in the 
-\family typewriter
-<xml-from-url>
-\family default
- element.
- If it is present, the response in the output is wrapped in an 
+ attribute may be present, meaning the response in the output is wrapped
+ in an 
 \family typewriter
 <xyz>
 \family default
