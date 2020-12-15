@@ -43,6 +43,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -71,6 +72,7 @@ public class HttpRequestSpecification {
     protected final @Nonnull Map<String, String> getParameterPatterns;
     protected final @Nonnull Map<String, String> requestHeaderPatterns;
     protected @CheckForNull String usernamePatternOrNull, passwordPatternOrNull;
+    protected final @Nonnull Map<String, String> postParameterPatterns;
     protected @CheckForNull Element requestBodyXmlTemplate;
     protected @CheckForNull WeaklyCachedXsltTransformer requestBodyXmlTransformer;
     protected boolean replaceXmlElementWithFileUploads, replaceXmlElementsWithTransformerResults;
@@ -164,7 +166,7 @@ public class HttpRequestSpecification {
     ) throws ConfigurationException {
         assertNoOtherElements(command, "post-process", "after", "input-intermediate-value", "output-intermediate-value",
             "url", "method", "get-parameter", "request-header",
-            "basic-access-authentication", "xml-body", "json-body");
+            "basic-access-authentication", "post-parameter", "xml-body", "json-body");
 
         ignoreIfError = parseBoolean(getOptionalAttribute(command, "ignore-if-error"));
         
@@ -176,6 +178,7 @@ public class HttpRequestSpecification {
 
         getParameterPatterns = parseMap(command, "get-parameter", "name");
         requestHeaderPatterns = parseMap(command, "request-header", "name");
+        postParameterPatterns = parseMap(command, "post-parameter", "name");
 
         var authElement = getOptionalSingleSubElement(command, "basic-access-authentication");
         if (authElement != null) {
@@ -228,8 +231,13 @@ public class HttpRequestSpecification {
                 throw new ConfigurationException("<json-body>: must have xslt-file='x.xslt' attr, or a fixed body");
         }
 
-        if (requestBodyXmlTemplate != null && requestBodyJsonTemplate != null)
-            throw new ConfigurationException("Only one of <xml-body> and <json-body> may be set");
+        int bodyCount = 0;
+        if ( ! postParameterPatterns.isEmpty()) bodyCount++;
+        if (requestBodyXmlTemplate != null) bodyCount++;
+        if (requestBodyJsonTemplate != null) bodyCount++;
+        if (bodyCount > 1)
+            throw new ConfigurationException("An HTTP request can only have one body. " +
+                "Yet multiple types were set, out of <post-parameter>, <xml-body>, <json-body>");
     }
 
     public void assertParametersSuffice(
@@ -243,9 +251,14 @@ public class HttpRequestSpecification {
 
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, urlPattern, "<url> element");
         for (var e : getParameterPatterns.entrySet())
-            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, e.getValue(), "<get-parameter name='"+e.getKey()+"'> element");
+            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, 
+                e.getValue(), "<get-parameter name='"+e.getKey()+"'> element");
         for (var e : requestHeaderPatterns.entrySet())
-            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, e.getValue(), "<request-header name='"+e.getKey()+"'> element");
+            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, 
+                e.getValue(), "<request-header name='"+e.getKey()+"'> element");
+        for (var e : postParameterPatterns.entrySet())
+            PlaintextParameterReplacer.assertParametersSuffice(stringKeys, 
+                e.getValue(), "<post-parameter name='"+e.getKey()+"'> element");
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, usernamePatternOrNull, "'username' attribute");
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, passwordPatternOrNull, "'password' attribute");
 
@@ -301,6 +314,25 @@ public class HttpRequestSpecification {
                 var pw = replacePlainTextParameters(passwordPatternOrNull, stringParams);
                 var encodedAuth = Base64.encodeBase64String((user + ":" + pw).getBytes(UTF_8));
                 urlConnection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+            }
+            
+            if ( ! postParameterPatterns.isEmpty()) {
+                Runnable req = () -> {
+                    var expanded = new HashMap<String, String>();
+                    for (var e : postParameterPatterns.entrySet())
+                        expanded.put(e.getKey(), replacePlainTextParameters(e.getValue(), stringParams));
+                    var bodyBytes = WebEncodingUtils.encodeGetParameters(expanded).toString().getBytes(StandardCharsets.UTF_8);
+                    urlConnection.setDoOutput(true);
+                    try (DataOutputStream wr = new DataOutputStream(urlConnection.getOutputStream())) {
+                        wr.write(bodyBytes);
+                    }
+                    catch (IOException e) {
+                        throwException(baseUrl, e); // IOException can be URL not found etc.
+                        after.accept(null);
+                    }
+                };
+                context.threads.addTaskOffPool(req);
+                precursorTasks.add(req);
             }
 
             if (requestBodyXmlTemplate != null || requestBodyXmlTransformer != null) {

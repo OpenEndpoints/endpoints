@@ -71,6 +71,11 @@
       </profile-input>
     </xml-body>
   </xml-from-url>
+  <xml-from-url>
+    <url>http://localhost:8081</url>
+    <method name="POST"/>
+    <post-parameter name="foo">invoicenr = ${invoice-number}</post-parameter>
+  </xml-from-url>
   <xml-from-url ignore-if-error="true">
     <url>https://www.google.com/</url>  <!-- this is not XML -->
   </xml-from-url>
