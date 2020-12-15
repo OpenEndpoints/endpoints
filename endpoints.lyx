@@ -1947,11 +1947,17 @@ The configuration of the task looks like:
 \begin_inset Newline newline
 \end_inset
 
-  <!-- either one <xml-body>, or <json-body>, or neither -->
+  <!-- either one or more <post-parameter>, 
 \end_layout
 
 \begin_layout LyX-Code
-  <!-- see below -->
+       one <xml-body>, one <json-body>, 
+\end_layout
+
+\begin_layout LyX-Code
+       or nothing.
+ See below.
+ -->
 \end_layout
 
 \begin_layout LyX-Code
@@ -2000,10 +2006,19 @@ One of the following body tags may be present:
 \end_layout
 
 \begin_layout Itemize
-No content tag.
- In which case an empty request is sent
+No content tag, in which case an empty request is sent.
 \end_layout
 
+\begin_layout Itemize
+One or more POST parameters, specified like:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<post-parameter name="foo">${variable}</post-parameter>
+\end_layout
+
+\end_deeper
 \begin_layout Itemize
 XML with inline contents.
  An element like the following may be present inside the 

@@ -124,12 +124,15 @@ Vagrant.configure(2) do |config|
        git push origin master:master)
     chmod -R a+rwX /var/endpoints/application-git-repositories
 
-    echo --- Install docker \(to test deployment\)
+    echo --- Install docker
     apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
     add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
     apt-get update
     apt-get install -qy docker-ce
+
+    echo --- Install HTTP listener to test certain requests
+    docker run -p 8081:80 -d --name=http-server --restart unless-stopped -t mendhak/http-https-echo
   }
   
   config.vm.provision "shell", run: "always", inline: %q{
