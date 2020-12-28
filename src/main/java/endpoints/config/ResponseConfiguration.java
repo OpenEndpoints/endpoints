@@ -2,21 +2,35 @@ package endpoints.config;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
-import lombok.Getter;
+import endpoints.task.TaskCondition;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.Set;
 
 public abstract class ResponseConfiguration extends EndpointExecutionParticipant {
 
-    protected @Getter @Nonnull String humanReadableId;
+    protected final @Nonnull String tagName;
+    protected final @Nonnull TaskCondition condition;
 
     public ResponseConfiguration(@Nonnull Element config) throws ConfigurationException {
         super(config);
-        humanReadableId = "<" + config.getTagName() + ">";
+        tagName = config.getTagName();
+        condition = new TaskCondition(config);
+    }
+    
+    public @Nonnull String getHumanReadableId() {
+        return "<" + tagName + condition.getDescriptionForDebugging() + ">";
     }
 
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException { }
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException { 
+        condition.assertParametersSuffice(params, inputIntermediateValues);
+    }
+    
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
+    
+    public boolean satisfiesCondition(@Nonnull Map<String, String> parameters) {
+        return condition.evaluate(parameters);
+    }
 }

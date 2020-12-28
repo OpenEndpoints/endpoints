@@ -321,16 +321,24 @@ public class EndpointExecutor {
         }
     }
     
+    protected abstract static class ResponseConsumer implements Consumer<BufferedHttpResponseDocumentGenerationDestination> {
+        boolean alreadyDelivered = false;
+    }
+    
     @RequiredArgsConstructor
     protected class Response implements Runnable {
         protected final @Nonnull TransformationContext context;
         protected final @Nonnull ResponseConfiguration config;
         protected final boolean success;
-        protected final @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> consumeResponse;
+        protected final @Nonnull ResponseConsumer responseConsumer;
         
         @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
         @Override public void run() {
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+            
+            boolean satisfiesCondition = config.satisfiesCondition(stringParams); 
+            if (responseConsumer.alreadyDelivered || ! satisfiesCondition) return;
+            responseConsumer.alreadyDelivered = true;
 
             int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
 
@@ -355,7 +363,7 @@ public class EndpointExecutor {
             }
             else throw new IllegalStateException("Unexpected config: " + config);
             
-            consumeResponse.accept(destination);
+            responseConsumer.accept(destination);
         }
     }
 
@@ -368,13 +376,14 @@ public class EndpointExecutor {
         protected final @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
         protected final @Nonnull RandomRequestId random;
         
-        public ResponseIncludingForward(@Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
+        public ResponseIncludingForward(
+            @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
             @Nonnull Application application, @Nonnull TransformationContext context,
             @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, @Nonnull ResponseConfiguration config,
             boolean success, @Nonnull ApplicationConfig appConfig, @Nonnull Long autoIncrement, @Nonnull RandomRequestId random,
-            @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> consumeResponse
+            @Nonnull ResponseConsumer responseConsumer
         ) {
-            super(context, config, success, consumeResponse);
+            super(context, config, success, responseConsumer);
             this.environment = environment;
             this.applicationName = applicationName;
             this.application = application;
@@ -406,12 +415,10 @@ public class EndpointExecutor {
                     }
                 };
 
-                // This will itself create a thread pool parallel to this thread pool, which isn't very elegant,
-                // but is simple, and works.
                 attemptSuccess(environment, applicationName, application, appConfig,
                     application.getEndpoints().findEndpointOrThrow(((ForwardToEndpointResponseConfiguration) config).endpoint),
                     context.tx, context.threads, false, new ParameterTransformationLogger(), autoInc, autoIncrement,
-                    random, null, request, consumeResponse);
+                    random, null, request, responseConsumer);
             }
             else super.run();
         }
@@ -442,7 +449,7 @@ public class EndpointExecutor {
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName, @Nonnull ApplicationConfig appConfig,
         @Nonnull TransformationContext context, @Nonnull Endpoint endpoint,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
-        @Nonnull RandomRequestId random, @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> consumeResponse
+        @Nonnull RandomRequestId random, @Nonnull ResponseConsumer responseConsumer
     ) {
         var synchronizationPointForTaskId = new HashMap<TaskId, SynchronizationPoint>();
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
@@ -453,20 +460,20 @@ public class EndpointExecutor {
         while ( ! tasksToSchedule.isEmpty())
             tasks: for (var tasksToScheduleIter = tasksToSchedule.iterator(); tasksToScheduleIter.hasNext(); ) {
                 var task = tasksToScheduleIter.next();
-                var taskDependencies = new ArrayList<SynchronizationPoint>();
+                var dependencies = new ArrayList<SynchronizationPoint>();
                 
                 // What tasks do we depend on? Ignore the task for now in case our dependencies haven't been scheduled yet
                 for (var predecessor : task.predecessors) {
                     if ( ! synchronizationPointForTaskId.containsKey(predecessor)) continue tasks;
-                    taskDependencies.add(synchronizationPointForTaskId.get(predecessor));
+                    dependencies.add(synchronizationPointForTaskId.get(predecessor));
                 }
                 for (var neededInputValue : task.inputIntermediateValues) {
                     if ( ! synchronizationPointForOutputValue.containsKey(neededInputValue)) continue tasks;
-                    taskDependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
+                    dependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
                 }
                 
                 // Schedule the task (after our dependencies)
-                var taskRunnable = task.scheduleTaskExecutionIfNecessary(taskDependencies, context);
+                var taskRunnable = task.scheduleTaskExecutionIfNecessary(dependencies, context);
                 
                 // Remove the task from the list of tasks still to schedule
                 tasksToScheduleIter.remove();
@@ -483,15 +490,25 @@ public class EndpointExecutor {
                 throw new RuntimeException("Unreachable: Probably circular dependency of task intermediate variables");
         }
 
-        var successDependencies = new ArrayList<Runnable>();
-        for (var neededInputValue : endpoint.success.inputIntermediateValues) {
-            successDependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
+        ResponseIncludingForward previousResponse = null;
+        for (var success : endpoint.success) {
+            var dependencies = new ArrayList<Runnable>();
+            if (previousResponse != null)
+                dependencies.add(previousResponse);
+            for (var predecessor : success.predecessors) 
+                dependencies.add(synchronizationPointForTaskId.get(predecessor));
+            for (var neededInputValue : success.inputIntermediateValues) 
+                dependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
+
+            var thisResponse = new ResponseIncludingForward(environment, applicationName, context.application,
+                context, autoInc, success, true, appConfig, autoIncrement, random, responseConsumer);
+            context.threads.addTaskWithDependencies(dependencies, thisResponse);
+            
+            previousResponse = thisResponse;
         }
 
-        var result = new ResponseIncludingForward(environment, applicationName, context.application,
-            context, autoInc, endpoint.success, true, appConfig, autoIncrement, random, consumeResponse);
-        context.threads.addTaskWithDependencies(successDependencies, result);
-        return result;
+        if (previousResponse == null) throw new RuntimeException("Unreachable: no <success> responses scheduled");
+        return previousResponse;
     }
     
     protected void attemptSuccess(
@@ -502,7 +519,7 @@ public class EndpointExecutor {
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
         @Nonnull RandomRequestId random,
         @CheckForNull String hashToCheck, @Nonnull Request req,
-        @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> consumeResponse
+        @Nonnull ResponseConsumer responseConsumer
     ) throws EndpointExecutionFailedException, RequestInvalidException, TransformationFailedException {
         getParameters(applicationName, application, tx, threads, endpoint, req,
             appConfig.debugAllowed, debugRequested, parameterTransformationLogger,
@@ -515,7 +532,7 @@ public class EndpointExecutor {
                         var context = new TransformationContext(application, tx, threads, parameters,
                             ParameterNotFoundPolicy.error, req.getUploadedFiles(), autoInc);
                         scheduleTasksAndSuccess(environment, applicationName, appConfig,
-                            context, endpoint, autoInc, autoIncrement, random, consumeResponse);
+                            context, endpoint, autoInc, autoIncrement, random, responseConsumer);
                     }
                 }
                 catch (RequestInvalidException e) { throw new RuntimeException(e); }
@@ -558,7 +575,7 @@ public class EndpointExecutor {
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
-                var successResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
+                var successResponse = new ResponseConsumer() {
                     public BufferedHttpResponseDocumentGenerationDestination destination;
                     @Override public void accept(BufferedHttpResponseDocumentGenerationDestination d) { destination = d; } 
                 };
@@ -592,7 +609,7 @@ public class EndpointExecutor {
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
 
-                    var errorResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
+                    var errorResponse = new ResponseConsumer() {
                         public BufferedHttpResponseDocumentGenerationDestination destination;
                         @Override public void accept(BufferedHttpResponseDocumentGenerationDestination d) { destination = d; }
                     };

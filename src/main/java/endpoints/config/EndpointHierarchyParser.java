@@ -56,9 +56,8 @@ public class EndpointHierarchyParser extends DomParser {
     
     protected static @Nonnull ResponseConfiguration parseResponseConfiguration(
         @Nonnull Map<String, Transformer> transformers, @Nonnull Set<ParameterName> params,
-        @Nonnull Element parent, @Nonnull String tagName
+        @CheckForNull Element element, @Nonnull String tagName
     ) throws ConfigurationException {
-        var element = getOptionalSingleSubElement(parent, tagName);
         if (element == null) element = DomParser.newDocumentBuilder().newDocument().createElement(tagName);
     
         var responseTransformationElement = getOptionalSingleSubElement(element, "response-transformation");
@@ -179,16 +178,26 @@ public class EndpointHierarchyParser extends DomParser {
                     throw new ConfigurationException("Endpoint has <include-in-hash> parameter '" + p.name + "'" +
                         " but this endpoint does not have a parameter of that name");
 
-            try { 
-                result.success = parseResponseConfiguration(
-                    transformers, result.aggregateParametersOverParents().keySet(), element, "success"); 
+            var successElements = getSubElements(element, "success");
+            result.success = new ArrayList<>();
+            for (int i = 0; i < successElements.size(); i++) {
+                try {
+                    result.success.add(parseResponseConfiguration(
+                        transformers, result.aggregateParametersOverParents().keySet(), successElements.get(i), "success"));
+                }
+                catch (ConfigurationException e) { throw new ConfigurationException("<success> idx=" + i, e); }
             }
-            catch (ConfigurationException e) { throw new ConfigurationException("<success>", e); }
+
+            // Add a default catch-all <success/> if there is no catch-all
+            if (result.success.isEmpty() || result.success.get(result.success.size()-1).condition.isOptional())
+                result.success.add(parseResponseConfiguration(
+                    transformers, result.aggregateParametersOverParents().keySet(), null, "success"));
             
             try { 
                 var errorParamNames = 
                     Set.of(new ParameterName("internal-error-text"), new ParameterName("parameter-transformation-error-text"));
-                result.error = parseResponseConfiguration(transformers, errorParamNames, element, "error"); 
+                result.error = parseResponseConfiguration(transformers, errorParamNames, 
+                    getOptionalSingleSubElement(element, "error"), "error"); 
             }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }
             
@@ -205,7 +214,7 @@ public class EndpointHierarchyParser extends DomParser {
                     transformers, staticDir, result.aggregateParametersOverParents().keySet(), t, taskElements.get(t)));
             
             var successAndTasks = new ArrayList<EndpointExecutionParticipant>();
-            successAndTasks.add(result.success);
+            successAndTasks.addAll(result.success);
             successAndTasks.addAll(result.tasks);
             EndpointExecutionParticipant.assertNoCircularDependencies(successAndTasks);
 
@@ -254,8 +263,9 @@ public class EndpointHierarchyParser extends DomParser {
         if (n instanceof Endpoint) {
             var endpoint = (Endpoint) n;
             result.putIfAbsent(endpoint.name, new HashSet<>());
-            if (endpoint.success instanceof ForwardToEndpointResponseConfiguration)
-                result.get(endpoint.name).add(((ForwardToEndpointResponseConfiguration) endpoint.success).endpoint);
+            for (var s : endpoint.success)
+                if (s instanceof ForwardToEndpointResponseConfiguration)
+                    result.get(endpoint.name).add(((ForwardToEndpointResponseConfiguration) s).endpoint);
             if (endpoint.error instanceof ForwardToEndpointResponseConfiguration)
                 result.get(endpoint.name).add(((ForwardToEndpointResponseConfiguration) endpoint.error).endpoint);
         }

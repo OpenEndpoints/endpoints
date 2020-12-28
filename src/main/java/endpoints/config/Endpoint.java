@@ -16,7 +16,8 @@ public class Endpoint extends EndpointHierarchyNode {
     public @Nonnull NodeName name;
     public @CheckForNull ParameterTransformation parameterTransformation;
     public @Nonnull ParametersForHash parametersForHash;
-    public @Nonnull ResponseConfiguration success, error;
+    public @Nonnull List<ResponseConfiguration> success;
+    public @Nonnull ResponseConfiguration error;
     public final @Nonnull List<Task> tasks = new ArrayList<>();
 
     @Override
@@ -35,7 +36,7 @@ public class Endpoint extends EndpointHierarchyNode {
         if (parameterTransformation != null) 
             parameterTransformation.assertTemplatesValid();
         
-        success.assertTemplatesValid();
+        for (var s : success) s.assertTemplatesValid();
         error.assertTemplatesValid();
         
         for (var t : tasks) t.assertTemplatesValid();

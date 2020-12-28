@@ -46,6 +46,11 @@ public class TaskCondition {
         return ! (operator == Operator.equals && lhsPattern.isEmpty() && rhsPattern.isEmpty());
     }
     
+    public String getDescriptionForDebugging() {
+        if (isOptional()) return " if='" + lhsPattern + "' " + operator.name() + "='" + rhsPattern + "'";
+        else return "";
+    }
+
     public void assertParametersSuffice(
         @Nonnull Set<ParameterName> params,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues

@@ -79,6 +79,7 @@
           <after task-id="t"/>
           <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
         </task>
+        <success if="${email-address}" equals="foo"/>
         <success>
           <input-intermediate-value name="swagger-version"/>
           <forward-to-endpoint endpoint-name="json2">
