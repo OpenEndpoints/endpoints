@@ -324,12 +324,6 @@ example-application
 \begin_layout Subsection
 
 \family typewriter
-endpoints.xml
-\end_layout
-
-\begin_layout Subsubsection
-
-\family typewriter
 <endpoint>
 \family default
  and 
@@ -338,9 +332,14 @@ endpoints.xml
 \end_layout
 
 \begin_layout Standard
-An application contains comprises of multiple endpoints; each has a name
- which is used in the URL.Which endpoints is requested is specified when
- the user calls the application, see section 
+An application contains comprises of multiple endpoints.
+ These are described in the 
+\family typewriter
+endpoints.xml
+\family default
+ file.
+ Each endpoint has a name which is used in the URL.Which endpoints is requested
+ is specified when the user calls the application, see section 
 \begin_inset CommandInset ref
 LatexCommand vref
 reference "sec:Usage"
@@ -370,356 +369,7 @@ Although the endpoints must all have a unique name (for the URL), they are
  elements.
 \end_layout
 
-\begin_layout Subsubsection
-
-\family typewriter
-<success>
-\family default
- and 
-\family typewriter
-<error>
-\end_layout
-
-\begin_layout Standard
-Each 
-\family typewriter
-<endpoint>
-\family default
-, being available to be called as a web request, has two optional sub-sections,
- 
-\family typewriter
-<success>
-\family default
- and 
-\family typewriter
-<error>
-\family default
-.
- They take the same format:
-\end_layout
-
-\begin_layout Itemize
-If the tag (
-\family typewriter
-<success>
-\family default
- or 
-\family typewriter
-<error>
-\family default
-) is missing, this means the server returns an empty 200 OK in the success
- case and 400 error in the case of failure.
- This can be useful if the request should simply perform some tasks e.g.
-\begin_inset space \space{}
-\end_inset
-
-send emails.
-\end_layout
-
-\begin_layout Itemize
-If the tag (
-\family typewriter
-<success>
-\family default
- or 
-\family typewriter
-<error>
-\family default
-) contains 
-\family typewriter
-<redirect-to>
-\family default
- then that specifies a redirect that should be performed.
- The body of the 
-\family typewriter
-<redirect-to>
-\family default
- specifies where.
- Variables, if present, are replaced, in the body.
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-To prevent a malicious request redirecting somewhere wrong, there are optional
- tags like 
-\family typewriter
-<redirect-prefix-whitelist-entry>
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-http://www.google.com
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-</redirect-prefix-whitelist-entry>
-\family default
-.
- If no such tag is present, redirect to any URL is allowed.
- If one or more are present, the URL being redirected to must start with
- the prefix of one of them; otherwise this is an error.
-\end_layout
-
-\end_deeper
-\begin_layout Itemize
-If the tag (
-\family typewriter
-<success>
-\family default
- or 
-\family typewriter
-<error>
-\family default
-) contains 
-\family typewriter
-<response-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-transformation name="a-transformation"/>
-\family default
- then the transformation named in the attribute is performed, and its contents
- are returned to the client in the HTTP response.
- See below for how transformers are defined.
- For example, the transformation might produce HTML to be displayed in the
- browser, or a PDF to be downloaded.
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-If the attribute 
-\family typewriter
-<response-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-transformation ..
- download-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-filename="
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-invoice-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-${invoice-number}.pdf">
-\family default
- is present, then the header in the HTTP response is set indicating that
- the file should be downloaded as opposed to displayed in the browser window.
- Variables are replaced.
-\end_layout
-
-\end_deeper
-\begin_layout Itemize
-If the tag 
-\family typewriter
-<success>
-\family default
- contains 
-\family typewriter
-<forward-to-endpoint endpoint-name="foo"/>
-\family default
- then that endpoint (e.g.
-\begin_inset space \space{}
-\end_inset
-
-
-\family typewriter
-foo
-\family default
-) is executed and the result of that endpoint (e.g.
-\begin_inset space \space{}
-\end_inset
-
-
-\family typewriter
-foo
-\family default
-) is returned as the result of the call being processed.
- 
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-All variables are forwarded to the new endpoint.
- (In the past there was a syntax like 
-\family typewriter
-<input-parameter name="p">${variable}</input-parameter>
-\family default
-.
- It is still supported for backwards compatibility.)
-\end_layout
-
-\begin_layout Standard
-It's possible to chain the execution of any number of endpoints in this
- manner (e.g.
- endpoint 
-\family typewriter
-e1
-\family default
- forwards to 
-\family typewriter
-e2
-\family default
- which itself forwards to 
-\family typewriter
-e3
-\family default
-).
- A circular chain of such references is not allowed as the processing of
- such a chain would never end.
-\end_layout
-
-\begin_layout Standard
-Only one 
-\begin_inset Quotes eld
-\end_inset
-
-request log
-\begin_inset Quotes erd
-\end_inset
-
- gets written, despite a chain of multiple endpoints being processed.
- Only the first 
-\begin_inset Quotes eld
-\end_inset
-
-parameter transformation input/output
-\begin_inset Quotes erd
-\end_inset
-
- is saved with that 
-\begin_inset Quotes eld
-\end_inset
-
-request log
-\begin_inset Quotes erd
-\end_inset
-
- entry, despite each endpoint in the chain potentially having its own parameter
- transformation.
-\end_layout
-
-\begin_layout Standard
-Placing 
-\family typewriter
-<forward-to-endpoint>
-\family default
- inside 
-\family typewriter
-<error>
-\family default
- is not supported, as this would require 
-\begin_inset Quotes eld
-\end_inset
-
-auto increment
-\begin_inset Quotes erd
-\end_inset
-
- numbers to be  assigned even in the case of 
-\family typewriter
-<error>
-\family default
- (as any arbitrary endpoint might be called, which might require them).
- It is an explicit design goal to only support auto-increment numbers (e.g.
-\begin_inset space \space{}
-\end_inset
-
-for invoice numbers) in the case of 
-\family typewriter
-<success>
-\family default
-.
-\end_layout
-
-\begin_layout Standard
-The 
-\begin_inset Quotes eld
-\end_inset
-
-redirect
-\begin_inset Quotes erd
-\end_inset
-
- from one endpoint to another happens within the Endpoints software; no
- redirect is actually sent to the user's browser.
-\end_layout
-
-\end_deeper
-\begin_layout Standard
-The 
-\family typewriter
-<success>
-\family default
- tag may use parameters, as described above.
- The 
-\family typewriter
-<error>
-\family default
- tag may not, as an error might have happened during parameter transformation.
- For the processing of the 
-\family typewriter
-<error>
-\family default
- tag there are two special variables set:
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
-${internal-error-text}
-\family default
- This contains an internal error message.
- It is important this is not exposed to any end customer, as it might contain
- security-sensitive information such as 
-\begin_inset Quotes eld
-\end_inset
-
-cannot connect to database at IP address 1.2.3.4
-\begin_inset Quotes erd
-\end_inset
-
- etc.
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
-${parameter-transformation-error-text}
-\family default
- In case the request failed because the parameter transformation failed,
- and a message was set in the <error> tag in its output.
-\end_layout
-
-\begin_layout Standard
-The 
-\family typewriter
-<success>
-\family default
- tag (but not the 
-\family typewriter
-<error>
-\family default
- tag) may have 
-\family typewriter
-<input-intermedate-value>
-\family default
- elements; these behave the same was as with tasks (see later for further
- explanation.)
-\end_layout
-
-\begin_layout Subsubsection
+\begin_layout Subsection
 Parameters
 \end_layout
 
@@ -826,7 +476,7 @@ multiple-value-separator=','
 the root element of the file).
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Parameter Transformation
 \end_layout
 
@@ -1130,7 +780,7 @@ Normal parameter processing steps are taken (default values are applied,
  an error if values are missing, etc.).
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 \begin_inset CommandInset label
 LatexCommand label
 name "subsec:Hash"
@@ -1329,6 +979,12 @@ s.
 \end_layout
 
 \begin_layout Subsubsection
+\begin_inset CommandInset label
+LatexCommand label
+name "if-equals"
+
+\end_inset
+
 Executing Tasks Optionally
 \end_layout
 
@@ -1715,7 +1371,17 @@ Any attachment may (optionally) have attributes such as
 if="${foo}" equals="bar"
 \family default
 .
- See the section "Executing tasks optionally" for the syntax.
+ See the section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "if-equals"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ for the syntax.
 \end_layout
 
 \begin_layout Standard
@@ -3089,6 +2755,462 @@ data-source-post-processing-input>
 <data-source-post-processing-output>
 \family default
 .
+\end_layout
+
+\begin_layout Subsection
+
+\family typewriter
+<success>
+\family default
+ and 
+\family typewriter
+<error>
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+<endpoint>
+\family default
+, being available to be called as a web request, has two optional sub-sections,
+ 
+\family typewriter
+<success>
+\family default
+ and 
+\family typewriter
+<error>
+\family default
+.
+ They take the same format:
+\end_layout
+
+\begin_layout Itemize
+If the tag (
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+) is missing, or present and empty, this means the server returns an empty
+ 200 OK in the success case and 400 error in the case of failure.
+ This can be useful if the request should simply perform some tasks e.g.
+\begin_inset space \space{}
+\end_inset
+
+send emails.
+\end_layout
+
+\begin_layout Itemize
+If the tag (
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+) contains 
+\family typewriter
+<redirect-to>
+\family default
+ then that specifies a redirect that should be performed.
+ The body of the 
+\family typewriter
+<redirect-to>
+\family default
+ specifies where.
+ Variables, if present, are replaced, in the body.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+To prevent a malicious request redirecting somewhere wrong, there are optional
+ tags like 
+\family typewriter
+<redirect-prefix-whitelist-entry>
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+http://www.google.com
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+</redirect-prefix-whitelist-entry>
+\family default
+.
+ If no such tag is present, redirect to any URL is allowed.
+ If one or more are present, the URL being redirected to must start with
+ the prefix of one of them; otherwise this is an error.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+If the tag (
+\family typewriter
+<success>
+\family default
+ or 
+\family typewriter
+<error>
+\family default
+) contains 
+\family typewriter
+<response-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+transformation name="a-transformation"/>
+\family default
+ then the transformation named in the attribute is performed, and its contents
+ are returned to the client in the HTTP response.
+ See below for how transformers are defined.
+ For example, the transformation might produce HTML to be displayed in the
+ browser, or a PDF to be downloaded.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+If the attribute 
+\family typewriter
+<response-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+transformation ..
+ download-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+filename="
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+invoice-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+${invoice-number}.pdf">
+\family default
+ is present, then the header in the HTTP response is set indicating that
+ the file should be downloaded as opposed to displayed in the browser window.
+ Variables are replaced.
+\end_layout
+
+\end_deeper
+\begin_layout Itemize
+If the tag 
+\family typewriter
+<success>
+\family default
+ contains 
+\family typewriter
+<forward-to-endpoint endpoint-name="foo"/>
+\family default
+ then that endpoint (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+foo
+\family default
+) is executed and the result of that endpoint (e.g.
+\begin_inset space \space{}
+\end_inset
+
+
+\family typewriter
+foo
+\family default
+) is returned as the result of the call being processed.
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+All variables are forwarded to the new endpoint.
+ (In the past there was a syntax like 
+\family typewriter
+<input-parameter name="p">${variable}</input-parameter>
+\family default
+.
+ It is still supported for backwards compatibility.)
+\end_layout
+
+\begin_layout Standard
+It's possible to chain the execution of any number of endpoints in this
+ manner (e.g.
+ endpoint 
+\family typewriter
+e1
+\family default
+ forwards to 
+\family typewriter
+e2
+\family default
+ which itself forwards to 
+\family typewriter
+e3
+\family default
+).
+ A circular chain of such references is not allowed as the processing of
+ such a chain would never end.
+\end_layout
+
+\begin_layout Standard
+Only one 
+\begin_inset Quotes eld
+\end_inset
+
+request log
+\begin_inset Quotes erd
+\end_inset
+
+ gets written, despite a chain of multiple endpoints being processed.
+ Only the first 
+\begin_inset Quotes eld
+\end_inset
+
+parameter transformation input/output
+\begin_inset Quotes erd
+\end_inset
+
+ is saved with that 
+\begin_inset Quotes eld
+\end_inset
+
+request log
+\begin_inset Quotes erd
+\end_inset
+
+ entry, despite each endpoint in the chain potentially having its own parameter
+ transformation.
+\end_layout
+
+\begin_layout Standard
+Placing 
+\family typewriter
+<forward-to-endpoint>
+\family default
+ inside 
+\family typewriter
+<error>
+\family default
+ is not supported, as this would require 
+\begin_inset Quotes eld
+\end_inset
+
+auto increment
+\begin_inset Quotes erd
+\end_inset
+
+ numbers to be  assigned even in the case of 
+\family typewriter
+<error>
+\family default
+ (as any arbitrary endpoint might be called, which might require them).
+ It is an explicit design goal to only support auto-increment numbers (e.g.
+\begin_inset space \space{}
+\end_inset
+
+for invoice numbers) in the case of 
+\family typewriter
+<success>
+\family default
+.
+\end_layout
+
+\begin_layout Standard
+The 
+\begin_inset Quotes eld
+\end_inset
+
+redirect
+\begin_inset Quotes erd
+\end_inset
+
+ from one endpoint to another happens within the Endpoints software; no
+ redirect is actually sent to the user's browser.
+\end_layout
+
+\end_deeper
+\begin_layout Standard
+The 
+\family typewriter
+<success>
+\family default
+ tag may use parameters, as described above.
+ 
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+<success>
+\family default
+ processing happens, by default, in parallel with the processing of tasks,
+ in order to reduce the duration of the request and deliver a faster response.
+ To declare that the 
+\family typewriter
+<success>
+\family default
+ must be processed after a particular task, specify dependencies using 
+\family typewriter
+<after>
+\family default
+ elements as specified in section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:after"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+, and 
+\family typewriter
+<input-intermedate-value>
+\family default
+ as specified in section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:Intermediate-Values"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Multiple 
+\family typewriter
+<success>
+\family default
+ options
+\end_layout
+
+\begin_layout Standard
+Different results may be required for the same endpoint based on certain
+ criteria.
+ It is possible to define any number of success elements such as:
+\end_layout
+
+\begin_layout LyX-Code
+<success if="${foo}" equals="bar"> ....
+ </success>
+\end_layout
+
+\begin_layout LyX-Code
+<success if="${bar}" equals="baz"> ....
+ </success>
+\end_layout
+
+\begin_layout LyX-Code
+<success> ...
+ </success>
+\end_layout
+
+\begin_layout Standard
+The conditions are considered in the order they're written in the file,
+ so put more general 
+\begin_inset Quotes eld
+\end_inset
+
+catch-all
+\begin_inset Quotes erd
+\end_inset
+
+ items at the bottom and more specific 
+\begin_inset Quotes eld
+\end_inset
+
+if...
+\begin_inset Quotes erd
+\end_inset
+
+ items at the top.
+ The syntax for 
+\family typewriter
+if
+\family default
+ and 
+\family typewriter
+equals
+\family default
+ is described in section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "if-equals"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+
+\family typewriter
+<error>
+\family default
+ Variables
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+<error>
+\family default
+ tag may not use parameters, as an error might have happened during parameter
+ transformation, and therefore parameters are not necessarily available.
+ For the processing of the 
+\family typewriter
+<error>
+\family default
+ tag there are two special variables set:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+${internal-error-text}
+\family default
+ This contains an internal error message.
+ It is important this is not exposed to any end customer, as it might contain
+ security-sensitive information such as 
+\begin_inset Quotes eld
+\end_inset
+
+cannot connect to database at IP address 1.2.3.4
+\begin_inset Quotes erd
+\end_inset
+
+ etc.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+${parameter-transformation-error-text}
+\family default
+ In case the request failed because the parameter transformation failed,
+ and a message was set in the <error> tag in its output.
 \end_layout
 
 \begin_layout Subsection

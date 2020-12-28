@@ -1,8 +1,10 @@
 package endpoints.config;
 
+import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.PlaintextParameterReplacer;
+import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
@@ -30,5 +32,14 @@ public class RedirectResponseConfiguration extends ResponseConfiguration {
     @Override
     public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, urlPattern, "<redirect-to>");
+    }
+    
+    @SneakyThrows(ConfigurationException.class)
+    public static @Nonnull RedirectResponseConfiguration newForTesting(@Nonnull String condition, @Nonnull String destinationUrl) {
+        return new RedirectResponseConfiguration(
+            DomParser.from("<foo "+condition+">" +
+                "<redirect-prefix-whitelist-entry>"+destinationUrl+"</redirect-prefix-whitelist-entry></foo>"),
+            DomParser.from("<foo>"+destinationUrl+"</foo>")
+        );
     }
 }

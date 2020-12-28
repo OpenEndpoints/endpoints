@@ -7,6 +7,8 @@ import junit.framework.TestCase;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import java.util.List;
+
 import static endpoints.config.EndpointHierarchyParser.assertEndpointForwardsExitAndNoCircularReferences;
 
 public class EndpointHierarchyParserTest extends TestCase {
@@ -14,8 +16,8 @@ public class EndpointHierarchyParserTest extends TestCase {
     protected @Nonnull Endpoint newEndpoint(@Nonnull String name, @CheckForNull String forwardTo) throws Exception {
         Endpoint result = new Endpoint();
         result.name = new NodeName(name);
-        result.success = forwardTo == null ? new EmptyResponseConfiguration(DomParser.from("<unit-test/>")) 
-            : new ForwardToEndpointResponseConfiguration(DomParser.from("<unit-test/>"), new NodeName(forwardTo));
+        result.success = List.of(forwardTo == null ? new EmptyResponseConfiguration(DomParser.from("<unit-test/>")) 
+            : new ForwardToEndpointResponseConfiguration(DomParser.from("<unit-test/>"), new NodeName(forwardTo)));
         return result;
     }
 

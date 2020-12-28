@@ -49,8 +49,11 @@ public class ServicePortalEndpointMenuItemsParser extends DomParser {
     throws ConfigurationException {
         try {
             var candidate = endpoints.findEndpointOrThrow(name);
-            assertResponseConfigurationAcceptable("Endpoint '" + name.name + "': <success>: ", candidate.success);
-            assertResponseConfigurationAcceptable("Endpoint '" + name.name + "': <error>: ",   candidate.error);
+            for (var successResponse : candidate.success)
+                assertResponseConfigurationAcceptable("Endpoint '" + name.name + "': "+
+                    successResponse.getHumanReadableId()+": ", successResponse);
+            assertResponseConfigurationAcceptable("Endpoint '" + name.name + "': "+
+                candidate.error.getHumanReadableId()+": ", candidate.error);
             return name;
         }
         catch (NodeNotFoundException e) { throw new ConfigurationException(e); }
