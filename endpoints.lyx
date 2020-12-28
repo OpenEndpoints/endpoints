@@ -551,33 +551,13 @@ foo
 
 \begin_deeper
 \begin_layout Standard
-The variables passed to the endpoint (e.g.
-\begin_inset space \space{}
-\end_inset
-
-
+All variables are forwarded to the new endpoint.
+ (In the past there was a syntax like 
 \family typewriter
-foo
+<input-parameter name="p">${variable}</input-parameter>
 \family default
-) are explicitly listed.
- In the following example, the value of 
-\family typewriter
-${variable}
-\family default
- is passed as the parameter 
-\family typewriter
-p
-\family default
- to the second endpoint (e.g.
-\begin_inset space \space{}
-\end_inset
-
-
-\family typewriter
-foo
-\family default
-).
- 
+.
+ It is still supported for backwards compatibility.)
 \end_layout
 
 \begin_layout Standard
@@ -674,32 +654,6 @@ redirect
 
  from one endpoint to another happens within the Endpoints software; no
  redirect is actually sent to the user's browser.
-\end_layout
-
-\begin_layout LyX-Code
-<success>
-\end_layout
-
-\begin_layout LyX-Code
-  
-\family typewriter
-<input-intermedate-value ...>
-\end_layout
-
-\begin_layout LyX-Code
-  <forward-to-endpoint endpoint-name="foo">
-\end_layout
-
-\begin_layout LyX-Code
-    <input-parameter name="p">${variable}</input-parameter>
-\end_layout
-
-\begin_layout LyX-Code
-  </forward-to-endpoint>
-\end_layout
-
-\begin_layout LyX-Code
-</success>
 \end_layout
 
 \end_deeper

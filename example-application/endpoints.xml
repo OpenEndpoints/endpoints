@@ -92,9 +92,7 @@
       
       <endpoint name="json2">
         <success>
-          <forward-to-endpoint endpoint-name="json3">
-            <input-parameter name="param-in-hash">inner value from json2</input-parameter>
-          </forward-to-endpoint>
+          <forward-to-endpoint endpoint-name="json3"/>
         </success>
       </endpoint>
 

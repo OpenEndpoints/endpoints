@@ -397,8 +397,12 @@ public class EndpointExecutor {
                     @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
                     @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
                     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
-                        return ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns.entrySet().stream()
-                            .collect(toMap(e -> e.getKey(), e -> List.of(replacePlainTextParameters(e.getValue(), stringParams))));
+                        var patterns = ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns;
+                        return patterns == null
+                            ? stringParams.entrySet().stream().collect(
+                                toMap(e -> new ParameterName(e.getKey()), e -> List.of(e.getValue()))) 
+                            : patterns.entrySet().stream().collect(
+                                toMap(e -> e.getKey(), e -> List.of(replacePlainTextParameters(e.getValue(), stringParams))));
                     }
                 };
 
