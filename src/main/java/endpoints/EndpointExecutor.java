@@ -597,10 +597,16 @@ public class EndpointExecutor {
                         @Override public void accept(BufferedHttpResponseDocumentGenerationDestination d) { destination = d; }
                     };
 
+                    var errorExpansionValues = new HashMap<ParameterName, String>();
+                    errorExpansionValues.put(new ParameterName("internal-error-text"), e.getMessage());
+                    errorExpansionValues.put(new ParameterName("parameter-transformation-error-text"),
+                        e instanceof ParameterTransformationHadErrorException
+                            ? ((ParameterTransformationHadErrorException) e).error : "");
+
                     var threads = new ThreadPool();
                     threads.setThreadNamePrefix(getClass().getName() + " <error>");
                     var autoInc = newLazyNumbers(applicationName, environment, now);
-                    var context = new TransformationContext(application, tx, threads, new HashMap<>(),
+                    var context = new TransformationContext(application, tx, threads, errorExpansionValues,
                         ParameterNotFoundPolicy.error, emptyList(), autoInc);
                     threads.addTask(new Response(context, endpoint.error, false, errorResponse));
                     

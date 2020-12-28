@@ -1,0 +1,18 @@
+<data-source>
+    <literal-xml>
+        <html>
+            <body>
+                <p>An error occurred.</p>
+                <p>
+                    <dl>
+                        <dt>internal-error-text</dt>
+                        <dd>${internal-error-text}</dd>
+                        
+                        <dt>parameter-transformation-error-text</dt>
+                        <dd>${parameter-transformation-error-text}</dd>
+                    </dl>
+                </p>
+            </body>
+        </html>
+    </literal-xml>
+</data-source>

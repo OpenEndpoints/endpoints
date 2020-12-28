@@ -15,6 +15,7 @@
                     <xsl:value-of select="/parameter-transformation-input/from-xml-from-url/response/args/unknown-param/text()"/>
                 </xsl:attribute>
             </parameter>
+            <!--<error>Test param error</error>-->
         </parameter-transformation-output>
     </xsl:template>
 
