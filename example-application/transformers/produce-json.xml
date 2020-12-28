@@ -1,4 +1,4 @@
-  <transformer data-source="foo">
+  <transformer data-source="multiple">
     <xslt-file name="add-values-via-java-functions.xslt"/>
     <convert-output-xml-to-json/>
   </transformer>
