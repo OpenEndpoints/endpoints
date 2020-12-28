@@ -596,7 +596,8 @@ e2
 e3
 \family default
 ).
- A circular chain of such references is not allowed.
+ A circular chain of such references is not allowed as the processing of
+ such a chain would never end.
 \end_layout
 
 \begin_layout Standard
@@ -625,7 +626,7 @@ request log
 \begin_inset Quotes erd
 \end_inset
 
- entry, despite each endpoint in the chain potentially having a parameter
+ entry, despite each endpoint in the chain potentially having its own parameter
  transformation.
 \end_layout
 
