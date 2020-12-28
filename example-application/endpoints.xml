@@ -86,7 +86,7 @@
           </forward-to-endpoint>
         </success>
         <error>
-          <response-transformation name="produce-html"/>
+          <response-transformation name="produce-error"/>
         </error>
       </endpoint>
       
@@ -108,7 +108,7 @@
           <response-transformation download-filename="invoice-${invoice-number}.pdf" name="produce-pdf"/>
         </success>
         <error>
-          <response-transformation name="produce-html"/>
+          <response-transformation name="produce-error"/>
         </error>
         <task class="endpoints.task.EmailTask" if="${email-address}" notequals="">
           <from>endpoints@example.com</from>
@@ -130,7 +130,7 @@
         <response-transformation name="produce-html"/>
       </success>
       <error>
-        <response-transformation name="produce-html"/>
+        <response-transformation name="produce-error"/>
       </error>
     </endpoint>
        
@@ -139,7 +139,7 @@
         <response-transformation name="produce-form"/>
       </success>
       <error>
-        <response-transformation name="produce-html"/>
+        <response-transformation name="produce-error"/>
       </error>
     </endpoint>
  </endpoint-folder>

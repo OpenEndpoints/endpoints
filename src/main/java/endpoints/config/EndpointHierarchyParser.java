@@ -186,8 +186,9 @@ public class EndpointHierarchyParser extends DomParser {
             catch (ConfigurationException e) { throw new ConfigurationException("<success>", e); }
             
             try { 
-                result.error = parseResponseConfiguration(
-                    transformers, new HashSet<>() /* errors don't have access to params*/,  element, "error"); 
+                var errorParamNames = 
+                    Set.of(new ParameterName("internal-error-text"), new ParameterName("parameter-transformation-error-text"));
+                result.error = parseResponseConfiguration(transformers, errorParamNames, element, "error"); 
             }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }
             

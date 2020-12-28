@@ -662,6 +662,51 @@ The
 \family typewriter
 <success>
 \family default
+ tag may use parameters, as described above.
+ The 
+\family typewriter
+<error>
+\family default
+ tag may not, as an error might have happened during parameter transformation.
+ For the processing of the 
+\family typewriter
+<error>
+\family default
+ tag there are two special variables set:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+${internal-error-text}
+\family default
+ This contains an internal error message.
+ It is important this is not exposed to any end customer, as it might contain
+ security-sensitive information such as 
+\begin_inset Quotes eld
+\end_inset
+
+cannot connect to database at IP address 1.2.3.4
+\begin_inset Quotes erd
+\end_inset
+
+ etc.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+${parameter-transformation-error-text}
+\family default
+ In case the request failed because the parameter transformation failed,
+ and a message was set in the <error> tag in its output.
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+<success>
+\family default
  tag (but not the 
 \family typewriter
 <error>
