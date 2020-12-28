@@ -6,6 +6,7 @@ import endpoints.PlaintextParameterReplacer;
 import lombok.AllArgsConstructor;
 import org.w3c.dom.Element;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,7 +20,9 @@ import static endpoints.config.EndpointHierarchyParser.parseParameterMap;
 public class ForwardToEndpointResponseConfiguration extends ResponseConfiguration {
     
     @Nonnull public NodeName endpoint;
-    @Nonnull public Map<ParameterName, String> inputParameterPatterns;
+    
+    /** Null means that all parameters are forwarded */
+    @CheckForNull public Map<ParameterName, String> inputParameterPatterns;
 
     public ForwardToEndpointResponseConfiguration(@Nonnull Element config, @Nonnull Element forwardToEndpointElement) 
     throws ConfigurationException {
@@ -29,7 +32,10 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
         try {
             assertNoOtherElements(forwardToEndpointElement, "input-parameter");
             endpoint = new NodeName(getMandatoryAttribute(forwardToEndpointElement, "endpoint-name"));
-            inputParameterPatterns = parseParameterMap(forwardToEndpointElement, "input-parameter", "name");
+            
+            var patterns = parseParameterMap(forwardToEndpointElement, "input-parameter", "name");
+            if (patterns.isEmpty()) inputParameterPatterns = null;
+            else inputParameterPatterns = patterns;
         }
         catch (ConfigurationException e) { throw new ConfigurationException("<forward-to-endpoint>", e); }
 
@@ -39,13 +45,14 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
     public ForwardToEndpointResponseConfiguration(@Nonnull Element config, @Nonnull NodeName endpoint) throws ConfigurationException {
         super(config);
         this.endpoint = endpoint;
-        this.inputParameterPatterns = new HashMap<>();
+        this.inputParameterPatterns = null;
     }
 
     @Override public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
-        for (var e : inputParameterPatterns.entrySet())
-            PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, e.getValue(), 
-                "<input-parameter name='"+e.getKey().name+"'>");
+        if (inputParameterPatterns != null)
+            for (var e : inputParameterPatterns.entrySet())
+                PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, e.getValue(), 
+                    "<input-parameter name='"+e.getKey().name+"'>");
     } 
 }
