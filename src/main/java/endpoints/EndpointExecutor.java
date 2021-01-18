@@ -321,39 +321,31 @@ public class EndpointExecutor {
         }
     }
     
-    protected abstract static class ResponseConsumer implements Consumer<BufferedHttpResponseDocumentGenerationDestination> {
-        boolean alreadyDelivered = false;
-    }
-    
     @RequiredArgsConstructor
     protected class Response implements Runnable {
         protected final @Nonnull TransformationContext context;
         protected final @Nonnull ResponseConfiguration config;
         protected final boolean success;
-        protected final @Nonnull ResponseConsumer responseConsumer;
+        protected final @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer;
         
         @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
-        @Override public void run() {
-            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
-            
-            boolean satisfiesCondition = config.satisfiesCondition(stringParams); 
-            if (responseConsumer.alreadyDelivered || ! satisfiesCondition) return;
-            responseConsumer.alreadyDelivered = true;
-
-            int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
-
+        public void runUnconditionally() {
             var destination = new BufferedHttpResponseDocumentGenerationDestination();
 
             if (config instanceof EmptyResponseConfiguration) {
+                int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
                 destination.setStatusCode(statusCode);
             }
             else if (config instanceof RedirectResponseConfiguration) {
+                var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
                 var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
                 if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
                     throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
                 destination.setRedirectUrl(new URL(url));
             }
             else if (config instanceof TransformationResponseConfiguration) {
+                int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
+                var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
                 var r = (TransformationResponseConfiguration) config;
                 destination.setStatusCode(statusCode);
                 r.transformer.scheduleExecution(context, config.inputIntermediateValues, destination);
@@ -364,6 +356,19 @@ public class EndpointExecutor {
             else throw new IllegalStateException("Unexpected config: " + config);
             
             responseConsumer.accept(destination);
+        }
+
+        @Override 
+        public void run() {
+            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+
+            boolean satisfiesCondition = config.satisfiesCondition(stringParams);
+            synchronized (context) {
+                if (context.alreadyDeliveredResponse || !satisfiesCondition) return;
+                context.alreadyDeliveredResponse = true;
+            }
+
+            runUnconditionally();
         }
     }
 
@@ -381,7 +386,7 @@ public class EndpointExecutor {
             @Nonnull Application application, @Nonnull TransformationContext context,
             @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, @Nonnull ResponseConfiguration config,
             boolean success, @Nonnull ApplicationConfig appConfig, @Nonnull Long autoIncrement, @Nonnull RandomRequestId random,
-            @Nonnull ResponseConsumer responseConsumer
+            @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
         ) {
             super(context, config, success, responseConsumer);
             this.environment = environment;
@@ -395,7 +400,7 @@ public class EndpointExecutor {
 
         @SneakyThrows({RequestInvalidException.class, TransformationFailedException.class, NodeNotFoundException.class,
             EndpointExecutionFailedException.class})
-        @Override public void run() {
+        @Override public void runUnconditionally() {
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
             if (config instanceof ForwardToEndpointResponseConfiguration) {
@@ -420,7 +425,7 @@ public class EndpointExecutor {
                     context.tx, context.threads, false, new ParameterTransformationLogger(), autoInc, autoIncrement,
                     random, null, request, responseConsumer);
             }
-            else super.run();
+            else super.runUnconditionally();
         }
     }
 
@@ -449,7 +454,7 @@ public class EndpointExecutor {
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName, @Nonnull ApplicationConfig appConfig,
         @Nonnull TransformationContext context, @Nonnull Endpoint endpoint,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
-        @Nonnull RandomRequestId random, @Nonnull ResponseConsumer responseConsumer
+        @Nonnull RandomRequestId random, @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
     ) {
         var synchronizationPointForTaskId = new HashMap<TaskId, SynchronizationPoint>();
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
@@ -519,7 +524,7 @@ public class EndpointExecutor {
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, long autoIncrement,
         @Nonnull RandomRequestId random,
         @CheckForNull String hashToCheck, @Nonnull Request req,
-        @Nonnull ResponseConsumer responseConsumer
+        @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
     ) throws EndpointExecutionFailedException, RequestInvalidException, TransformationFailedException {
         getParameters(applicationName, application, tx, threads, endpoint, req,
             appConfig.debugAllowed, debugRequested, parameterTransformationLogger,
@@ -575,7 +580,7 @@ public class EndpointExecutor {
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
-                var successResponse = new ResponseConsumer() {
+                var successResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                     public BufferedHttpResponseDocumentGenerationDestination destination;
                     @Override public void accept(BufferedHttpResponseDocumentGenerationDestination d) { destination = d; } 
                 };
@@ -609,7 +614,7 @@ public class EndpointExecutor {
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     Logger.getLogger(getClass()).warn("Delivering error", e);
 
-                    var errorResponse = new ResponseConsumer() {
+                    var errorResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                         public BufferedHttpResponseDocumentGenerationDestination destination;
                         @Override public void accept(BufferedHttpResponseDocumentGenerationDestination d) { destination = d; }
                     };
