@@ -20,6 +20,7 @@ import static java.util.Collections.synchronizedMap;
  *   <p>
  * There are (at the time of writing) three times in the endpoints's execution where one is created:
  * During parameter transformation, during success flow, and during error flow.
+ * If a success flow forwards to another endpoint then its success flow gets its own object.
  *   <p>
  * An {@link ApplicationTransaction} can span multiple {@link TransformationContext}s, for example, in the success case,
  * the parameters and transformed and the success flow executes within one transaction.
@@ -37,6 +38,7 @@ public class TransformationContext {
     public final @Nonnull Map<IntermediateValueName, String> intermediateValues = synchronizedMap(new HashMap<>());
     public final @Nonnull List<? extends UploadedFile> fileUploads;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
+    public boolean alreadyDeliveredResponse = false;
 
     public static class TransformerExecutor implements Runnable {
         public final @Nonnull BufferedDocumentGenerationDestination result = new BufferedDocumentGenerationDestination();

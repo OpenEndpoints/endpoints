@@ -18,6 +18,7 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import static endpoints.TransformationContext.ParameterNotFoundPolicy.error;
 import static java.net.HttpURLConnection.HTTP_MOVED_PERM;
@@ -81,7 +82,7 @@ public class EndpointExecutorTest extends TestCase {
                         var context = new TransformationContext(Application.newForTesting(Map.of()), tx, threads,
                             Map.of(new ParameterName("param"), param), error, List.of(), Map.of());
                         
-                        var consumer = new EndpointExecutor.ResponseConsumer() {
+                        var consumer = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                             BufferedHttpResponseDocumentGenerationDestination x;
                             @Override public void accept(BufferedHttpResponseDocumentGenerationDestination x) { this.x=x; }
                         };
@@ -91,7 +92,7 @@ public class EndpointExecutorTest extends TestCase {
                         
                         threads.execute();
                         
-                        assertTrue(consumer.alreadyDelivered);
+                        assertTrue(context.alreadyDeliveredResponse);
                         assertEquals("ab", output.toString());
                         assertEquals(param.equals("special") ? HTTP_MOVED_PERM : HTTP_OK, consumer.x.getStatusCode());
                     }
