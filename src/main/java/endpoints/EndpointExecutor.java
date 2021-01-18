@@ -620,7 +620,8 @@ public class EndpointExecutor {
                     };
 
                     var errorExpansionValues = new HashMap<ParameterName, String>();
-                    errorExpansionValues.put(new ParameterName("internal-error-text"), e.getMessage());
+                    errorExpansionValues.put(new ParameterName("internal-error-text"), 
+                        Optional.ofNullable(e.getMessage()).orElse(""));
                     errorExpansionValues.put(new ParameterName("parameter-transformation-error-text"),
                         e instanceof ParameterTransformationHadErrorException
                             ? ((ParameterTransformationHadErrorException) e).error : "");
