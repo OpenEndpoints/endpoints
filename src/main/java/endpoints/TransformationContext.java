@@ -55,7 +55,9 @@ public class TransformationContext {
         return result;
     }
     
-    public @Nonnull Map<IntermediateValueName, String> getVisibleIntermediateValues(@Nonnull Set<IntermediateValueName> visible) {
+    public synchronized @Nonnull Map<IntermediateValueName, String> getVisibleIntermediateValues(
+        @Nonnull Set<IntermediateValueName> visible
+    ) {
         var result = new HashMap<>(intermediateValues);
         result.keySet().retainAll(visible);
         for (var n : visible) {
@@ -66,7 +68,7 @@ public class TransformationContext {
         return result;
     }
 
-    public @Nonnull Map<String, String> getStringParametersIncludingIntermediateValues(
+    public synchronized @Nonnull Map<String, String> getStringParametersIncludingIntermediateValues(
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
         Map<String, String> result = new HashMap<>() {
