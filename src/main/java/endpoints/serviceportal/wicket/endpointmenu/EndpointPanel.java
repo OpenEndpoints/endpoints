@@ -2,11 +2,8 @@ package endpoints.serviceportal.wicket.endpointmenu;
 
 import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import com.databasesandlife.util.jdbc.DbTransaction;
-import endpoints.DeploymentParameters;
-import endpoints.EndpointExecutor;
+import endpoints.*;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
-import endpoints.UploadedFile;
-import endpoints.PublishEnvironment;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.NodeName;
@@ -97,7 +94,7 @@ public class EndpointPanel extends Panel {
             var applicationName = ServicePortalSession.get().getLoggedInDataOrThrow().application;
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
             var endpoint = application.getEndpoints().findEndpointOrThrow(endpointName);
-            var request = new EndpointExecutor.Request() {
+            var request = new Request() {
                 @Override public @CheckForNull InetAddress getClientIpAddress() {
                     return new IpAddressDeterminer().getRequestIpAddress(
                         (((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest()));

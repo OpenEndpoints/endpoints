@@ -65,7 +65,7 @@ public class EndpointServlet extends HttpServlet {
         resp.flushBuffer();
     }
 
-    protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull EndpointExecutor.Request request) {
+    protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull Request request) {
         if ( ! DeploymentParameters.get().xsltDebugLog) return;
         
         var log = Logger.getLogger(getClass());
@@ -142,7 +142,7 @@ public class EndpointServlet extends HttpServlet {
             }
             catch (NodeNotFoundException e) { resp.sendError(400, endpointName+" not found"); return; }
 
-            var request = new EndpointExecutor.Request() {
+            var request = new Request() {
                 @Override public @CheckForNull InetAddress getClientIpAddress() { 
                     return new IpAddressDeterminer().getRequestIpAddress(req); 
                 }
