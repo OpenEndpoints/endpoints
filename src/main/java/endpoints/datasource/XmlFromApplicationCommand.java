@@ -58,6 +58,7 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
         var stringKeys = new HashSet<String>();
         stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
         stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(TransformationContext.getSystemParameterNames());
 
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, filenamePattern, "'file' attribute");
         

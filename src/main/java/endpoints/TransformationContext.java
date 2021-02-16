@@ -33,9 +33,10 @@ public class TransformationContext {
     public final @Nonnull Application application;
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads;
-    public final @Nonnull Map<ParameterName, String> params;
+    private final @Nonnull Map<ParameterName, String> params;
     public final @Nonnull ParameterNotFoundPolicy parameterNotFoundPolicy;
     public final @Nonnull Map<IntermediateValueName, String> intermediateValues = synchronizedMap(new HashMap<>());
+    public final @Nonnull RequestId requestId;
     public final @Nonnull Request request;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
     public boolean alreadyDeliveredResponse = false;
@@ -52,6 +53,16 @@ public class TransformationContext {
         var result = new TransformerExecutor();
         var process = transformer.scheduleExecution(this, visibleIntermediateValues, result.result);
         threads.addTaskWithDependencies(List.of(process), result);
+        return result;
+    }
+    
+    public static Set<String> getSystemParameterNames() {
+        return Set.of("request-id");
+    }
+
+    public @Nonnull Map<ParameterName, String> getParametersIncludingSystemParameters() {
+        var result = new HashMap<>(params);
+        result.put(new ParameterName("request-id"), requestId.id.toString());
         return result;
     }
     
@@ -78,7 +89,7 @@ public class TransformationContext {
                 return result;
             }
         };
-        result.putAll(params
+        result.putAll(getParametersIncludingSystemParameters()
             .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
         result.putAll(getVisibleIntermediateValues(visibleIntermediateValues)
             .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));

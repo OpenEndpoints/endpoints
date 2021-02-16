@@ -5,7 +5,7 @@ import com.databasesandlife.util.wicket.CachingFutureModel;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
 import endpoints.PublishEnvironment;
-import endpoints.RequestLogId;
+import endpoints.RequestId;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
@@ -30,10 +30,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.request.Response;
 import org.apache.wicket.request.resource.BaseDataResource;
-import org.apache.wicket.util.time.Duration;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.jooq.Result;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -61,7 +59,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
     protected @Getter @Setter @Nonnull DateRangeOption dateRange = DateRangeOption.getValues(now(UTC)).get(0);
     protected @Getter @Setter @CheckForNull NodeName filterEndpoint = null;
     protected @Getter @Setter @CheckForNull Integer filterStatusCode = null;
-    protected final @Nonnull Set<RequestLogId> expandedRows = new HashSet<>();
+    protected final @Nonnull Set<RequestId> expandedRows = new HashSet<>();
     
     protected @Nonnull Condition getCondition() {
         return REQUEST_LOG.APPLICATION.eq(applicationName)
@@ -111,10 +109,10 @@ public class RequestLogPage extends AbstractLoggedInPage {
     }
     
     protected class XmlDownloadResource extends BaseDataResource<String> {
-        protected final @Nonnull RequestLogId id;
+        protected final @Nonnull RequestId id;
         protected final @Nonnull Field<Element> field;
 
-        public XmlDownloadResource(@Nonnull RequestLogId id, @Nonnull Field<Element> field, @Nonnull String filename) {
+        public XmlDownloadResource(@Nonnull RequestId id, @Nonnull Field<Element> field, @Nonnull String filename) {
             super("application/xml; charset=utf-8", null, filename);
             this.id = id;
             this.field = field;
@@ -134,7 +132,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
                 Logger.getLogger(getClass()).info("Downloading " + field + " for request_log_id " + id.getId() + "...");
                 var element = tx.jooq().select(field).from(REQUEST_LOG).where(REQUEST_LOG.APPLICATION.eq(applicationName))
-                    .and(REQUEST_LOG.REQUEST_LOG_ID.eq(id)).fetchOne().value1();
+                    .and(REQUEST_LOG.REQUEST_ID.eq(id)).fetchOne().value1();
                 return DomParser.formatXmlPretty(element);
             }
         }
@@ -178,7 +176,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
                 @Override protected void populateItem(@Nonnull ListItem<RequestLogEntry> item) {
                     var entry = item.getModelObject();
                     var rec = entry.record;
-                    var id = rec.getRequestLogId();
+                    var id = rec.getRequestId();
 
                     // We have to have this as UTC, because:
                     // The top KPI numbers have to be UTC because they are used for billing, all users must see the same data
@@ -202,6 +200,7 @@ public class RequestLogPage extends AbstractLoggedInPage {
                     details.setOutputMarkupId(true);
                     details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
                         .format(rec.getDatetime().atZone(UTC))));
+                    details.add(new Label("requestId", rec.getRequestId().getId().toString()));
                     details.add(new Label("userAgent", rec.getUserAgent()));
                     details.add(new Label("exceptionMessage", rec.getExceptionMessage())
                         .setVisible(rec.getExceptionMessage() != null));
