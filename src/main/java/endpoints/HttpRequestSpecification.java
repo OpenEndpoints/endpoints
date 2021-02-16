@@ -356,7 +356,7 @@ public class HttpRequestSpecification {
                 
                 // Add base64 uploaded files if necessary
                 var bodyAfterUploadFiles = (replaceXmlElementWithFileUploads)
-                    ? replaceXmlElementWithFileUploads(context.fileUploads, body) : body;
+                    ? replaceXmlElementWithFileUploads(context.request.getUploadedFiles(), body) : body;
                 
                 // After XSLT results expanded, make request
                 Consumer<Document> makeRequest = bodyAfterXsltElementExpansion -> {

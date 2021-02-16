@@ -75,7 +75,7 @@ public class ParametersCommand extends DataSourceCommand {
         var intermediateValues = new HashMap<>(context.intermediateValues);
         intermediateValues.keySet().retainAll(visibleIntermediateValues);
 
-        return createParametersElement(tagName, context.params, intermediateValues, context.fileUploads);
+        return createParametersElement(tagName, context.params, intermediateValues, context.request.getUploadedFiles());
     }
 
     @Override

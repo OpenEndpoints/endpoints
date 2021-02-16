@@ -80,7 +80,7 @@ public class EndpointExecutorTest extends TestCase {
                         );
                         
                         var context = new TransformationContext(Application.newForTesting(Map.of()), tx, threads,
-                            Map.of(new ParameterName("param"), param), error, List.of(), Map.of());
+                            Map.of(new ParameterName("param"), param), error, Request.newForTesting(), Map.of());
                         
                         var consumer = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                             BufferedHttpResponseDocumentGenerationDestination x;

@@ -2944,7 +2944,8 @@ All variables are forwarded to the new endpoint.
 <input-parameter name="p">${variable}</input-parameter>
 \family default
 .
- It is still supported for backwards compatibility.)
+ It is still supported for backwards compatibility.) The user agent, client
+ IP address and file uploads are all available endpoint forwarded to.
 \end_layout
 
 \begin_layout Standard
