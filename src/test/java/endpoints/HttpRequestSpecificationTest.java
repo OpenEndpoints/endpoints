@@ -5,12 +5,8 @@ import com.databasesandlife.util.TemporaryFile;
 import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.ApplicationTransaction;
-import endpoints.HttpRequestSpecification;
-import endpoints.TransformationContext.ParameterNotFoundPolicy;
-import endpoints.UploadedFile;
-import endpoints.TransformationContext;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
+import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.config.Application;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
@@ -33,14 +29,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static com.databasesandlife.util.ThreadPool.unwrapException;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.emptySet;
 
@@ -99,7 +93,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
                 var context = new TransformationContext(application, tx, new ThreadPool(), params,
-                    ParameterNotFoundPolicy.error, emptyList(), emptyMap());
+                    ParameterNotFoundPolicy.error, endpoints.Request.newForTesting(), emptyMap());
                 var resultContainer = new Object() {
                     public Element element;
                 };

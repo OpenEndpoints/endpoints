@@ -299,7 +299,7 @@ public class EmailTask extends Task {
                 catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e); }
             }
             else if (at instanceof AttachmentsFromRequestFileUploads) {
-                for (var upload : context.fileUploads) {
+                for (var upload : context.request.getUploadedFiles()) {
                     var filePart = new MimeBodyPart();
                     filePart.setDataHandler(new DataHandler(new UploadedFileDataSource(upload)));
                     filePart.setFileName(upload.getSubmittedFileName());

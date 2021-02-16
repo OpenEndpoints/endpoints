@@ -36,7 +36,7 @@ public class TransformationContext {
     public final @Nonnull Map<ParameterName, String> params;
     public final @Nonnull ParameterNotFoundPolicy parameterNotFoundPolicy;
     public final @Nonnull Map<IntermediateValueName, String> intermediateValues = synchronizedMap(new HashMap<>());
-    public final @Nonnull List<? extends UploadedFile> fileUploads;
+    public final @Nonnull Request request;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
     public boolean alreadyDeliveredResponse = false;
 

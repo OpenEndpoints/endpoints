@@ -181,7 +181,7 @@ public class EndpointExecutor {
 
         // Schedule execution of e.g. <xml-from-application>
         var context = new TransformationContext(application, tx, threads, requestParameters,
-            ParameterNotFoundPolicy.emptyString, req.getUploadedFiles(), autoInc);
+            ParameterNotFoundPolicy.emptyString, req, autoInc);
         var dataSourceResults = new ArrayList<DataSourceCommandFetcher>();
         for (var c : parameterTransformation.dataSourceCommands)
             dataSourceResults.add(c.scheduleExecution(context, emptySet()));
@@ -395,10 +395,11 @@ public class EndpointExecutor {
 
             if (config instanceof ForwardToEndpointResponseConfiguration) {
                 var request = new Request() {
-                    @Override public @CheckForNull InetAddress getClientIpAddress() { return null; }
-                    @Override public @Nonnull String getUserAgent() { return "<forward-to-endpoint>"; }
+                    @Override public @CheckForNull InetAddress getClientIpAddress() { return context.request.getClientIpAddress(); }
+                    @Override public @Nonnull String getUserAgent() { return context.request.getUserAgent(); }
                     @Override public @CheckForNull String getContentTypeIfPost() { return null; }
-                    @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
+                    @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { 
+                        return context.request.getUploadedFiles(); }
                     @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
                     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                         var patterns = ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns;
@@ -525,7 +526,7 @@ public class EndpointExecutor {
                     
                     try (var ignored3 = new Timer("Execute <task>s and generate response")) {
                         var context = new TransformationContext(application, tx, threads, parameters,
-                            ParameterNotFoundPolicy.error, req.getUploadedFiles(), autoInc);
+                            ParameterNotFoundPolicy.error, req, autoInc);
                         scheduleTasksAndSuccess(environment, applicationName, appConfig,
                             context, endpoint, autoInc, autoIncrement, random, responseConsumer);
                     }
@@ -620,7 +621,7 @@ public class EndpointExecutor {
                     threads.setThreadNamePrefix(getClass().getName() + " <error>");
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(application, tx, threads, errorExpansionValues,
-                        ParameterNotFoundPolicy.error, emptyList(), autoInc);
+                        ParameterNotFoundPolicy.error, req, autoInc);
                     threads.addTask(new Response(context, endpoint.error, false, errorResponse));
                     
                     try { threads.execute(); }
