@@ -63,16 +63,6 @@ import static org.jooq.impl.DSL.max;
 
 public class EndpointExecutor {
 
-    public interface Request {
-        @CheckForNull InetAddress getClientIpAddress();
-        /** Can return empty string */
-        @Nonnull String getUserAgent();
-        @CheckForNull String getContentTypeIfPost();
-        @Nonnull Map<ParameterName, List<String>> getParameters();
-        @Nonnull List<? extends UploadedFile> getUploadedFiles();
-        @Nonnull InputStream getInputStream() throws EndpointExecutionFailedException;
-    }
-    
     @FunctionalInterface
     public interface Responder {
         public void respond(@Nonnull BufferedHttpResponseDocumentGenerationDestination response);
