@@ -247,6 +247,7 @@ public class HttpRequestSpecification {
         var stringKeys = new HashSet<String>();
         stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
         stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(TransformationContext.getSystemParameterNames());
         var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
 
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, urlPattern, "<url> element");

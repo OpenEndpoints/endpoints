@@ -31,6 +31,7 @@ public class OnDemandIncrementingNumberTest extends TestCase {
         r.setOnDemandPerpetualIncrementingNumber(1);
         r.setOnDemandYearIncrementingNumber(10);
         r.setOnDemandMonthIncrementingNumber(100);
+        r.setRequestId(RequestId.newRandom());
         tx.insert(r);
     }
     

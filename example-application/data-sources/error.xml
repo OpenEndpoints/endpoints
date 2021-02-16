@@ -5,6 +5,9 @@
                 <p>An error occurred.</p>
                 <p>
                     <dl>
+                        <dt>request-id</dt>
+                        <dd>${request-id}</dd>
+
                         <dt>internal-error-text</dt>
                         <dd>${internal-error-text}</dd>
                         

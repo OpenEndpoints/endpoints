@@ -476,6 +476,28 @@ multiple-value-separator=','
 the root element of the file).
 \end_layout
 
+\begin_layout Subsubsection
+System Parameters
+\end_layout
+
+\begin_layout Standard
+There are certain parameters which are always available, and are not provided
+ by the client.
+ These can also be used with the same 
+\family typewriter
+${param}
+\family default
+ syntax.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+${request-id}
+\family default
+ Each request gets its own unique UUID.
+\end_layout
+
 \begin_layout Subsection
 Parameter Transformation
 \end_layout
@@ -3241,7 +3263,7 @@ noprefix "false"
 \family typewriter
 <error>
 \family default
- Variables
+ Parameters
 \end_layout
 
 \begin_layout Standard
@@ -3249,13 +3271,23 @@ The
 \family typewriter
 <error>
 \family default
- tag may not use parameters, as an error might have happened during parameter
- transformation, and therefore parameters are not necessarily available.
- For the processing of the 
+ tag may not use parameters supplied by the client, as an error might have
+ happened during parameter transformation, and therefore parameters are
+ not necessarily available.
+ The 
+\begin_inset Quotes eld
+\end_inset
+
+System Parameters
+\begin_inset Quotes erd
+\end_inset
+
+ described above are available.
+ And in addition, for the processing of the 
 \family typewriter
 <error>
 \family default
- tag there are two special variables set:
+ tag there are the following additional parameters are available:
 \end_layout
 
 \begin_layout Description

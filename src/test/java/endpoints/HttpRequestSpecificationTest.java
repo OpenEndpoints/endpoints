@@ -93,7 +93,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
                 var context = new TransformationContext(application, tx, new ThreadPool(), params,
-                    ParameterNotFoundPolicy.error, endpoints.Request.newForTesting(), emptyMap());
+                    ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), emptyMap());
                 var resultContainer = new Object() {
                     public Element element;
                 };

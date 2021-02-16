@@ -37,6 +37,7 @@ public class PlaintextParameterReplacer {
         var stringKeys = new HashSet<String>();
         stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
         stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(TransformationContext.getSystemParameterNames());
 
         assertParametersSuffice(stringKeys, template, msg);
     }

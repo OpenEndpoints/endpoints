@@ -4,6 +4,7 @@ import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.DeploymentParameters;
 import endpoints.PublishEnvironment;
+import endpoints.RequestId;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
@@ -31,6 +32,7 @@ public class PostgresXmlDomElementBindingTest extends TestCase {
             toInsert.setEnvironment(PublishEnvironment.live);
             toInsert.setParameterTransformationInput(DomParser.from("<input/>"));
             toInsert.setParameterTransformationOutput(null);
+            toInsert.setRequestId(RequestId.newRandom());
             tx.insert(toInsert);
 
             var found = tx.jooq().selectFrom(REQUEST_LOG).where(REQUEST_LOG.USER_AGENT.eq(userAgent)).fetchOne();
