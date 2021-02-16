@@ -578,6 +578,10 @@ status open
 
 \begin_layout LyX-Code
 <parameter-transformation-input>
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -622,6 +626,10 @@ status open
 
 \begin_layout LyX-Code
   </input-from-request>
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -659,6 +667,10 @@ status open
 
 \begin_layout LyX-Code
   </input-from-application>
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -667,6 +679,10 @@ status open
 
 \begin_layout LyX-Code
   <whatever-the-data-source-command-returns/>
+\begin_inset Newline newline
+\end_inset
+
+
 \end_layout
 
 \begin_layout LyX-Code
@@ -702,10 +718,26 @@ Parameter Transformation Input
 
 \begin_layout Enumerate
 This document is transformed via the XSLT.
- It produces a structure like:
 \end_layout
 
 \begin_deeper
+\begin_layout Standard
+It produces a structure as shown in 
+\begin_inset CommandInset ref
+LatexCommand formatted
+reference "fig:Parameter-Transformation-Output"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+\begin_inset Float figure
+wide false
+sideways false
+status collapsed
+
 \begin_layout LyX-Code
 <parameter-transformation-output>
 \end_layout
@@ -738,14 +770,49 @@ This document is transformed via the XSLT.
 </parameter-transformation-output>
 \end_layout
 
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Parameter-Transformation-Output"
+
+\end_inset
+
+Parameter Transformation Output
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
 The XSLT is taken from the directory 
 \family typewriter
 parameter-xslt
 \family default
 .
- (The name "transformer" is not used in this directory name, in order to
- differentiate it from the directory 
+ (The name 
+\begin_inset Quotes eld
+\end_inset
+
+transformer
+\begin_inset Quotes erd
+\end_inset
+
+ is not used in this directory name, in order to differentiate it from the
+ directory 
 \family typewriter
 transformer
 \family default
