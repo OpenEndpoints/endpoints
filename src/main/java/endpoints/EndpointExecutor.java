@@ -224,7 +224,7 @@ public class EndpointExecutor {
                     if ( ! endpointsParameters.contains(paramName))
                         throw new RequestInvalidException("Parameter transformation XSLT " +
                             "produced <parameter name='"+paramName.name+"'../> but this parameter " +
-                            "isn't declared in the endpoints.xml");
+                            "isn't declared in 'endpoints.xml'");
                     result.put(paramName, getMandatoryAttribute(parameterElement, "value"));
                 }
 
