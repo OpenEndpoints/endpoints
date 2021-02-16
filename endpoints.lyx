@@ -654,6 +654,10 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
+    <base-url>https://endpoints.com/</base-url>
+\end_layout
+
+\begin_layout LyX-Code
   </input-from-application>
 \end_layout
 
@@ -3604,6 +3608,16 @@ Single Application Mode
 \begin_layout Standard
 The following environment variables are mandatory in Single Application
  Mode:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_BASE_URL 
+\family default
+With trailing slash, for example 
+\family typewriter
+https://endpoints.offer-ready.com/
 \end_layout
 
 \begin_layout Description

@@ -54,6 +54,7 @@ Vagrant.configure(2) do |config|
     echo 'mysql -uroot -proot example_application' >> ~vagrant/.bash_history
 
     echo --- Set DeploymentParameters
+    echo 'export ENDPOINTS_BASE_URL=http://localhost:9758/' >> /etc/environment
     echo 'export ENDPOINTS_JDBC_URL='"'"'jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
@@ -65,6 +66,7 @@ Vagrant.configure(2) do |config|
     source /etc/environment
 
     echo --- Set DeploymentParameters for Docker
+    echo 'ENDPOINTS_BASE_URL=http://localhost:9758/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env

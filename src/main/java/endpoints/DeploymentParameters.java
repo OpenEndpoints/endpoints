@@ -8,11 +8,14 @@ import endpoints.config.ApplicationFactory;
 import endpoints.config.ApplicationName;
 import endpoints.config.FixedPathApplicationFactory;
 import endpoints.config.PublishedApplicationFactory;
+import lombok.SneakyThrows;
 import org.apache.log4j.Logger;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Optional;
@@ -33,6 +36,7 @@ public class DeploymentParameters {
     
     private static DeploymentParameters sharedInstance = null;
 
+    public final @Nonnull URL baseUrl;
     public final @Nonnull String jdbcUrl;
     public final @CheckForNull File publishedApplicationsDirectory;
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
@@ -65,7 +69,9 @@ public class DeploymentParameters {
         return gitRepositoryDefaultPattern == null;
     }
 
+    @SneakyThrows(MalformedURLException.class)
     protected DeploymentParameters() {
+        baseUrl = new URL(getMandatoryParameter("ENDPOINTS_BASE_URL"));
         jdbcUrl = getMandatoryParameter("ENDPOINTS_JDBC_URL");
         publishedApplicationsDirectory = 
             getOptionalParameter("ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY").map(s -> new File(s)).orElse(null);
