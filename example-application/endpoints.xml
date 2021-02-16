@@ -98,7 +98,8 @@
 
       <endpoint name="json3">
         <parameter name="user-agent"/>
-        <parameter-transformation xslt="get-user-agent.xslt"/>
+        <parameter name="base-url"/>
+        <parameter-transformation xslt="add-values-from-parameter-transformation-input.xslt"/>
         <success>
           <response-transformation name="produce-json"/>
         </success>

@@ -178,6 +178,7 @@ public class EndpointExecutor {
         appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
         appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(autoIncrement));
         appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.getId()));
+        appendTextElement(inputFromApplicationElement, "base-url", DeploymentParameters.get().baseUrl.toExternalForm());
 
         // Schedule execution of e.g. <xml-from-application>
         var context = new TransformationContext(application, tx, threads, requestParameters,
