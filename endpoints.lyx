@@ -2865,8 +2865,7 @@ The
 \family typewriter
 <endpoint>
 \family default
-, being available to be called as a web request, has two optional sub-sections,
- 
+ has two sub-sections, 
 \family typewriter
 <success>
 \family default
@@ -2875,11 +2874,16 @@ The
 <error>
 \family default
 .
- They take the same format:
+ What happens in the case of success or error depends on one of the following
+ tags being present
 \end_layout
 
-\begin_layout Itemize
-If the tag (
+\begin_layout Description
+No
+\begin_inset space ~
+\end_inset
+
+content If the tag (
 \family typewriter
 <success>
 \family default
@@ -2896,20 +2900,12 @@ If the tag (
 send emails.
 \end_layout
 
-\begin_layout Itemize
-If the tag (
-\family typewriter
-<success>
-\family default
- or 
-\family typewriter
-<error>
-\family default
-) contains 
+\begin_layout Description
+
 \family typewriter
 <redirect-to>
 \family default
- then that specifies a redirect that should be performed.
+ specifies a redirect that should be performed.
  The body of the 
 \family typewriter
 <redirect-to>
@@ -2942,26 +2938,22 @@ http://www.google.com
 \end_layout
 
 \end_deeper
-\begin_layout Itemize
-If the tag (
-\family typewriter
-<success>
-\family default
- or 
-\family typewriter
-<error>
-\family default
-) contains 
+\begin_layout Description
+
 \family typewriter
 <response-
 \begin_inset space \hspace{}
 \length 0bp
 \end_inset
 
-transformation name="a-transformation"/>
+transformation
+\begin_inset space ~
+\end_inset
+
+name="a-transformation"/>
 \family default
- then the transformation named in the attribute is performed, and its contents
- are returned to the client in the HTTP response.
+ specifies that the transformation named in the attribute is performed,
+ and its contents are returned to the client in the HTTP response.
  See below for how transformers are defined.
  For example, the transformation might produce HTML to be displayed in the
  browser, or a PDF to be downloaded.
@@ -3000,14 +2992,14 @@ ${invoice-number}.pdf">
 \end_layout
 
 \end_deeper
-\begin_layout Itemize
-If the tag 
+\begin_layout Description
+
 \family typewriter
-<success>
-\family default
- contains 
-\family typewriter
-<forward-to-endpoint endpoint-name="foo"/>
+<forward-to-endpoint
+\begin_inset space ~
+\end_inset
+
+endpoint-name="foo"/>
 \family default
  then that endpoint (e.g.
 \begin_inset space \space{}
@@ -3138,15 +3130,6 @@ redirect
 \end_layout
 
 \end_deeper
-\begin_layout Standard
-The 
-\family typewriter
-<success>
-\family default
- tag may use parameters, as described above.
- 
-\end_layout
-
 \begin_layout Standard
 The 
 \family typewriter
