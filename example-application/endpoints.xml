@@ -126,6 +126,24 @@
           <attachments-from-request-file-uploads/>
         </task>
       </endpoint>
+
+      <endpoint name="from-static">
+        <success>
+          <response-from-static filename="static-subdirectory/spheres.png" download-filename="spheres2.png"/>
+        </success>
+      </endpoint>
+
+      <endpoint name="from-url">
+        <success>
+          <response-from-url download-filename="dl.html">
+            <url>https://www.databasesandlife.com/</url>
+          </response-from-url>
+        </success>
+        <error>
+          <response-from-static filename="static-subdirectory/spheres.png"/>
+        </error>
+      </endpoint>
+
     </endpoint-folder>
       
     <endpoint name="html-content">
