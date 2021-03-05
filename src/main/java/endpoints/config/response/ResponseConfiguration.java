@@ -33,6 +33,7 @@ public abstract class ResponseConfiguration extends EndpointExecutionParticipant
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
 
     public boolean isConditional() { return condition.isOptional(); }
+    public boolean isDownload() { return false; }
     
     public boolean satisfiesCondition(@Nonnull Map<String, String> parameters) {
         return condition.evaluate(parameters);
