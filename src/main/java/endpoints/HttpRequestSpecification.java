@@ -457,13 +457,13 @@ public class HttpRequestSpecification {
         }
     }
 
-    /** @param after if an error occurred and this request is set to ignore errors. Does not expand variables in response */
+    /** @param after null if an error occurred and this request is set to ignore errors. Does not expand variables in response */
     public void scheduleExecutionAndParseResponse(
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
         @Nonnull Consumer<Element> after
     ) {
-        scheduleExecutionAndAssertNoError(context, visibleIntermediateValues, urlConnection -> {
+        scheduleExecutionAndAssertNoError(context, visibleIntermediateValues, (@CheckForNull var urlConnection) -> {
             if (urlConnection == null) { after.accept(null); return; }
 
             var url = urlConnection.getURL();

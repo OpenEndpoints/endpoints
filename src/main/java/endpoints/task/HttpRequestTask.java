@@ -134,7 +134,7 @@ public class HttpRequestTask extends Task {
         @Nonnull TransformationContext context,
         @Nonnull SynchronizationPoint workComplete
     ) {
-        spec.scheduleExecutionAndAssertNoError(context, inputIntermediateValues, urlConnection -> {
+        spec.scheduleExecutionAndAssertNoError(context, inputIntermediateValues, (@CheckForNull var urlConnection) -> {
             parseResults(context.intermediateValues, urlConnection);
             context.threads.addTask(workComplete);
         });
