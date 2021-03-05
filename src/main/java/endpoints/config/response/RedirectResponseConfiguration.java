@@ -1,9 +1,11 @@
-package endpoints.config;
+package endpoints.config.response;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.PlaintextParameterReplacer;
+import endpoints.config.ParameterName;
+import endpoints.config.UrlPrefixWhiteList;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 

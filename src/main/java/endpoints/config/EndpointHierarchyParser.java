@@ -6,6 +6,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.DocumentGenerator.StyleVisionXslt;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.config.response.*;
 import endpoints.datasource.DataSourceCommand;
 import endpoints.task.Task;
 import lombok.SneakyThrows;
@@ -189,7 +190,7 @@ public class EndpointHierarchyParser extends DomParser {
             }
 
             // Add a default catch-all <success/> if there is no catch-all
-            if (result.success.isEmpty() || result.success.get(result.success.size()-1).condition.isOptional())
+            if (result.success.isEmpty() || result.success.get(result.success.size()-1).isConditional())
                 result.success.add(parseResponseConfiguration(
                     transformers, result.aggregateParametersOverParents().keySet(), null, "success"));
             

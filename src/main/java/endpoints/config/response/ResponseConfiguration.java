@@ -1,7 +1,9 @@
-package endpoints.config;
+package endpoints.config.response;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import endpoints.config.EndpointExecutionParticipant;
+import endpoints.config.ParameterName;
 import endpoints.task.TaskCondition;
 import org.w3c.dom.Element;
 
@@ -29,6 +31,8 @@ public abstract class ResponseConfiguration extends EndpointExecutionParticipant
     }
     
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
+
+    public boolean isConditional() { return condition.isOptional(); }
     
     public boolean satisfiesCondition(@Nonnull Map<String, String> parameters) {
         return condition.evaluate(parameters);

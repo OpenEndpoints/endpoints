@@ -8,10 +8,10 @@ import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationConfig;
+import endpoints.config.response.EmptyResponseConfiguration;
+import endpoints.config.response.RedirectResponseConfiguration;
 import endpoints.task.Task;
 import junit.framework.TestCase;
-import lombok.SneakyThrows;
-import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
