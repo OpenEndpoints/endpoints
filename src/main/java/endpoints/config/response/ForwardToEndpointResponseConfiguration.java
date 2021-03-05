@@ -1,14 +1,13 @@
-package endpoints.config;
+package endpoints.config.response;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.PlaintextParameterReplacer;
-import lombok.AllArgsConstructor;
+import endpoints.config.NodeName;
+import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 

@@ -1,7 +1,6 @@
-package endpoints.config;
+package endpoints.config.response;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;

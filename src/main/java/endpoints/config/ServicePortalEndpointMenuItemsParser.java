@@ -7,6 +7,8 @@ import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointContentMenuItem;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointFormMenuItem;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointMenuFolder;
+import endpoints.config.response.ResponseConfiguration;
+import endpoints.config.response.TransformationResponseConfiguration;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;

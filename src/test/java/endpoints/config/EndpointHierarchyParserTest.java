@@ -2,6 +2,8 @@ package endpoints.config;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import endpoints.config.response.EmptyResponseConfiguration;
+import endpoints.config.response.ForwardToEndpointResponseConfiguration;
 import junit.framework.TestCase;
 
 import javax.annotation.CheckForNull;
