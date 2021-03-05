@@ -1418,7 +1418,7 @@ The task
 \begin_layout Itemize
 
 \family typewriter
-<attachment-static name="path/foo.pdf">
+<attachment-static filename="path/foo.pdf">
 \family default
  takes the 
 \family typewriter
@@ -1429,7 +1429,11 @@ foo.pdf
 static
 \family default
  directory and includes it as an attachment in the email.
- Variables are not allowed in the "name" attribute.
+ Variables are not allowed in the 
+\family typewriter
+filename
+\family default
+ attribute.
 \end_layout
 
 \begin_layout Itemize
