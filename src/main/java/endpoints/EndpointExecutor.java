@@ -24,11 +24,13 @@ import endpoints.task.Task.TaskExecutionFailedException;
 import endpoints.task.TaskId;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +46,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.URL;
+import java.nio.file.Files;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
@@ -325,23 +328,44 @@ public class EndpointExecutor {
         @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
         public void runUnconditionally() {
             var destination = new BufferedHttpResponseDocumentGenerationDestination();
+            int contentStatusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
+            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
             if (config instanceof EmptyResponseConfiguration) {
-                int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
-                destination.setStatusCode(statusCode);
+                destination.setStatusCode(contentStatusCode);
+            }
+            else if (config instanceof StaticResponseConfiguration) {
+                var r = (StaticResponseConfiguration) config;
+                destination.setStatusCode(contentStatusCode);
+                destination.setContentType(new MimetypesFileTypeMap().getContentType(r.file));
+                try (var o = destination.getOutputStream()) { Files.copy(r.file.toPath(), o); }
+                if (r.downloadFilenamePatternOrNull != null)
+                    destination.setContentDispositionToDownload(
+                        replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
+            }
+            else if (config instanceof UrlResponseConfiguration) {
+                var r = (UrlResponseConfiguration) config;
+                destination.setStatusCode(contentStatusCode);
+                r.spec.scheduleExecutionAndAssertNoError(context, config.inputIntermediateValues, (@CheckForNull var result) -> {
+                    if (result != null) {
+                        destination.setContentType(result.getContentType());
+                        try (var i = result.getInputStream(); var o = destination.getOutputStream()) { IOUtils.copy(i, o); }
+                        catch (IOException e) { throw new RuntimeException(e); }
+                    }
+                });
+                if (r.downloadFilenamePatternOrNull != null)
+                    destination.setContentDispositionToDownload(
+                        replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
             }
             else if (config instanceof RedirectResponseConfiguration) {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
                 var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
                 if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
                     throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
                 destination.setRedirectUrl(new URL(url));
             }
             else if (config instanceof TransformationResponseConfiguration) {
-                int statusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
-                var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
                 var r = (TransformationResponseConfiguration) config;
-                destination.setStatusCode(statusCode);
+                destination.setStatusCode(contentStatusCode);
                 r.transformer.scheduleExecution(context, config.inputIntermediateValues, destination);
                 if (r.downloadFilenamePatternOrNull != null)
                     destination.setContentDispositionToDownload(

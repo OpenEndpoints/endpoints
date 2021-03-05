@@ -2941,6 +2941,108 @@ http://www.google.com
 \begin_layout Description
 
 \family typewriter
+<response-from-static
+\begin_inset space ~
+\end_inset
+
+filename="foo.jpg"/>
+\family default
+ The response content is fetched from the named file within the 
+\family typewriter
+static
+\family default
+ directory.
+ Subdirectories such as 
+\family typewriter
+filename="
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+subdir/
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+file.pdf"
+\family default
+ are supported.
+ Variables are not allowed in the 
+\family typewriter
+filename
+\family default
+ attribute.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+If the 
+\family typewriter
+download-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+filename="
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+invoice-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+${invoice-number}.pdf"
+\family default
+ attribute is present, then the header in the HTTP response is set indicating
+ that the file should be downloaded as opposed to displayed in the browser
+ window.
+ Variables are replaced.
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
+<response-from-url>
+\family default
+ An HTTP request is perfomed and the result of this request is streamed
+ back to the client as the response of the call to Endpoints.
+ The 
+\family typewriter
+<response-from-url>
+\family default
+ element must have children such as 
+\family typewriter
+<url>
+\family default
+, as described in section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "subsec:Making-an-HTTP-Request"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+ The 
+\family typewriter
+download-
+\begin_inset space \hspace{}
+\length 0bp
+\end_inset
+
+filename
+\family default
+ attribute may be set as described above.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 <response-
 \begin_inset space \hspace{}
 \length 0bp
@@ -2957,41 +3059,18 @@ name="a-transformation"/>
  See below for how transformers are defined.
  For example, the transformation might produce HTML to be displayed in the
  browser, or a PDF to be downloaded.
-\end_layout
-
-\begin_deeper
-\begin_layout Standard
-If the attribute 
+ The 
 \family typewriter
-<response-
+download-
 \begin_inset space \hspace{}
 \length 0bp
 \end_inset
 
-transformation ..
- download-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-filename="
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-invoice-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-${invoice-number}.pdf">
+filename
 \family default
- is present, then the header in the HTTP response is set indicating that
- the file should be downloaded as opposed to displayed in the browser window.
- Variables are replaced.
+ attribute may be set as described above.
 \end_layout
 
-\end_deeper
 \begin_layout Description
 
 \family typewriter

@@ -56,18 +56,25 @@ public class EndpointHierarchyParser extends DomParser {
     }
     
     protected static @Nonnull ResponseConfiguration parseResponseConfiguration(
-        @Nonnull Map<String, Transformer> transformers, @Nonnull Set<ParameterName> params,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, @Nonnull Set<ParameterName> params,
         @CheckForNull Element element, @Nonnull String tagName
     ) throws ConfigurationException {
         if (element == null) element = DomParser.newDocumentBuilder().newDocument().createElement(tagName);
     
+        var staticElement = getOptionalSingleSubElement(element, "response-from-static");
+        var urlElement = getOptionalSingleSubElement(element, "response-from-url");
         var responseTransformationElement = getOptionalSingleSubElement(element, "response-transformation");
         var redirectToElement = getOptionalSingleSubElement(element, "redirect-to");
         var forwardToEndpointElement = getOptionalSingleSubElement(element, "forward-to-endpoint");
 
         final ResponseConfiguration result;
         
-        if (responseTransformationElement != null)
+        if (staticElement != null)
+            result = new StaticResponseConfiguration(staticDir, element, staticElement);
+        else if (urlElement != null)
+            result = new UrlResponseConfiguration(threads, httpXsltDirectory, element, urlElement);
+        else if (responseTransformationElement != null)
             result = new TransformationResponseConfiguration(transformers, element, responseTransformationElement);
         else if (redirectToElement != null)
             result = new RedirectResponseConfiguration(element, redirectToElement);
@@ -183,21 +190,21 @@ public class EndpointHierarchyParser extends DomParser {
             result.success = new ArrayList<>();
             for (int i = 0; i < successElements.size(); i++) {
                 try {
-                    result.success.add(parseResponseConfiguration(
-                        transformers, result.aggregateParametersOverParents().keySet(), successElements.get(i), "success"));
+                    result.success.add(parseResponseConfiguration(threads, httpXsltDirectory, transformers, staticDir, 
+                        result.aggregateParametersOverParents().keySet(), successElements.get(i), "success"));
                 }
                 catch (ConfigurationException e) { throw new ConfigurationException("<success> idx=" + i, e); }
             }
 
             // Add a default catch-all <success/> if there is no catch-all
             if (result.success.isEmpty() || result.success.get(result.success.size()-1).isConditional())
-                result.success.add(parseResponseConfiguration(
-                    transformers, result.aggregateParametersOverParents().keySet(), null, "success"));
+                result.success.add(parseResponseConfiguration(threads, httpXsltDirectory, 
+                    transformers, staticDir, result.aggregateParametersOverParents().keySet(), null, "success"));
             
             try { 
                 var errorParamNames = 
                     Set.of(new ParameterName("internal-error-text"), new ParameterName("parameter-transformation-error-text"));
-                result.error = parseResponseConfiguration(transformers, errorParamNames, 
+                result.error = parseResponseConfiguration(threads, httpXsltDirectory, transformers, staticDir, errorParamNames, 
                     getOptionalSingleSubElement(element, "error"), "error"); 
             }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }

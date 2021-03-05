@@ -22,15 +22,15 @@ public class TransformationResponseConfiguration extends ResponseConfiguration {
     public @CheckForNull String downloadFilenamePatternOrNull;
 
     public TransformationResponseConfiguration(
-        @Nonnull Map<String, Transformer> transformers, @Nonnull Element config, @Nonnull Element responseTransformationElement
+        @Nonnull Map<String, Transformer> transformers, @Nonnull Element config, @Nonnull Element responseElement
     ) throws ConfigurationException {
         super(config);
 
         assertNoOtherElements(config, "response-transformation", "after", "input-intermediate-value");
-        var transformerName = getMandatoryAttribute(responseTransformationElement, "name");
+        var transformerName = getMandatoryAttribute(responseElement, "name");
         transformer = transformers.get(transformerName);
         if (transformer == null) throw new ConfigurationException("Transformer name='"+transformerName+"' not found");
-        downloadFilenamePatternOrNull = getOptionalAttribute(responseTransformationElement, "download-filename");
+        downloadFilenamePatternOrNull = getOptionalAttribute(responseElement, "download-filename");
     }
 
     @Override public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {

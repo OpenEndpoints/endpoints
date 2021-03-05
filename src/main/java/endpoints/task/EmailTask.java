@@ -11,6 +11,7 @@ import endpoints.UploadedFile;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
+import endpoints.config.response.StaticResponseConfiguration;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -108,18 +109,14 @@ public class EmailTask extends Task {
         return transformers.get(name);
     }
 
-    @SneakyThrows(IOException.class)
-    protected @Nonnull AttachmentStatic findStaticFileAndAssertExists(@Nonnull String errorPrefix, @Nonnull String filename)
+    public @Nonnull AttachmentStatic findStaticFileAndAssertExists(@Nonnull String errorPrefix, @Nonnull String filename)
     throws ConfigurationException {
-        var result = new AttachmentStatic();
-        result.file = new File(staticDir, filename);
-        if ( ! result.file.getCanonicalPath().startsWith(staticDir.getCanonicalPath()+File.separator))
-            throw new ConfigurationException(errorPrefix + ": Filename " +
-                "'" + filename + "' attempts to reference outside application's 'static' directory");
-        if ( ! result.file.exists())
-            throw new ConfigurationException(errorPrefix + ": Filename " +
-                "'" + filename + "' not found in application's 'static' directory");
-        return result;
+        try {
+            var result = new AttachmentStatic();
+            result.file = StaticResponseConfiguration.findStaticFileAndAssertExists(staticDir, filename);
+            return result;
+        }
+        catch (ConfigurationException e) { throw new ConfigurationException(errorPrefix, e); }
     }
 
     public EmailTask(
