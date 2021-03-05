@@ -17,6 +17,9 @@ public interface Request {
     /** Can return empty string */
     @Nonnull String getUserAgent();
     
+    /** Can return empty string */
+    @Nonnull String getReferrer();
+
     @CheckForNull String getContentTypeIfPost();
     
     @Nonnull Map<ParameterName, List<String>> getParameters();
@@ -29,6 +32,7 @@ public interface Request {
         return new Request() {
             @Override public InetAddress getClientIpAddress() { return null; }
             @Override public String getUserAgent() { return ""; }
+            @Override public String getReferrer() { return ""; }
             @Override public String getContentTypeIfPost() { return null; } 
             @Override public Map<ParameterName, List<String>> getParameters() { return Map.of(); }
             @Override public List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
