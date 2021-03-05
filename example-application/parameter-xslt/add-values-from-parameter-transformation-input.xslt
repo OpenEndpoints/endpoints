@@ -7,6 +7,9 @@
             <parameter name="user-agent">
                 <xsl:attribute name="value" select="/parameter-transformation-input/input-from-request/http-header-user-agent/text()"/>
             </parameter>
+            <parameter name="referrer">
+                <xsl:attribute name="value" select="/parameter-transformation-input/input-from-request/http-header-referrer/text()"/>
+            </parameter>
             <parameter name="base-url">
                 <xsl:attribute name="value" select="/parameter-transformation-input/input-from-application/base-url/text()"/>
             </parameter>

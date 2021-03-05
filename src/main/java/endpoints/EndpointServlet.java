@@ -155,6 +155,9 @@ public class EndpointServlet extends HttpServlet {
                 @Override public @Nonnull String getUserAgent() {
                     return Optional.ofNullable(req.getHeader("User-Agent")).orElse("");
                 }
+                @Override public @Nonnull String getReferrer() {
+                    return Optional.ofNullable(req.getHeader("Referer")).orElse("");
+                }
                 @Override public @CheckForNull String getContentTypeIfPost() {
                     return Optional.ofNullable(req.getContentType())
                         .map(x -> x.replaceAll(";.*$", ""))

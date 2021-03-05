@@ -643,6 +643,10 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
+    <http-header-referrer>https://..../</http-header-referrer>
+\end_layout
+
+\begin_layout LyX-Code
     <ip-address>1.2.3.4</ip-address> <!-- or missing -->
 \end_layout
 

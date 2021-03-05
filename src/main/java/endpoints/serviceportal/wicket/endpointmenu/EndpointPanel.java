@@ -99,6 +99,7 @@ public class EndpointPanel extends Panel {
                     return new IpAddressDeterminer().getRequestIpAddress(
                         (((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest()));
                 }
+                @Override public @Nonnull String getReferrer() { return "Service Portal"; }
                 @Override public @Nonnull String getUserAgent() { return "Service Portal"; }
                 @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }

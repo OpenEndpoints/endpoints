@@ -167,6 +167,7 @@ public class EndpointExecutor {
         if (debugRequested) inputFromRequestElement.appendChild(inputParametersDocument.createElement("debug-requested"));
         for (var n : inputFromRequestContents) inputFromRequestElement.appendChild(inputParametersDocument.importNode(n, true));
         appendTextElement(inputFromRequestElement, "http-header-user-agent", req.getUserAgent());
+        appendTextElement(inputFromRequestElement, "http-header-referrer", req.getReferrer());
         appendTextElement(inputFromRequestElement, "ip-address",
             req.getClientIpAddress() == null ? null : req.getClientIpAddress().getHostAddress());
 
@@ -424,6 +425,7 @@ public class EndpointExecutor {
             if (config instanceof ForwardToEndpointResponseConfiguration) {
                 var request = new Request() {
                     @Override public @CheckForNull InetAddress getClientIpAddress() { return context.request.getClientIpAddress(); }
+                    @Override public @Nonnull String getReferrer() { return context.request.getReferrer(); }
                     @Override public @Nonnull String getUserAgent() { return context.request.getUserAgent(); }
                     @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                     @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { 
