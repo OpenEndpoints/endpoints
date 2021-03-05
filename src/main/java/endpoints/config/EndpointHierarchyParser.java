@@ -206,6 +206,8 @@ public class EndpointHierarchyParser extends DomParser {
                     Set.of(new ParameterName("internal-error-text"), new ParameterName("parameter-transformation-error-text"));
                 result.error = parseResponseConfiguration(threads, httpXsltDirectory, transformers, staticDir, errorParamNames, 
                     getOptionalSingleSubElement(element, "error"), "error"); 
+                if (result.error.isDownload()) throw new ConfigurationException(
+                    "HTTP standard does not allow downloads to be triggered from error status codes");
             }
             catch (ConfigurationException e) { throw new ConfigurationException("<error>", e); }
             

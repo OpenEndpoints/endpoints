@@ -44,4 +44,5 @@ public class TransformationResponseConfiguration extends ResponseConfiguration {
         transformer.assertTemplatesValid();
     }
 
+    public boolean isDownload() { return downloadFilenamePatternOrNull != null; }
 }

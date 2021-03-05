@@ -51,4 +51,6 @@ public class StaticResponseConfiguration extends ResponseConfiguration {
             PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues,
                 downloadFilenamePatternOrNull, "download-filename");
     }
+
+    public boolean isDownload() { return downloadFilenamePatternOrNull != null; }
 }
