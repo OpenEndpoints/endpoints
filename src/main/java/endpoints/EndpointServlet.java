@@ -133,14 +133,20 @@ public class EndpointServlet extends HttpServlet {
                 endpoint = application.getEndpoints().findEndpointOrThrow(endpointName);
                 tx.commit();
             }
-            catch (PublishEnvironmentNotFoundException e) { resp.sendError(400, "Environment '"+envName+"' not found"); return; }
+            catch (PublishEnvironmentNotFoundException e) { 
+                resp.sendError(400, "Environment '"+envName+"' not found"); 
+                return; 
+            }
             catch (ApplicationNotFoundException e) {
                 var envLog = (envName == null || envName.equals(PublishEnvironment.getDefault().name()))
                     ? "" : " on "+envName+" environment";
                 resp.sendError(400, "Application '"+applicationName.name+"' not found"+envLog);
                 return;
             }
-            catch (NodeNotFoundException e) { resp.sendError(400, endpointName+" not found"); return; }
+            catch (NodeNotFoundException e) { 
+                resp.sendError(400, "Endpoint '" + endpointName.name +"' not found in this application");
+                return; 
+            }
 
             var request = new Request() {
                 @Override public @CheckForNull InetAddress getClientIpAddress() { 
