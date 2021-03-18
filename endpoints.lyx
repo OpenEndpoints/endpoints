@@ -1107,7 +1107,7 @@ if
 notequals
 \family default
 .
- If present, these attributes have their variables expanded, and are compared.
+ If present, these attributes have their parameters expanded, and are compared.
  Only if they are equal (or not equal) does the task get executed.
 \end_layout
 
@@ -1119,9 +1119,9 @@ For example
 \family default
  gets executed only if the 
 \family typewriter
-${foo}
+foo
 \family default
- variable is equal to the value 
+ parameter is equal to the value 
 \family typewriter
 bar
 \family default
@@ -1290,10 +1290,15 @@ ${value}
 \begin_layout Standard
 Tasks must explicitly specify which intermediate values they output and
  which they input.
- Any task may accept any input intermediate value, however, the output of
- an intermediate value is task-specific.
- (For example, HTTP Tasks parse the response, but there is no useful way
- for an email task to output a variable.)
+ Any task may accept any input intermediate value.
+\end_layout
+
+\begin_layout Standard
+Different tasks have different capability to output intermediate values.
+ For example, HTTP Tasks parse the response, but there is no useful way
+ for an email task to output an intermediate value.
+ Which tasks output which intermediate values can be seen in the documenation
+ of the task.
 \end_layout
 
 \begin_layout Standard
@@ -1314,8 +1319,8 @@ if
 equals
 \family default
  attributes).
- That is because the output variables will be used by other tasks, therefore
- the task must always run.
+ That is because the output intermediate values will be used by other tasks,
+ therefore the task must always run.
 \end_layout
 
 \begin_layout Standard
@@ -1372,7 +1377,11 @@ The task
 \family typewriter
 <from>
 \family default
- is mandatory (variables are expanded)
+ is mandatory (parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded)
 \end_layout
 
 \begin_layout Itemize
@@ -1380,7 +1389,11 @@ The task
 \family typewriter
 <to>
 \family default
- is mandatory (variables are expanded).
+ is mandatory (parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded).
  There may be multiple 
 \family typewriter
 <to>
@@ -1403,7 +1416,11 @@ The task
 \family typewriter
 <subject>
 \family default
- is mandatory (variables are expanded)
+ is mandatory (parameters like 
+\family typewriter
+${foo}
+\family default
+are expanded)
 \end_layout
 
 \begin_layout Itemize
@@ -1433,7 +1450,11 @@ foo.pdf
 static
 \family default
  directory and includes it as an attachment in the email.
- Variables are not allowed in the 
+ Parameters like 
+\family typewriter
+${foo}
+\family default
+ are not allowed in the 
 \family typewriter
 filename
 \family default
@@ -1453,7 +1474,11 @@ umber}.pdf"/>
 \family typewriter
 filename
 \family default
- attribute, variables are expanded.
+ attribute, parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded.
 \end_layout
 
 \begin_layout Itemize
@@ -1621,10 +1646,26 @@ There must be one or more
 <column>
 \family default
  element to specify what columns will be written.
- If the XML element is empty then the endpoints variable of the same name
- will be written into the column.
- Otherwise, the contents of the tag will be written into the column, with
- variables expanded.
+ The contents of the tag will be written into the column, with parameters
+ like 
+\family typewriter
+${foo}
+\family default
+ expanded.
+ If the 
+\family typewriter
+<column>
+\family default
+ element is empty then the endpoints paramter of the same name will be written
+ into the column: that is to say that 
+\family typewriter
+<foo/>
+\family default
+ is a shortcut for 
+\family typewriter
+<foo>{$foo}</foo>
+\family default
+.
 \end_layout
 
 \begin_layout Subsubsection
@@ -1654,7 +1695,7 @@ The configuration of the task looks like:
 \end_layout
 
 \begin_layout LyX-Code
-  <url>http://www.google.com/foo/${variable}</url>
+  <url>http://www.google.com/foo/${param}</url>
 \begin_inset Newline newline
 \end_inset
 
@@ -1678,7 +1719,7 @@ The configuration of the task looks like:
 \end_layout
 
 \begin_layout LyX-Code
-  <get-parameter name="foo">${variable}</get-parameter>
+  <get-parameter name="foo">${param}</get-parameter>
 \begin_inset Newline newline
 \end_inset
 
@@ -1690,7 +1731,7 @@ The configuration of the task looks like:
 \end_layout
 
 \begin_layout LyX-Code
-  <request-header name="foo">${variable}</request-header>
+  <request-header name="foo">${param}</request-header>
 \begin_inset Newline newline
 \end_inset
 
@@ -1706,7 +1747,7 @@ The configuration of the task looks like:
 \end_layout
 
 \begin_layout LyX-Code
-    username="${variable}" password="${variable}">
+    username="${param}" password="${param}">
 \begin_inset Newline newline
 \end_inset
 
@@ -1782,7 +1823,7 @@ One or more POST parameters, specified like:
 
 \begin_deeper
 \begin_layout LyX-Code
-<post-parameter name="foo">${variable}</post-parameter>
+<post-parameter name="foo">${param}</post-parameter>
 \end_layout
 
 \end_deeper
@@ -1805,7 +1846,7 @@ XML with inline contents.
 \end_layout
 
 \begin_layout LyX-Code
-  <your-tag>${variable}</your-tag>
+  <your-tag>${param}</your-tag>
 \end_layout
 
 \begin_layout LyX-Code
@@ -1813,7 +1854,11 @@ XML with inline contents.
 \end_layout
 
 \begin_layout Standard
-Variables will be expanded.
+Parameters like 
+\family typewriter
+${foo}
+\family default
+ will be expanded.
 \end_layout
 
 \begin_layout Standard
@@ -1924,7 +1969,7 @@ JSON with inline content.
 \end_layout
 
 \begin_layout LyX-Code
-   { "key": "${variable}" }
+   { "key": "${param}" }
 \end_layout
 
 \begin_layout LyX-Code
@@ -1936,7 +1981,11 @@ The JSON is expressed as text within the XML.
 \end_layout
 
 \begin_layout Standard
-Variables may be present in string elements in the JSON; they are expanded.
+Parameters like 
+\family typewriter
+${foo}
+\family default
+ may be present in string elements in the JSON; they are expanded.
  They are expanded within the string context of JSON, that is to say that
  no concern about escaping is necessary.
 \end_layout
@@ -1970,8 +2019,8 @@ The XSLT file must produce text with
 \family default
 .
  The text is interpreted as JSON.
- Be careful with including variables; they must be escaped to be valid JSON
- syntax.
+ Be careful with including parameters; they must be escaped to be valid
+ JSON syntax.
  Ideally replace backslash with two backslashes, then replace double-quotes
  with backslash then double-quote.
 \end_layout
@@ -1992,7 +2041,7 @@ Parsing Response and Producing Intermediate Values
 
 \begin_layout Standard
 Either of the following syntaxes may be optionally used, to produce output
- variables.
+ intermediate values:
 \end_layout
 
 \begin_layout LyX-Code
@@ -2481,7 +2530,11 @@ xml-from-application
 <literal-xml>
 \family default
  The contents of the element are placed in the output.
- Variables are expanded in the bodies of elements, and in all attributes.
+ Parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded in the bodies of elements, and in all attributes.
 \end_layout
 
 \begin_layout Description
@@ -2534,7 +2587,11 @@ If XML is received then that XML is the result of this data source.
 \end_layout
 
 \begin_layout Standard
-Variables are expanded in the resulting XML.
+Parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded in the resulting XML.
  To prevent expansion, use the attribute 
 \family typewriter
 <xml-from-url 
@@ -2625,7 +2682,11 @@ from-environment-variable="foo"
 \end_layout
 
 \begin_layout Standard
-Note that variables are NOT expanded (security).
+Note that parameters like 
+\family typewriter
+${foo}
+\family default
+ are not expanded.
 \end_layout
 
 \begin_layout Standard
@@ -2645,8 +2706,29 @@ Currently MySQL and PostgreSQL are supported.
 SELECT * FROM foo WHERE id=?
 \family default
 .
- Variables are NOT expanded as that would allow SQL injection attacks.
- For PostgreSQL, for non-string parameters, 
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Parameters like 
+\family typewriter
+${foo}
+\family default
+ are not expanded as that would allow SQL injection attacks.
+ Use a ? in the 
+\family typewriter
+<sql>
+\family default
+ field and add a 
+\family typewriter
+<param>
+\family default
+ instead.
+\end_layout
+
+\begin_layout Standard
+For PostgreSQL, for non-string parameters, 
 \family typewriter
 ?::int
 \family default
@@ -2658,6 +2740,7 @@ SELECT * FROM foo WHERE id=?
  for PostgreSQL.
 \end_layout
 
+\end_deeper
 \begin_layout Description
 
 \family typewriter
@@ -2672,7 +2755,11 @@ SELECT * FROM foo WHERE id=?
 <sql>
 \family default
  element.
- Here, variables ARE expanded.
+ Parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded.
 \end_layout
 
 \end_deeper
@@ -2690,11 +2777,17 @@ file="path/to/file/x.xml"/>
 xml-from-application
 \family default
  in the application.
- Variables are expanded in the bodies of elements, and in all attributes.
- 
 \end_layout
 
 \begin_deeper
+\begin_layout Standard
+Parameters like 
+\family typewriter
+${foo}
+\family default
+ are are expanded in the bodies of elements, and in all attributes.
+\end_layout
+
 \begin_layout Standard
 The optional attribute 
 \family typewriter
@@ -2719,8 +2812,11 @@ id="x"
 
 message-string="x"/>
 \family default
- This takes the message string (variables are expanded) and performs an
- MD5 Hex hash on it.
+ This takes the message string, expands parameters like 
+\family typewriter
+${foo}
+\family default
+, and performs an MD5 Hex hash on it.
  The result is written to a 
 \family typewriter
 <hash>
@@ -2730,7 +2826,12 @@ message-string="x"/>
 \family typewriter
 id
 \family default
- on the command is written into the output element, with variables expanded.
+ on the command is written into the output element, with parameters like
+ 
+\family typewriter
+${foo}
+\family default
+ expanded.
 \end_layout
 
 \begin_layout Description
@@ -2919,7 +3020,11 @@ send emails.
 <redirect-to>
 \family default
  specifies where.
- Variables, if present, are replaced, in the body.
+ Paramters like 
+\family typewriter
+${foo}
+\family default
+ in the body are replaced.
 \end_layout
 
 \begin_deeper
@@ -2975,7 +3080,11 @@ subdir/
 file.pdf"
 \family default
  are supported.
- Variables are not allowed in the 
+ Parameters like 
+\family typewriter
+${foo}
+\family default
+ are not allowed in the 
 \family typewriter
 filename
 \family default
@@ -3006,7 +3115,11 @@ ${invoice-number}.pdf"
  attribute is present, then the header in the HTTP response is set indicating
  that the file should be downloaded as opposed to displayed in the browser
  window.
- Variables are replaced.
+ Parameters like 
+\family typewriter
+${foo}
+\family default
+ are replaced.
 \end_layout
 
 \end_deeper
@@ -3110,10 +3223,10 @@ foo
 
 \begin_deeper
 \begin_layout Standard
-All variables are forwarded to the new endpoint.
+All parameters are forwarded to the new endpoint.
  (In the past there was a syntax like 
 \family typewriter
-<input-parameter name="p">${variable}</input-parameter>
+<input-parameter name="p">${param}</input-parameter>
 \family default
 .
  It is still supported for backwards compatibility.) The user agent, client
