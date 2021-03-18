@@ -47,7 +47,6 @@ public class DataSource {
         this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, script);
     }
 
-    /** Checks that no variables other than those supplied are necessary to execute all commands */
     public void assertParametersSuffice(
         @Nonnull Set<ParameterName> params,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues

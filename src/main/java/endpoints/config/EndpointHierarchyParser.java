@@ -115,7 +115,7 @@ public class EndpointHierarchyParser extends DomParser {
                         throw new ConfigurationException("Task produces <output-intermediate-value name='" + output.name + "'> " +
                             "but there is already a <parameter name='" + output.name + "'> defined. " +
                             "Outputs and parameters may not have the same name, " +
-                            "otherwise variable syntax '${" + output.name + "}' would be ambiguous.");
+                            "otherwise '${" + output.name + "}' syntax would be ambiguous.");
                 
                 return result;
             }
