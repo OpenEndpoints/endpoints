@@ -38,7 +38,7 @@ public class DeploymentParameters {
 
     public final @Nonnull URL baseUrl;
     public final @Nonnull String jdbcUrl;
-    public final @CheckForNull File publishedApplicationsDirectory;
+    public final @Nonnull File publishedApplicationsDirectory;
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
     public final @CheckForNull String gitRepositoryDefaultPattern;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
@@ -74,7 +74,7 @@ public class DeploymentParameters {
         baseUrl = new URL(getMandatoryParameter("ENDPOINTS_BASE_URL"));
         jdbcUrl = getMandatoryParameter("ENDPOINTS_JDBC_URL");
         publishedApplicationsDirectory = 
-            getOptionalParameter("ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY").map(s -> new File(s)).orElse(null);
+            getOptionalParameter("ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY").map(s -> new File(s)).orElse(new File("/tmp"));
         checkHash =
             Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_CHECK_HASH").orElse("true"));
         displayExpectedHash = 
@@ -97,13 +97,9 @@ public class DeploymentParameters {
     public synchronized ApplicationFactory getApplications(@Nonnull DbTransaction tx) {
         if (applications == null) {
             var threads = new XsltCompilationThreads();
-            if (isSingleApplicationMode()) {
-                applications = new FixedPathApplicationFactory(tx, threads);
-            }
-            else {
-                assert publishedApplicationsDirectory != null;
-                applications = new PublishedApplicationFactory(tx, threads, publishedApplicationsDirectory);
-            }
+            applications = isSingleApplicationMode() 
+                ? new FixedPathApplicationFactory(tx, threads) 
+                : new PublishedApplicationFactory(tx, threads, publishedApplicationsDirectory);
             threads.execute();
         }
         return applications;

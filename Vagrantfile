@@ -68,7 +68,6 @@ Vagrant.configure(2) do |config|
     echo --- Set DeploymentParameters for Docker
     echo 'ENDPOINTS_BASE_URL=http://localhost:9758/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN=/var/endpoints/application-git-repositories/${applicationName}' >> /home/vagrant/docker-env
