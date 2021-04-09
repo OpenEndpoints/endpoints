@@ -3912,11 +3912,10 @@ ENDPOINTS_JDBC_URL
 \family typewriter
 ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY
 \family default
- A directory where published applications are stored, usually under 
-\family typewriter
-/var
-\family default
-.
+ Optional.
+ A directory where published applications are stored.
+ This is only really useful if Endpoints is run outside Docker, where the
+ checked-out applications might survive an application restart.
 \end_layout
 
 \begin_layout Description
