@@ -12,7 +12,6 @@ import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import org.w3c.dom.Element;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
@@ -25,7 +24,7 @@ import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainT
 public class XmlFromDatabaseCommand extends DataSourceCommand {
     
     protected @Nonnull String outputTag;
-    protected @CheckForNull String jdbcUrlOrNull;
+    protected @Nonnull String jdbcUrl;
     protected @Nonnull String sql;
     protected @Nonnull List<String> paramPatterns;
     
@@ -39,15 +38,17 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
         assertNoOtherElements(config, "post-process", "jdbc-connection-string", "sql", "param");
         outputTag = getOptionalAttribute(config, "tag", "xml-from-database");
 
-        var jdbc = getOptionalSingleSubElement(config, "jdbc-connection-string");
-        if (jdbc != null) {
-            var envVarName = getOptionalAttribute(jdbc, "from-environment-variable");
-            if (envVarName != null) {
-                jdbcUrlOrNull = System.getenv(envVarName);
-                if (jdbcUrlOrNull == null) throw new ConfigurationException("JDBC URL specified to come " +
-                    "from environment variable '" + envVarName + "' but this environment variable is not set");
-            }
-            else jdbcUrlOrNull = jdbc.getTextContent().trim();
+        var jdbc = getMandatorySingleSubElement(config, "jdbc-connection-string");
+        var envVarName = getOptionalAttribute(jdbc, "from-environment-variable");
+        if (envVarName != null) {
+            jdbcUrl = System.getenv(envVarName);
+            if (jdbcUrl == null) throw new ConfigurationException("JDBC URL specified to come " +
+                "from environment variable '" + envVarName + "' but this environment variable is not set");
+        }
+        else {
+            jdbcUrl = jdbc.getTextContent().trim();
+            if (jdbcUrl.isEmpty()) throw new ConfigurationException("<jdbc-connection-string> should either have attribute " +
+                "from-environment-variable='foo' set or have the JDBC URL as its body");
         }
 
         sql = getMandatorySingleSubElement(config, "sql").getTextContent();
@@ -75,8 +76,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
         var root = resultDocument.createElement(outputTag);
         resultDocument.appendChild(root);
 
-        var db = jdbcUrlOrNull == null ? tx : new DbTransaction(jdbcUrlOrNull);
-        synchronized (db) {
+        try (var db = new DbTransaction(jdbcUrl)) {
             for (var row : db.query(sql, paramsExpanded)) {
                 var rowElement = resultDocument.createElement("row");
                 root.appendChild(rowElement);
@@ -87,7 +87,6 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
                 }
             }
         }
-        if (jdbcUrlOrNull != null) db.close();
 
         return new Element[] { root };
     }
