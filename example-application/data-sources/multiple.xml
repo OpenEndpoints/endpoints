@@ -30,11 +30,6 @@
   <xml-from-application file="xml-subdirectory/doesnt-exist.fo" ignore-if-not-found="true">
     <post-process xslt="values.xslt"/>
   </xml-from-application>
-  <xml-from-database>
-    <sql>SELECT * FROM application_publish WHERE application_name=?</sql>
-    <param>example-application</param>
-    <post-process xslt="values.xslt"/>
-  </xml-from-database>
   <xml-from-database tag="from-mysql">
     <jdbc-connection-string from-environment-variable="EXAMPLE_APPLICATION_MYSQL_JDBC"/>
     <sql>SELECT * FROM data_source WHERE i=? AND str=?</sql>

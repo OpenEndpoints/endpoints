@@ -2530,7 +2530,7 @@ tag
 
 \begin_deeper
 \begin_layout Standard
-The command may have the following child elements:
+The command has the following child elements:
 \end_layout
 
 \begin_layout Description
@@ -2538,28 +2538,17 @@ The command may have the following child elements:
 \family typewriter
 <jdbc-connection-string>
 \family default
- Optional, specifies how to connect to the database to perform the query:
-\end_layout
-
-\begin_deeper
-\begin_layout Itemize
-If not present, the same database context as the application itself is used.
-\end_layout
-
-\begin_layout Itemize
-If it is present with no attributes, the body of the tab specifies the JDBC
- URL
-\end_layout
-
-\begin_layout Itemize
-If it is has an attribute like 
+ Mandatory.
+ Specifies how to connect to the database to perform the query.
+ It can either contain a JDBC URL in its body, or it can have an attribute
+ like 
 \family typewriter
 from-environment-variable="foo"
 \family default
- then the environment variable with that name is read and should contain
- the JDBC URL.
+ in which case that environment variable must contain the JDBC URL.
 \end_layout
 
+\begin_deeper
 \begin_layout Standard
 Note that parameters like 
 \family typewriter
@@ -2625,11 +2614,11 @@ For PostgreSQL, for non-string parameters,
 \family typewriter
 <param>
 \family default
- Zero or more 
+ Zero or more elements, whose body are the contents of any 
 \family typewriter
-<param>
+?
 \family default
- elements, whose body are the contents of any "?" in the 
+ in the 
 \family typewriter
 <sql>
 \family default
