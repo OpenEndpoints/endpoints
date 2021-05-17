@@ -39,6 +39,19 @@ public abstract class AbstractLoggedInPage extends AbstractPage {
             add(new Label("applicationMobile",  ServicePortalSession.get().getLoggedInDataOrThrow().applicationDisplayName));
             add(new Label("usernameDesktop", ServicePortalSession.get().getLoggedInDataOrThrow().username));
             add(new Label("usernameMobile",  ServicePortalSession.get().getLoggedInDataOrThrow().username));
+            add(new Link<Void>("change-application") {
+                @Override public void onClick() {
+                    try (var tx = DeploymentParameters.get().newDbTransaction()) {
+                        var username = ServicePortalSession.get().getLoggedInDataOrThrow().username;
+                        ServicePortalSession.get().logoutWithoutInvalidatingSession();
+                        setResponsePage(new ChooseApplicationPage(tx, username));
+                    }
+                }
+                @Override public boolean isVisible() {
+                    if ( ! ServicePortalSession.get().getLoggedInDataOrThrow().moreThanOneApplication) return false;
+                    return super.isVisible();
+                }
+            });
             add(new Link<Void>("logout") {
                 @Override public void onClick() {
                     ServicePortalSession.get().logoutAndInvalidateSession();

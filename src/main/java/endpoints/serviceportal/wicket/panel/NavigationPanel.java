@@ -1,9 +1,11 @@
 package endpoints.serviceportal.wicket.panel;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
+import endpoints.DeploymentParameters;
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.endpointmenu.EndpointMenuItemPanel;
+import endpoints.serviceportal.wicket.page.ChooseApplicationPage;
 import endpoints.serviceportal.wicket.page.LoginPage;
 import lombok.RequiredArgsConstructor;
 import org.apache.wicket.AttributeModifier;
@@ -63,13 +65,26 @@ public class NavigationPanel extends Panel {
             (item.inSecuritySubMenu ? security : ul).add(li);
         }
         
-        var logoutContainer = new WebMarkupContainer("logout");
-        logoutContainer.setVisible(type.logoutVisible);
-        ul.add(logoutContainer);
+        var mobileOnlyContainer = new WebMarkupContainer("mobileOnly");
+        mobileOnlyContainer.setVisible(type.logoutVisible);
+        ul.add(mobileOnlyContainer);
 
         ul.add(EndpointMenuItemPanel.newRootLiRepeater(tx, "endpointMenuFolder", "item", endpointLeaf));
 
-        logoutContainer.add(new Link<Void>("logout") {
+        mobileOnlyContainer.add(new Link<Void>("change-application") {
+            @Override public void onClick() {
+                try (var tx = DeploymentParameters.get().newDbTransaction()) {
+                    var username = ServicePortalSession.get().getLoggedInDataOrThrow().username;
+                    ServicePortalSession.get().logoutWithoutInvalidatingSession();
+                    setResponsePage(new ChooseApplicationPage(tx, username));
+                }
+            }
+            @Override public boolean isVisible() {
+                if ( ! ServicePortalSession.get().getLoggedInDataOrThrow().moreThanOneApplication) return false;
+                return super.isVisible();
+            }
+        });
+        mobileOnlyContainer.add(new Link<Void>("logout") {
             @Override public void onClick() {
                 ServicePortalSession.get().logoutAndInvalidateSession();
                 setResponsePage(LoginPage.class);
