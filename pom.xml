@@ -34,7 +34,7 @@
         <maven.compiler.target>11</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <flyway.version>5.0.7</flyway.version>
-        <wicket.version>8.1.0</wicket.version>
+        <wicket.version>8.12.0</wicket.version>
     </properties>
 
     <profiles>
