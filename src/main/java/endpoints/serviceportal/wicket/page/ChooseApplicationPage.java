@@ -56,7 +56,7 @@ public class ChooseApplicationPage extends AbstractPage {
     }
 
     protected void onSubmit() {
-        ServicePortalSession.get().login(username, chosenApplication.getApplicationName(), chosenApplication.getDisplayName());
+        ServicePortalSession.get().login(username, chosenApplication.getApplicationName(), chosenApplication.getDisplayName(), true);
         continueToOriginalDestination();
         RequestCycle.get().setResponsePage(ApplicationHomePage.class);
     }

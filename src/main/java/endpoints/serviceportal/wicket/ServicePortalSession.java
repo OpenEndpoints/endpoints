@@ -21,6 +21,8 @@ public class ServicePortalSession extends WebSession {
         public final @Nonnull ServicePortalUsername username;
         public final @Nonnull ApplicationName application;
         public final @Nonnull String applicationDisplayName;
+        /** if the user has access to more than one application, they can see the "change application" link */
+        public final boolean moreThanOneApplication;
     }
 
     protected @CheckForNull LoggedInData loggedInData;
@@ -38,10 +40,11 @@ public class ServicePortalSession extends WebSession {
     }
 
     public void login(
-        @Nonnull ServicePortalUsername username, @Nonnull ApplicationName application, @Nonnull String applicationDisplayName
+        @Nonnull ServicePortalUsername username, @Nonnull ApplicationName application, @Nonnull String applicationDisplayName,
+        boolean moreThanOneApplication
     ) {
         bind();
-        this.loggedInData = new LoggedInData(username, application, applicationDisplayName);
+        this.loggedInData = new LoggedInData(username, application, applicationDisplayName, moreThanOneApplication);
     }
 
     public @Nonnull LoggedInData getLoggedInDataOrThrow() {

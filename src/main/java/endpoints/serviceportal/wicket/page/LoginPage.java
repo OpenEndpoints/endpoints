@@ -54,7 +54,7 @@ public class LoginPage extends AbstractPage {
                 error("No applications configured for this user");
             }
             else if (applications.size() == 1) {
-                ServicePortalSession.get().login(username, applications.get(0).value1(), applications.get(0).value2());
+                ServicePortalSession.get().login(username, applications.get(0).value1(), applications.get(0).value2(), false);
                 continueToOriginalDestination();
                 setResponsePage(ApplicationHomePage.class);
             }
