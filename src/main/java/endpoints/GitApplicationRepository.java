@@ -74,7 +74,7 @@ public class GitApplicationRepository {
                 .setHeads(false)
                 .callAsMap();
             var result = map.get("HEAD");
-            if (result == null) throw new RepositoryCommandFailedException("Cannot find 'master' branch");
+            if (result == null) throw new RepositoryCommandFailedException("Cannot find default branch (e.g. 'main' or 'master')");
             return new GitRevision(result.getObjectId().getName());
         }
         catch (GitAPIException e) { throw new RepositoryCommandFailedException(e); }
