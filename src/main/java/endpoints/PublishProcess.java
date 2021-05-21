@@ -26,7 +26,7 @@ public class PublishProcess {
     @Nonnull PublishEnvironment environment;
 
     @FunctionalInterface
-    public static interface PublishLog {
+    public interface PublishLog {
         public void println(String line);
     }
 
