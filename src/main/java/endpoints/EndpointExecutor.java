@@ -8,6 +8,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.TransformationContext.ParameterNotFoundPolicy;
@@ -145,6 +146,7 @@ public class EndpointExecutor {
         Logger.getLogger(logClass).info(msg + "\n" + str);
     }
     
+    @SuppressFBWarnings("SA_LOCAL_SELF_ASSIGNMENT")
     protected @Nonnull Runnable transformXmlIntoParameters(
         @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull ThreadPool threads, @Nonnull Endpoint endpoint, @Nonnull RequestId requestId, 
@@ -156,6 +158,9 @@ public class EndpointExecutor {
         @Nonnull Consumer<Map<ParameterName, String>> consumeParameters,
         @Nonnull Node... inputFromRequestContents
     ) throws TransformationFailedException {
+        //noinspection ConstantConditions - prevents non-thread-safe transaction from being accidentally used inside thread pool
+        tx = tx;
+        
         // Create input document
         var inputParametersDocument = DomParser.newDocumentBuilder().newDocument();
         inputParametersDocument.appendChild(inputParametersDocument.createElement("parameter-transformation-input"));
