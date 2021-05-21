@@ -137,7 +137,7 @@
         <dependency>
             <groupId>com.databasesandlife</groupId>
             <artifactId>java-common</artifactId>
-            <version>10.0.1</version>
+            <version>15.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
@@ -157,7 +157,7 @@
         <dependency>
             <groupId>com.offerready</groupId>
             <artifactId>xslt-library</artifactId>
-            <version>2.7.1</version>
+            <version>4.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.saxon</groupId>

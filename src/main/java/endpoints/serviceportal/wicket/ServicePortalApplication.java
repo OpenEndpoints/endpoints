@@ -1,6 +1,6 @@
 package endpoints.serviceportal.wicket;
 
-import com.databasesandlife.util.CleartextPassword;
+import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import com.databasesandlife.util.wicket.CleartextPasswordConverter;
 import com.databasesandlife.util.wicket.UuidConverter;
 import endpoints.DeploymentParameters;
