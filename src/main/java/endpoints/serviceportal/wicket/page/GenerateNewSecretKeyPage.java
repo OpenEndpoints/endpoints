@@ -4,6 +4,7 @@ import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.DeploymentParameters;
+import endpoints.GitApplicationRepository;
 import endpoints.GitApplicationRepository.RepositoryCommandFailedException;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
@@ -28,16 +29,16 @@ public class GenerateNewSecretKeyPage extends AbstractLoggedInPage {
         add(new Form<Void>("form") { @Override public void onSubmit() { GenerateNewSecretKeyPage.this.onSubmit(); } });
     }
 
-    @SneakyThrows(ConfigurationException.class)
     protected void onSubmit() {
-        try {
+        try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var application = getSession().getLoggedInDataOrThrow().application;
-            var repo = DeploymentParameters.get().getGitRepository(application);
-            repo.checkoutAlterAndCommit(application,
+            var repo = GitApplicationRepository.fetch(tx, application);
+            repo.checkoutAlterAndCommit(
                 getSession().getLoggedInDataOrThrow().username.username + " (Endpoints Service Portal User)",
                 "Generate new secret key (via Endpoints Service Portal)",
                 gitCheckoutDirectory -> writeSecretKey(new File(gitCheckoutDirectory, "security.xml")));
             info("A new secret key has been created in a new (not yet published) revision of your configuration.");
+            tx.commit();
         }
         catch (RepositoryCommandFailedException e) {
             Logger.getLogger(getClass()).error("Couldn't generate & push new secure key", e);

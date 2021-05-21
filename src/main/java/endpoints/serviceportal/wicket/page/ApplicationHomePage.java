@@ -2,6 +2,7 @@ package endpoints.serviceportal.wicket.page;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.DeploymentParameters;
+import endpoints.GitApplicationRepository;
 import endpoints.generated.jooq.Tables;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
@@ -22,20 +23,21 @@ public class ApplicationHomePage extends AbstractLoggedInPage {
 
     private final @Nonnull ApplicationConfigRecord app;
 
-    @SneakyThrows({ConfigurationException.class, MalformedURLException.class})
+    @SneakyThrows(MalformedURLException.class)
     public ApplicationHomePage() {
         super(NavigationItem.ApplicationHomePage, null);
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var applicationName = getSession().getLoggedInDataOrThrow().application;
             var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/");
+            var applicationRepo = GitApplicationRepository.fetch(tx, applicationName);
 
             app = tx.jooq().fetchOne(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
 
             add(new ServicePortalFeedbackPanel("feedback"));
             add(new Label("applicationDisplayName", getSession().getLoggedInDataOrThrow().applicationDisplayName));
             add(new Label("applicationName", applicationName.name));
-            add(new Label("repository", DeploymentParameters.get().getGitRepository(applicationName).url));
+            add(new Label("repository", applicationRepo.url));
             add(new Label("urlPreview", new URL(applicationUrl, "{endpoint}?environment=preview&{parameter}").toExternalForm()));
             add(new Label("urlLive", new URL(applicationUrl, "{endpoint}?{parameter}").toExternalForm()));
             add(new Label("currentDebugAllowed", () -> app.getDebugAllowed() ? "Debug Allowed" : "Debug Not Allowed"));

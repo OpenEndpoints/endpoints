@@ -40,7 +40,6 @@ public class DeploymentParameters {
     public final @Nonnull String jdbcUrl;
     public final @Nonnull File publishedApplicationsDirectory;
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
-    public final @CheckForNull String gitRepositoryDefaultPattern;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
     public final @CheckForNull ZoneId singleApplicationModeTimezoneId;
     
@@ -66,7 +65,7 @@ public class DeploymentParameters {
     }
     
     public boolean isSingleApplicationMode() {
-        return gitRepositoryDefaultPattern == null;
+        return servicePortalEnvironmentDisplayName == null;
     }
 
     @SneakyThrows(MalformedURLException.class)
@@ -81,8 +80,6 @@ public class DeploymentParameters {
             Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_DISPLAY_EXPECTED_HASH").orElse("false"));
         xsltDebugLog = 
             Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_XSLT_DEBUG_LOG").orElse("false"));
-        gitRepositoryDefaultPattern = 
-            getOptionalParameter("ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN").orElse(null);
         servicePortalEnvironmentDisplayName =
             getOptionalParameter("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME").orElse(null);
         singleApplicationModeTimezoneId = 
@@ -103,25 +100,6 @@ public class DeploymentParameters {
             threads.execute();
         }
         return applications;
-    }
-
-    public @Nonnull GitApplicationRepository getGitRepository(@Nonnull ApplicationName application)
-    throws ConfigurationException {
-        var patternVars = new HashMap<String, String>() {{ put("applicationName", application.name); }};
-
-        // Is an override set?
-        var mangledName = application.name
-            .replaceAll("[^\\w]+", "_")  // replace all hyphens etc. with a single underscore
-            .replaceAll("^_?(.*?)_?$", "$1")  // replace leading/trailing underscores
-            .toUpperCase();
-        var overrideEnvVarName = "ENDPOINTS_GIT_REPOSITORY_OVERRIDE_" + mangledName;
-        var candidateGitRepo = getOptionalParameter(overrideEnvVarName);
-        if (candidateGitRepo.isPresent())
-            return new GitApplicationRepository(replacePlainTextParameters(candidateGitRepo.get(), patternVars));
-
-        // If not, use default pattern
-        if (gitRepositoryDefaultPattern == null) throw new ConfigurationException("Not configured to publish from Git repos");
-        return new GitApplicationRepository(replacePlainTextParameters(gitRepositoryDefaultPattern, patternVars));
     }
 
     public DbTransaction newDbTransaction() throws CannotConnectToDatabaseException {

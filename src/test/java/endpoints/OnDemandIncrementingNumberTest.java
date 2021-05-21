@@ -60,6 +60,7 @@ public class OnDemandIncrementingNumberTest extends TestCase {
             var appRow = new ApplicationConfigRecord();
             appRow.setApplicationName(app);
             appRow.setDisplayName("unit test");
+            appRow.setGitUrl("TEST");
             tx.insert(appRow);
             
             performTest(1, tx, appRow, perpetual, oneHourLaterNow, "UTC");

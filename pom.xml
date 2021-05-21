@@ -137,7 +137,7 @@
         <dependency>
             <groupId>com.databasesandlife</groupId>
             <artifactId>java-common</artifactId>
-            <version>15.0.0</version>
+            <version>15.1.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
@@ -333,6 +333,11 @@
                                             <userType>endpoints.serviceportal.ServicePortalUsername</userType>
                                             <converter>endpoints.jooq.ServicePortalUsernameConverter</converter>
                                             <expression>USERNAME</expression>
+                                        </forcedType>
+                                        <forcedType>
+                                            <userType>com.databasesandlife.util.gwtsafe.CleartextPassword</userType>
+                                            <converter>com.databasesandlife.util.jooq.CleartextPasswordConverter</converter>
+                                            <expression>.*PASSWORD_CLEARTEXT</expression>
                                         </forcedType>
                                         <forcedType>
                                             <userType>com.databasesandlife.util.BCryptPassword</userType>

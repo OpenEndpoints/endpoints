@@ -4,6 +4,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.DeploymentParameters;
+import endpoints.GitApplicationRepository;
 import endpoints.GitApplicationRepository.RepositoryCommandFailedException;
 import endpoints.PublishEnvironment;
 import endpoints.GitRevision;
@@ -46,14 +47,15 @@ public class PublishedApplicationFactory extends ApplicationFactory {
         var rows = tx.jooq()
             .select(APPLICATION_PUBLISH.APPLICATION_NAME, APPLICATION_PUBLISH.ENVIRONMENT, APPLICATION_PUBLISH.REVISION)
             .from(APPLICATION_PUBLISH).fetch();
+        var repos = GitApplicationRepository.fetchAll(tx);
         for (var r : rows) {
             var name = r.value1();
             var revision = r.value3();
             threads.addTask(() -> {
                 try {
-                    var repo = DeploymentParameters.get().getGitRepository(name);
+                    var repo = repos.get(name);
                     var directory = getApplicationDirectory(name, revision);
-                    repo.checkoutAtomicallyIfNecessary(name, revision, directory);
+                    repo.checkoutAtomicallyIfNecessary(revision, directory);
 
                     var cachedApp = new CachedApplication();
                     cachedApp.revision = revision;
@@ -101,8 +103,8 @@ public class PublishedApplicationFactory extends ApplicationFactory {
 
             // Checkout the application to disk if necessary (e.g. AWS instance restarted, new blank disk)
             var directory = getApplicationDirectory(name, revision);
-            var repo = DeploymentParameters.get().getGitRepository(name);
-            repo.checkoutAtomicallyIfNecessary(name, revision, directory);
+            var repo = GitApplicationRepository.fetch(tx, name);
+            repo.checkoutAtomicallyIfNecessary(revision, directory);
 
             // Load the application and put into our cache
             Logger.getLogger(getClass()).info("Application '" + name.name + "' has changed or was never loaded: will reload...");
