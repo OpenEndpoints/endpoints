@@ -3834,7 +3834,7 @@ TZ database name
 
  in the table at Wikipedia
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Flex URL
@@ -3889,6 +3889,18 @@ On-Demand Incrementing Number
  feature is used within the application.
 \end_layout
 
+\begin_layout Standard
+This variable is only needed if the application is in single-application
+ mode.
+ If the application is in multi-application mode then this information is
+ taken from the 
+\family typewriter
+application_config
+\family default
+ database table which is used to store which applications are available
+ in multi-application mode.
+\end_layout
+
 \end_deeper
 \begin_layout Subsubsection
 Multiple Application Mode
@@ -3921,147 +3933,12 @@ ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY
 \begin_layout Description
 
 \family typewriter
-ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN
-\family default
- Either a HTTPS URL, or pipe-separated 
-\begin_inset Quotes eld
-\end_inset
-
-url|
-\family typewriter
-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-
-\family default
-user|
-\family typewriter
-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-
-\family default
-password
-\begin_inset Quotes erd
-\end_inset
-
-.
- The string must use 
-\family typewriter
-${applicationName}
-\family default
- to specify the application's name.
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
 ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME
 \family default
  For example "Production Environment", for the login screen of the Service
  Portal.
-\end_layout
-
-\begin_layout Standard
-Any application may reside in its own Git repository by setting the environment
- variable 
-\family typewriter
-\series bold
-ENDPOINTS_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-GIT_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-REPOSITORY_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-OVERRIDE_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-
-\emph on
-FOO
-\family default
-\series default
-\emph default
- where 
-\family typewriter
-
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-
-\emph on
-FOO
-\family default
-\emph default
- is the name of the application.
- The application's name is converted to uppercase, with any sequence of
- symbols replaced with a single underscore.
- Any leading and trailing underscores are removed.
- For example 
-\family typewriter
-bar-abc123--baz
-\family default
- would be specified in the environment variable 
-\family typewriter
-ENDPOINTS_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-GIT_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-REPOSITORY_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-OVERRIDE_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-BAR_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-ABC123_
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-BAZ
-\family default
-.
- The value may also use 
-\family typewriter
-${application
-\begin_inset space \hspace{}
-\length 0bp
-\end_inset
-
-Name}
-\family default
- to specify the application's name.
+ This variable must be set to indicate that the application is in multi-applicat
+ion mode.
 \end_layout
 
 \begin_layout Subsubsection

@@ -55,7 +55,7 @@ public class PublishProcess {
             // Otherwise acquiring lock of application leads to: ERROR: could not serialize access due to concurrent update
             tx.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
 
-            var repo = DeploymentParameters.get().getGitRepository(applicationName);
+            var repo = GitApplicationRepository.fetch(tx, applicationName);
 
             log.println(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z").format(Instant.now().atZone(ZoneId.systemDefault())));
 
@@ -71,7 +71,7 @@ public class PublishProcess {
             setApplicationToPublished(tx, applicationName, environment, revision);
 
             log.println("Checkout out revision " + revision.getAbbreviated() + " from repository...");
-            repo.checkoutAtomicallyIfNecessary(applicationName, revision, directory);
+            repo.checkoutAtomicallyIfNecessary(revision, directory);
 
             log.println("Verifying application...");
             var threads = new XsltCompilationThreads();

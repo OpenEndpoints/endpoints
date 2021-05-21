@@ -59,7 +59,6 @@ Vagrant.configure(2) do |config|
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
     echo 'export ENDPOINTS_XSLT_DEBUG_LOG=true' >> /etc/environment
-    echo 'export ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN=/var/endpoints/application-git-repositories/${applicationName}' >> /etc/environment
     echo 'export ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME='"'"'VAGRANT ENVIRONMENT'"'" >> /etc/environment
     echo 'export EXAMPLE_APPLICATION_POSTGRESQL_JDBC='"'"'jdbc:postgresql://localhost/example_application?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export EXAMPLE_APPLICATION_MYSQL_JDBC='"'"'jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8'"'" >> /etc/environment
@@ -70,7 +69,6 @@ Vagrant.configure(2) do |config|
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN=/var/endpoints/application-git-repositories/${applicationName}' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=VAGRANT ENVIRONMENT (DOCKER)' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_POSTGRESQL_JDBC=jdbc:postgresql://localhost/example_application?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_MYSQL_JDBC=jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8' >> /home/vagrant/docker-env
@@ -107,7 +105,9 @@ Vagrant.configure(2) do |config|
 
     echo '--- Set up "example-application" and Service portal access'
     ln -s /vagrant/example-application /var/endpoints/applications-checkout/example-application-symlink
-    (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_config VALUES ('example-application', false, 'Example Application'), ('from-git', false, 'From Git')")
+    (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_config(application_name, display_name, git_url) VALUES 
+        ('example-application', 'Example Application', 'invalid'),
+        ('from-git',            'From Git',            '/var/endpoints/application-git-repositories/from-git')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_publish VALUES ('example-application', 'symlink', 'live')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO service_portal_login VALUES ('admin', '\$2a\$10\$VOBc53Fu0louc.K4AGLUJuiTdbPimluy4feYeShLIrOrQy//U.UpO')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO service_portal_login_application VALUES ('admin', 'example-application'), ('admin', 'from-git')")
@@ -163,7 +163,6 @@ Vagrant.configure(2) do |config|
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'
-    echo '          -e ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN= \'
     echo '          --mount type=bind,source=/vagrant/example-application,target=/var/endpoints/fixed-application \'
     echo '          --net=host endpoints'
     echo '  mvn -f /vagrant/pom.xml clean package                    \'
