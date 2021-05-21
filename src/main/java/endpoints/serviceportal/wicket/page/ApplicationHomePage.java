@@ -35,7 +35,7 @@ public class ApplicationHomePage extends AbstractLoggedInPage {
             add(new ServicePortalFeedbackPanel("feedback"));
             add(new Label("applicationDisplayName", getSession().getLoggedInDataOrThrow().applicationDisplayName));
             add(new Label("applicationName", applicationName.name));
-            add(new Label("repository", DeploymentParameters.get().getGitRepository(applicationName).info));
+            add(new Label("repository", DeploymentParameters.get().getGitRepository(applicationName).url));
             add(new Label("urlPreview", new URL(applicationUrl, "{endpoint}?environment=preview&{parameter}").toExternalForm()));
             add(new Label("urlLive", new URL(applicationUrl, "{endpoint}?{parameter}").toExternalForm()));
             add(new Label("currentDebugAllowed", () -> app.getDebugAllowed() ? "Debug Allowed" : "Debug Not Allowed"));
