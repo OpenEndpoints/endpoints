@@ -24,7 +24,7 @@ import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
 public class GitApplicationRepository {
 
-    public final @Nonnull String info;
+    public final @Nonnull String url;
     public final @CheckForNull String username, password;
 
     /** Represents a problem with Git or with the application logic provided by {@link GitApplicationRepository} */
@@ -36,7 +36,7 @@ public class GitApplicationRepository {
     public GitApplicationRepository(@Nonnull String pipeSeparated) throws ConfigurationException {
         var m = Pattern.compile("^([^|]+?)(\\|([^|]+)\\|([^|]+))?$").matcher(pipeSeparated);
         if (! m.matches()) throw new ConfigurationException("Git '" + pipeSeparated + "' should have 'url|user|pw' form");
-        info = m.group(1);
+        url = m.group(1);
         username = m.group(3);
         password = m.group(4);
     }
@@ -68,7 +68,7 @@ public class GitApplicationRepository {
     public @Nonnull GitRevision fetchLatestRevision() throws RepositoryCommandFailedException {
         try {
             var map = Git.lsRemoteRepository()
-                .setRemote(info)
+                .setRemote(url)
                 .setCredentialsProvider(getCredentialsProvider())
                 .setTags(false)
                 .setHeads(false)
@@ -87,7 +87,7 @@ public class GitApplicationRepository {
         var tmpDir = newTemporaryDirectory(destination, "git-" + application.name + "-" + revision.sha256Hex);
         try (var ignored = new Timer("Git checkout of application '" + application.name + "'")) {
             Git.cloneRepository()
-                .setURI(info)
+                .setURI(url)
                 .setDirectory(tmpDir)
                 .setCredentialsProvider(getCredentialsProvider())
                 .call();
@@ -133,7 +133,7 @@ public class GitApplicationRepository {
 
         try (var ignored = new Timer("checkoutAlterAndCommit")) {
             Git.cloneRepository()
-                .setURI(info)
+                .setURI(url)
                 .setDirectory(tmpDir)
                 .setCredentialsProvider(getCredentialsProvider())
                 .call();
