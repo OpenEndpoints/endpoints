@@ -3,6 +3,7 @@ package endpoints.config;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.DeploymentParameters;
 import endpoints.GitApplicationRepository;
 import endpoints.GitApplicationRepository.RepositoryCommandFailedException;
@@ -39,10 +40,14 @@ public class PublishedApplicationFactory extends ApplicationFactory {
     protected @Nonnull File applicationCheckoutContainerDir;
     protected final @Nonnull Map<ApplicationDefn, CachedApplication> cache = new HashMap<>();
     
+    @SuppressFBWarnings("SA_LOCAL_SELF_ASSIGNMENT")
     public PublishedApplicationFactory(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull File applicationCheckoutContainerDir
     ) {
         this.applicationCheckoutContainerDir = applicationCheckoutContainerDir;
+
+        //noinspection ConstantConditions - prevents non-thread-safe transaction from being accidentally used inside thread pool
+        tx = tx;
 
         var rows = tx.jooq()
             .select(APPLICATION_PUBLISH.APPLICATION_NAME, APPLICATION_PUBLISH.ENVIRONMENT, APPLICATION_PUBLISH.REVISION)
