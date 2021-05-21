@@ -18,11 +18,11 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
     final @Nonnull File dir;
 
     public ApplicationIntrospectionCommand(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         this.xmlFromApplicationDir = xmlFromApplicationDir;
         this.dir = applicationDir;
     }

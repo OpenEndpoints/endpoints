@@ -57,7 +57,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
 
                     var cachedApp = new CachedApplication();
                     cachedApp.revision = revision;
-                    cachedApp.application = loadApplication(threads, tx, directory);
+                    cachedApp.application = loadApplication(threads, directory);
 
                     synchronized (PublishedApplicationFactory.this) {
                         cache.put(new ApplicationDefn(name, r.value2()), cachedApp);
@@ -109,7 +109,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             var threads = new XsltCompilationThreads();
             cachedApp = new CachedApplication();
             cachedApp.revision = revision;
-            cachedApp.application = loadApplication(threads, tx, directory);
+            cachedApp.application = loadApplication(threads, directory);
             cache.put(new ApplicationDefn(name, environment), cachedApp);
             threads.execute();
 

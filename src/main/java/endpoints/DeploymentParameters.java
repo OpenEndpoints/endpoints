@@ -98,7 +98,7 @@ public class DeploymentParameters {
         if (applications == null) {
             var threads = new XsltCompilationThreads();
             applications = isSingleApplicationMode() 
-                ? new FixedPathApplicationFactory(tx, threads) 
+                ? new FixedPathApplicationFactory(threads) 
                 : new PublishedApplicationFactory(tx, threads, publishedApplicationsDirectory);
             threads.execute();
         }

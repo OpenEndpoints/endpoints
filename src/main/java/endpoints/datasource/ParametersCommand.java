@@ -17,11 +17,11 @@ import java.util.*;
 public class ParametersCommand extends DataSourceCommand {
 
     public ParametersCommand(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
     }
 
     public static @Nonnull Element[] createParametersElements(

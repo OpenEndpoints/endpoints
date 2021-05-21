@@ -37,11 +37,11 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     protected boolean ignoreIfNotFound;
 
     public XmlFromApplicationCommand(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         this.xmlFromApplicationDir = xmlFromApplicationDir;
         assertNoOtherElements(command, "post-process");
         filenamePattern = getMandatoryAttribute(command, "file");

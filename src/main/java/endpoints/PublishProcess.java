@@ -75,7 +75,7 @@ public class PublishProcess {
 
             log.println("Verifying application...");
             var threads = new XsltCompilationThreads();
-            var application = ApplicationFactory.loadApplication(threads, tx, directory);
+            var application = ApplicationFactory.loadApplication(threads, directory);
             threads.execute();
             application.getEndpoints().assertTemplatesValid();
 
