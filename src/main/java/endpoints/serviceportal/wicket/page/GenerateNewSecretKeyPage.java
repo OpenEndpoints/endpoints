@@ -1,6 +1,6 @@
 package endpoints.serviceportal.wicket.page;
 
-import com.databasesandlife.util.CleartextPassword;
+import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.DeploymentParameters;
@@ -52,7 +52,7 @@ public class GenerateNewSecretKeyPage extends AbstractLoggedInPage {
         var doc = DomParser.newDocumentBuilder().newDocument();
 
         var secretKeyElement = doc.createElement("secret-key");
-        secretKeyElement.setTextContent(newKey.cleartext);
+        secretKeyElement.setTextContent(newKey.getCleartext());
 
         var securityElement = doc.createElement("security");
         securityElement.appendChild(secretKeyElement);

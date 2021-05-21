@@ -1,7 +1,7 @@
 package endpoints.serviceportal.wicket.page;
 
 import com.databasesandlife.util.BCryptPassword;
-import com.databasesandlife.util.CleartextPassword;
+import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import endpoints.DeploymentParameters;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;

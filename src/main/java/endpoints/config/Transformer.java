@@ -1,10 +1,8 @@
 package endpoints.config;
 
+import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.DocumentGenerationDestination;
-import com.offerready.xslt.DocumentGenerator;
-import com.offerready.xslt.DocumentOutputDefinition;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
+import com.offerready.xslt.*;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.TransformationContext;
 import endpoints.datasource.DataSource;
@@ -40,14 +38,14 @@ public class Transformer {
         @Nonnull DocumentGenerationDestination dest
     ) throws TransformationFailedException {
         return source.scheduleExecution(context, visibleIntermediateValues, document -> {
-            try { generator.transform(dest, document, true, null); }
+            try { generator.transform(dest, document, true, null, null); }
             catch (DocumentTemplateInvalidException e) { throw new RuntimeException(e); }
         });
     }
     
     @SneakyThrows(ConfigurationException.class)
     public static @Nonnull Transformer newIdentityTransformerForTesting() {
-        var defn = new DocumentOutputDefinition(Collections.emptyMap());
+        var defn = new DocumentOutputDefinition(new XsltParameters(DomParser.from("<empty/>")));
 
         var threads = new WeaklyCachedXsltTransformer.XsltCompilationThreads();
         var result = new Transformer();
