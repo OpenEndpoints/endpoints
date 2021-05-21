@@ -15,9 +15,9 @@ public class FixedPathApplicationFactory extends ApplicationFactory {
     final @Nonnull Application application;
 
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
-    public FixedPathApplicationFactory(@Nonnull DbTransaction db, @Nonnull XsltCompilationThreads threads) {
+    public FixedPathApplicationFactory(@Nonnull XsltCompilationThreads threads) {
         try {
-            application = loadApplication(threads, db, new File("/var/endpoints/fixed-application"));
+            application = loadApplication(threads, new File("/var/endpoints/fixed-application"));
         }
         catch (ConfigurationException e) {
             throw new RuntimeException("Application at fixed location is invalid: " + e.getMessage(), e);

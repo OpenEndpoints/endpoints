@@ -25,11 +25,11 @@ public class MD5Command extends DataSourceCommand {
     protected @Nonnull String messageStringPattern;
 
     public MD5Command(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         assertNoOtherElements(command, "post-process");
         idPatternOrNull = getOptionalAttribute(command, "id");
         messageStringPattern = getMandatoryAttribute(command, "message-string");

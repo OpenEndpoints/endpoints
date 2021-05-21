@@ -29,11 +29,11 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     protected @Nonnull List<String> paramPatterns;
     
     public XmlFromDatabaseCommand(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
 
         assertNoOtherElements(config, "post-process", "jdbc-connection-string", "sql", "param");
         outputTag = getOptionalAttribute(config, "tag", "xml-from-database");
@@ -55,7 +55,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
         paramPatterns = getSubElements(config, "param").stream().map(e -> e.getTextContent()).collect(Collectors.toList());
 
         var paramsExpanded = paramPatterns.stream().map(pattern -> null).toArray();
-        try { execute(tx, paramsExpanded); }
+        try { execute(paramsExpanded); }
         catch (SqlException | CannotConnectToDatabaseException e) { throw new ConfigurationException(e); }
     }
     
@@ -71,7 +71,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     }
 
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter") 
-    protected @Nonnull Element[] execute(@Nonnull DbTransaction tx, @Nonnull Object[] paramsExpanded) {
+    protected @Nonnull Element[] execute(@Nonnull Object[] paramsExpanded) {
         var resultDocument = DomParser.newDocumentBuilder().newDocument();
         var root = resultDocument.createElement(outputTag);
         resultDocument.appendChild(root);
@@ -100,7 +100,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
             @Override protected Element[] populateOrThrow() {
                 var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
                 var paramsExpanded = paramPatterns.stream().map(pattern -> replacePlainTextParameters(pattern, stringParams)).toArray();
-                return execute(context.tx.db, paramsExpanded);
+                return execute(paramsExpanded);
             }
         };
         context.threads.addTaskOffPool(result);

@@ -26,11 +26,11 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     protected final boolean expandParametersInResponse;
     
     public XmlFromUrlCommand(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
         outputWrapperElementName = getOptionalAttribute(config, "tag");
         spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
         expandParametersInResponse = Boolean.parseBoolean(getOptionalAttribute(config, "expand-parameters-in-response", "true"));

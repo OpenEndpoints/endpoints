@@ -26,7 +26,7 @@ public abstract class DataSourceCommand {
     @SneakyThrows({SecurityException.class, ClassNotFoundException.class, NoSuchMethodException.class,
         IllegalAccessException.class, InstantiationException.class, InvocationTargetException.class})
     public static @Nonnull DataSourceCommand newForConfig(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
@@ -45,9 +45,9 @@ public abstract class DataSourceCommand {
                 default: throw new ConfigurationException("Command tag <"+command.getTagName()+"> unrecognized");
             }
 
-            var constructor = Class.forName(className).getConstructor(DbTransaction.class, XsltCompilationThreads.class,
+            var constructor = Class.forName(className).getConstructor(XsltCompilationThreads.class,
                 File.class, File.class, File.class, File.class, Element.class);
-            return (DataSourceCommand) constructor.newInstance(tx, threads,
+            return (DataSourceCommand) constructor.newInstance(threads,
                 applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         }
         catch (InvocationTargetException e) {
@@ -59,7 +59,7 @@ public abstract class DataSourceCommand {
 
     @SuppressWarnings("unused") // Unused params are used in subclasses
     public DataSourceCommand(
-        @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
     ) throws ConfigurationException {

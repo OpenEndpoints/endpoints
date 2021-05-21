@@ -32,7 +32,7 @@ public class DataSource {
     }
 
     public DataSource(
-        @Nonnull DbTransaction tx, @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
+        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element script
     ) throws ConfigurationException {
@@ -41,7 +41,7 @@ public class DataSource {
         commands = new ArrayList<>();
         for (var command : getSubElements(script, "*")) {
             if (command.getNodeName().equals("post-process")) continue;
-            commands.add(DataSourceCommand.newForConfig(tx, threads,
+            commands.add(DataSourceCommand.newForConfig(threads,
                 applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
         }
         this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, script);

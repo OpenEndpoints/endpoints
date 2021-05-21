@@ -11,9 +11,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import com.offerready.xslt.config.SecurityParser;
 import endpoints.PublishEnvironment;
 import endpoints.datasource.DataSource;
-import endpoints.datasource.DataSourceCommand;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
@@ -76,9 +74,8 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     }
     
     /** @throws ConfigurationException This loads an application from disk, which might be invalid */
-    public static @Nonnull Application loadApplication(
-        @Nonnull XsltCompilationThreads threads, @Nonnull DbTransaction tx, @Nonnull File directory
-    ) throws ConfigurationException {
+    public static @Nonnull Application loadApplication(@Nonnull XsltCompilationThreads threads, @Nonnull File directory) 
+    throws ConfigurationException {
         try (var ignored = new Timer("loadApplication '"+directory+"'")) {
             var httpXsltDirectory = new File(directory, "http-xslt");
             var xmlFromApplicationDirectory = new File(directory, "xml-from-application");
@@ -89,7 +86,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             if (dataSourcesFiles == null) throw new ConfigurationException("'data-sources' directory missing");
             for (var ds : dataSourcesFiles) {
                 try { 
-                    var d = new DataSource(tx, threads, directory, httpXsltDirectory, 
+                    var d = new DataSource(threads, directory, httpXsltDirectory, 
                         xmlFromApplicationDirectory, dataSourcePostProcessingXsltDir, DomParser.from(ds));
                     dataSources.put(ds.getName().replace(".xml", ""), d); 
                 }
@@ -112,7 +109,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
 
             var result = new Application();
             result.transformers = transformers;
-            result.endpoints = EndpointHierarchyParser.parse(tx, threads, transformers, directory, httpXsltDirectory,
+            result.endpoints = EndpointHierarchyParser.parse(threads, transformers, directory, httpXsltDirectory,
                 xmlFromApplicationDirectory, new File(directory, "static"), new File(directory, "parameter-xslt"),
                 dataSourcePostProcessingXsltDir, new File(directory, "endpoints.xml"));
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));

@@ -24,11 +24,11 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
     protected @Nonnull OnDemandIncrementingNumberType type;
 
     public OnDemandIncrementingNumberCommand(
-        @Nonnull DbTransaction tx, @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
+        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(tx, threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         assertNoOtherElements(command, "post-process");
         
         var typeString = getMandatoryAttribute(command, "type");
