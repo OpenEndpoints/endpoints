@@ -82,7 +82,8 @@ public class PublishProcess {
             return revision;
         }
         catch (RepositoryCommandFailedException | ConfigurationException | DocumentTemplateInvalidException e) {
-            throw new ApplicationInvalidException(e.getMessage().replaceAll(directory == null ? "" : directory.getAbsolutePath()+File.separator, ""), e);
+            throw new ApplicationInvalidException(e.getMessage()
+                .replaceAll(directory == null ? "" : directory.getAbsolutePath()+File.separator, ""), e);
         }
     }
 }
