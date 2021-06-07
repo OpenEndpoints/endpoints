@@ -3,6 +3,9 @@ package endpoints;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import com.databasesandlife.util.jdbc.DbTransaction;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import endpoints.config.ApplicationName;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import lombok.RequiredArgsConstructor;
@@ -11,14 +14,16 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.log4j.Logger;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.CredentialsProvider;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.util.FS;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -32,6 +37,7 @@ public class GitApplicationRepository {
     public final @Nonnull String url;
     public final @CheckForNull String username;
     public final @CheckForNull CleartextPassword password;
+    public final @CheckForNull String rsaPrivateKey;
 
     /** Represents a problem with Git or with the application logic provided by {@link GitApplicationRepository} */
     public static class RepositoryCommandFailedException extends Exception {
@@ -43,6 +49,7 @@ public class GitApplicationRepository {
         url = row.getGitUrl();
         username = row.getGitUsername();
         password = row.getGitPasswordCleartext();
+        rsaPrivateKey = row.getGitRsaPrivateKeyCleartext();
     }
 
     public static @Nonnull GitApplicationRepository fetch(@Nonnull DbTransaction tx, @Nonnull ApplicationName application) {
@@ -62,6 +69,31 @@ public class GitApplicationRepository {
         if (username != null && password != null) return new UsernamePasswordCredentialsProvider(username, password.getCleartext());
         else return null;
     }
+    
+    protected @CheckForNull TransportConfigCallback getTransportConfigCallback() {
+        return transport -> {
+            if (transport instanceof SshTransport) {
+                var rsaPrivateKeyAsBytes = rsaPrivateKey == null ? null : rsaPrivateKey.getBytes(StandardCharsets.UTF_8);
+
+                var sshSessionFactory = new JschConfigSessionFactory() {
+                    @Override protected void configure(OpenSshConfig.Host host, Session session) {
+                        session.setConfig("StrictHostKeyChecking", "no");
+                    }
+
+                    @Override protected JSch getJSch(final OpenSshConfig.Host hc, FS fs) throws JSchException {
+                        var jsch = super.getJSch(hc, fs);
+                        if (rsaPrivateKeyAsBytes != null) {
+                            jsch.removeAllIdentity();
+                            jsch.addIdentity("identity", rsaPrivateKeyAsBytes, null, null);
+                        }
+                        return jsch;
+                    }
+                };
+
+                ((SshTransport) transport).setSshSessionFactory(sshSessionFactory);
+            }
+        };
+    }
 
     protected void asyncDeleteDirectory(@Nonnull File dir) {
         var runnable = new Runnable() {
@@ -79,10 +111,11 @@ public class GitApplicationRepository {
     }
 
     public @Nonnull GitRevision fetchLatestRevision() throws RepositoryCommandFailedException {
-        try {
+        try (var ignored = new Timer("Git find latest revision '" + url + "'")) {
             var map = Git.lsRemoteRepository()
                 .setRemote(url)
                 .setCredentialsProvider(getCredentialsProvider())
+                .setTransportConfigCallback(getTransportConfigCallback())
                 .setTags(false)
                 .setHeads(false)
                 .callAsMap();
@@ -102,6 +135,7 @@ public class GitApplicationRepository {
                 .setURI(url)
                 .setDirectory(tmpDir)
                 .setCredentialsProvider(getCredentialsProvider())
+                .setTransportConfigCallback(getTransportConfigCallback())
                 .call();
 
             Git.open(tmpDir)
@@ -145,6 +179,7 @@ public class GitApplicationRepository {
                 .setURI(url)
                 .setDirectory(tmpDir)
                 .setCredentialsProvider(getCredentialsProvider())
+                .setTransportConfigCallback(getTransportConfigCallback())
                 .call();
 
             alteration.accept(tmpDir);
@@ -153,7 +188,10 @@ public class GitApplicationRepository {
 
             checkout.add().addFilepattern(".").call();
             checkout.commit().setAuthor(gitUsername, "").setMessage(commitMessage).call();
-            checkout.push().setCredentialsProvider(getCredentialsProvider()).call();
+            checkout.push()
+                .setCredentialsProvider(getCredentialsProvider())
+                .setTransportConfigCallback(getTransportConfigCallback())
+                .call();
         }
         catch (GitAPIException e) { throw new RepositoryCommandFailedException(e); }
         finally { asyncDeleteDirectory(tmpDir); }
