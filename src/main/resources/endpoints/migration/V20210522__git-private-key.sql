@@ -1,0 +1,2 @@
+ALTER TABLE application_config
+ADD git_rsa_private_key_cleartext VARCHAR NULL;
