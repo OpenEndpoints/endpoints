@@ -4255,6 +4255,56 @@ fooBar
  Wicket IDs.
 \end_layout
 
+\begin_layout Itemize
+The software is not translated, it is only available in English.
+\end_layout
+
+\begin_layout Itemize
+There is no class that handles authentication, as in the Wicket tutorials.
+ Instead, each page class has in its constructor the necessary code to find
+ out if the user is allowed to view this page, and to redirect somewhere
+ appropriate if not.
+ This is less 
+\begin_inset Quotes eld
+\end_inset
+
+action at a distance
+\begin_inset Quotes erd
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+For redirects, the various Wicket exceptions are thrown, as opposed to using
+ the method 
+\family typewriter
+setResponsePage(..)
+\family default
+.
+ The problem with that method is that it's easy to forget the 
+\family typewriter
+return
+\family default
+ statement that is necessary directly afterwards.
+\end_layout
+
+\begin_layout Itemize
+The various admin pages, and the various application pages, are all targets
+ for 
+\begin_inset Quotes eld
+\end_inset
+
+continue to original page
+\begin_inset Quotes erd
+\end_inset
+
+.
+ That is to say, if you try to access one, and then you are logged out,
+ you have the opportunity to log in and then choose an application if necessary
+ and then continue to that page.
+\end_layout
+
 \begin_layout Section
 Saxon-HE and Saxon-PE
 \end_layout

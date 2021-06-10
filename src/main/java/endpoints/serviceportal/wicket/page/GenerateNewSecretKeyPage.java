@@ -20,7 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-public class GenerateNewSecretKeyPage extends AbstractLoggedInPage {
+public class GenerateNewSecretKeyPage extends AbstractLoggedInApplicationPage {
 
     public GenerateNewSecretKeyPage() {
         super(NavigationItem.GenerateNewSecretKeyPage, null);
@@ -31,10 +31,10 @@ public class GenerateNewSecretKeyPage extends AbstractLoggedInPage {
 
     protected void onSubmit() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var application = getSession().getLoggedInDataOrThrow().application;
+            var application = getSession().getLoggedInApplicationDataOrThrow().application;
             var repo = GitApplicationRepository.fetch(tx, application);
             repo.checkoutAlterAndCommit(
-                getSession().getLoggedInDataOrThrow().username.username + " (Endpoints Service Portal User)",
+                getSession().getLoggedInUserDataOrThrow().username.username + " (Endpoints Service Portal User)",
                 "Generate new secret key (via Endpoints Service Portal)",
                 gitCheckoutDirectory -> writeSecretKey(new File(gitCheckoutDirectory, "security.xml")));
             info("A new secret key has been created in a new (not yet published) revision of your configuration.");

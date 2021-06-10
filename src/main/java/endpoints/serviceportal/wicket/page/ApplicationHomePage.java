@@ -19,7 +19,7 @@ import java.net.URL;
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
 
-public class ApplicationHomePage extends AbstractLoggedInPage {
+public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
 
     private final @Nonnull ApplicationConfigRecord app;
 
@@ -28,14 +28,14 @@ public class ApplicationHomePage extends AbstractLoggedInPage {
         super(NavigationItem.ApplicationHomePage, null);
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var applicationName = getSession().getLoggedInDataOrThrow().application;
+            var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
             var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/");
             var applicationRepo = GitApplicationRepository.fetch(tx, applicationName);
 
             app = tx.jooq().fetchOne(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
 
             add(new ServicePortalFeedbackPanel("feedback"));
-            add(new Label("applicationDisplayName", getSession().getLoggedInDataOrThrow().applicationDisplayName));
+            add(new Label("applicationDisplayName", getSession().getLoggedInApplicationDataOrThrow().applicationDisplayName));
             add(new Label("applicationName", applicationName.name));
             add(new Label("repository", applicationRepo.url));
             add(new Label("urlPreview", new URL(applicationUrl, "{endpoint}?environment=preview&{parameter}").toExternalForm()));
@@ -58,7 +58,7 @@ public class ApplicationHomePage extends AbstractLoggedInPage {
 
     public void clearDebugLog() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var applicationName = getSession().getLoggedInDataOrThrow().application;
+            var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
             
             tx.jooq()
                 .update(REQUEST_LOG)

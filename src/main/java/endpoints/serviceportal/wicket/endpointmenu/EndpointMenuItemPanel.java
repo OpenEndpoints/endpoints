@@ -65,7 +65,7 @@ public class EndpointMenuItemPanel extends Panel {
         @Nonnull DbTransaction tx, @Nonnull String containerWicketId, @Nonnull String liWicketId,
         @CheckForNull MultiEnvironmentEndpointLeafMenuItem selected
     ) {
-        var applicationName = ServicePortalSession.get().getLoggedInDataOrThrow().application;
+        var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
         var displayItems = new MultiEnvironmentEndpointMenuFolder("Not displayed");
         for (var environment : PublishEnvironment.values()) {
             try {

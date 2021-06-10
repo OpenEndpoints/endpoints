@@ -53,6 +53,8 @@ public class ServicePortalApplication extends WebApplication {
         getRequestCycleSettings().setRenderStrategy(ONE_PASS_RENDER);
 
         // Beautiful URLs
+        mountPage("/choose-application", ChooseApplicationPage.class);
+        mountPage("/admin/", AdminApplicationListPage.class);
         mountPage("/change-password", ChangePasswordPage.class);
         mountPage("/home", ApplicationHomePage.class);
         mountPage("/request-log", RequestLogPage.class);

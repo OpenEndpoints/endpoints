@@ -18,7 +18,7 @@ import java.util.TreeSet;
 @RequiredArgsConstructor
 public class EndpointNamesModel extends CachingFutureModel<ArrayList<NodeName>> {
 
-    protected final @Nonnull ApplicationName applicationName = ServicePortalSession.get().getLoggedInDataOrThrow().application;
+    protected final @Nonnull ApplicationName applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
     protected final @Nonnull SerializableSupplier<PublishEnvironment> environment;
 
     @Override protected ArrayList<NodeName> populate() {

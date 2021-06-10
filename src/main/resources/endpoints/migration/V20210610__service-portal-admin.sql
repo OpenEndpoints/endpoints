@@ -1,0 +1,2 @@
+ALTER TABLE service_portal_login
+ADD admin BOOLEAN NOT NULL DEFAULT FALSE;

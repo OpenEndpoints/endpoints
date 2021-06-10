@@ -5,6 +5,7 @@ import endpoints.DeploymentParameters;
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.endpointmenu.EndpointMenuItemPanel;
+import endpoints.serviceportal.wicket.page.AdminApplicationListPage;
 import endpoints.serviceportal.wicket.page.ChooseApplicationPage;
 import endpoints.serviceportal.wicket.page.LoginPage;
 import lombok.RequiredArgsConstructor;
@@ -73,20 +74,18 @@ public class NavigationPanel extends Panel {
 
         mobileOnlyContainer.add(new Link<Void>("change-application") {
             @Override public void onClick() {
-                try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                    var username = ServicePortalSession.get().getLoggedInDataOrThrow().username;
-                    ServicePortalSession.get().logoutWithoutInvalidatingSession();
-                    setResponsePage(new ChooseApplicationPage(tx, username));
-                }
+                ServicePortalSession.get().loggedInApplicationData = null;
+                getRequestCycle().setResponsePage(ServicePortalSession.get().getLoggedInUserDataOrThrow().isAdmin
+                    ? AdminApplicationListPage.class : ChooseApplicationPage.class);
             }
             @Override public boolean isVisible() {
-                if ( ! ServicePortalSession.get().getLoggedInDataOrThrow().moreThanOneApplication) return false;
-                return super.isVisible();
+                var login = ServicePortalSession.get().getLoggedInUserDataOrThrow();
+                return login.isAdmin || login.moreThanOneApplication;
             }
         });
         mobileOnlyContainer.add(new Link<Void>("logout") {
             @Override public void onClick() {
-                ServicePortalSession.get().logoutAndInvalidateSession();
+                ServicePortalSession.get().invalidate();
                 setResponsePage(LoginPage.class);
             }
         });
