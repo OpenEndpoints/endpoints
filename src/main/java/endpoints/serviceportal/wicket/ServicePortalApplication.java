@@ -55,6 +55,7 @@ public class ServicePortalApplication extends WebApplication {
         // Beautiful URLs
         mountPage("/choose-application", ChooseApplicationPage.class);
         mountPage("/admin/", AdminApplicationListPage.class);
+        mountPage("/admin/application/${app}", AdminEditApplicationPage.class);
         mountPage("/change-password", ChangePasswordPage.class);
         mountPage("/home", ApplicationHomePage.class);
         mountPage("/request-log", RequestLogPage.class);

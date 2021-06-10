@@ -1,7 +1,10 @@
 package endpoints.serviceportal.wicket.page;
 
 import endpoints.DeploymentParameters;
+import endpoints.serviceportal.wicket.ServicePortalSession;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.Link;
 
 public abstract class AbstractLoggedInAdminPage extends AbstractPage {
 
@@ -15,5 +18,13 @@ public abstract class AbstractLoggedInAdminPage extends AbstractPage {
                 tx.commit();
             }
         }
+        
+        add(new Label("username", getSession().loggedInUserData.username));
+        add(new Link<>("logout") {
+            @Override public void onClick() {
+                ServicePortalSession.get().invalidate();
+                setResponsePage(LoginPage.class);
+            }
+        });
     }
 }
