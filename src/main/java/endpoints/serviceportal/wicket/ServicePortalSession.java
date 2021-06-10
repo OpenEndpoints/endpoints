@@ -3,29 +3,33 @@ package endpoints.serviceportal.wicket;
 import endpoints.config.ApplicationName;
 import endpoints.serviceportal.ServicePortalUsername;
 import lombok.AllArgsConstructor;
-import org.apache.wicket.Session;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebSession;
-import org.apache.wicket.protocol.http.request.WebClientInfo;
 import org.apache.wicket.request.Request;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.Serializable;
-import java.time.ZoneId;
 import java.util.Locale;
 
 public class ServicePortalSession extends WebSession {
 
     @AllArgsConstructor
-    public static final class LoggedInData implements Serializable {
+    public static final class LoggedInUserData implements Serializable {
         public final @Nonnull ServicePortalUsername username;
-        public final @Nonnull ApplicationName application;
-        public final @Nonnull String applicationDisplayName;
+        public final boolean isAdmin;
         /** if the user has access to more than one application, they can see the "change application" link */
-        public final boolean moreThanOneApplication;
+        public boolean moreThanOneApplication;
     }
 
-    protected @CheckForNull LoggedInData loggedInData;
+    @AllArgsConstructor
+    public static final class LoggedInApplicationData implements Serializable {
+        public final @Nonnull ApplicationName application;
+        public final @Nonnull String applicationDisplayName;
+    }
+
+    public @CheckForNull LoggedInUserData loggedInUserData;
+    public @CheckForNull LoggedInApplicationData loggedInApplicationData;
 
     public static @Nonnull ServicePortalSession get() {
         return (ServicePortalSession) WebSession.get();
@@ -39,24 +43,13 @@ public class ServicePortalSession extends WebSession {
         return Locale.ENGLISH;
     }
 
-    public void login(
-        @Nonnull ServicePortalUsername username, @Nonnull ApplicationName application, @Nonnull String applicationDisplayName,
-        boolean moreThanOneApplication
-    ) {
-        bind();
-        this.loggedInData = new LoggedInData(username, application, applicationDisplayName, moreThanOneApplication);
+    public @Nonnull LoggedInUserData getLoggedInUserDataOrThrow() {
+        if (this.loggedInUserData == null) throw new IllegalStateException();
+        return this.loggedInUserData;
     }
 
-    public @Nonnull LoggedInData getLoggedInDataOrThrow() {
-        if (this.loggedInData == null) throw new IllegalStateException();
-        return this.loggedInData;
-    }
-
-    public boolean isLoggedIn() { return this.loggedInData != null; }
-    public void logoutAndInvalidateSession() {
-        invalidate();
-    }
-    public void logoutWithoutInvalidatingSession() {
-        this.loggedInData = null;
+    public @Nonnull LoggedInApplicationData getLoggedInApplicationDataOrThrow() {
+        if (this.loggedInApplicationData == null) throw new IllegalStateException();
+        return this.loggedInApplicationData;
     }
 }

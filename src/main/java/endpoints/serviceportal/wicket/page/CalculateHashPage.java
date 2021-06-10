@@ -28,7 +28,7 @@ import java.util.*;
 
 import static java.util.Arrays.asList;
 
-public class CalculateHashPage extends AbstractLoggedInPage {
+public class CalculateHashPage extends AbstractLoggedInApplicationPage {
 
     protected @Nonnull @Getter @Setter PublishEnvironment environment = PublishEnvironment.live;
     protected @CheckForNull @Getter @Setter NodeName endpoint = null;
@@ -75,7 +75,7 @@ public class CalculateHashPage extends AbstractLoggedInPage {
         if (endpoint == null) { error("Please select an endpoint"); return; }
 
         try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer("calculateHash")) {
-            var applicationName = ServicePortalSession.get().getLoggedInDataOrThrow().application;
+            var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
             var endpointDefn = application.getEndpoints().findEndpointOrThrow(endpoint);
             var hashDefn = endpointDefn.parametersForHash;

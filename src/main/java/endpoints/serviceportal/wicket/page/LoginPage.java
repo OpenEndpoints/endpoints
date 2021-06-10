@@ -2,17 +2,47 @@ package endpoints.serviceportal.wicket.page;
 
 import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import endpoints.DeploymentParameters;
-import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
-import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.ServicePortalUsername;
+import endpoints.serviceportal.wicket.ServicePortalSession;
+import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.StatelessForm;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
+import org.jooq.Field;
 
-import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
+import javax.annotation.CheckForNull;
+
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN;
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN_APPLICATION;
+import static org.jooq.impl.DSL.count;
+import static org.jooq.impl.DSL.select;
+import static org.jooq.impl.DSL.selectCount;
+
+// Tests:
+//   - Initial page is the login page
+//   - Log in to a one-application non-admin user
+//     - See application page
+//     - Then go to a different application page
+//     - Go to / and see you're at the application page
+//     - No "change application" link
+//     - Log out, go to app page, you're still logged out
+//     - Log out, go to choose app page, you're still logged out
+//   - Log in to a multi-application non-admin user
+//     - See choose application page
+//     - Go to /, see back at application screen
+//     - Choose an application, you are viewing the application
+//     - "Change application link" visible, use it, choose different app
+//     - Log out, go to app page, you're still logged out
+//     - Log out, go to choose app page, you're still logged out
+//   - Log in to admin user
+//     - See admin page
+//     - Go to /, back at admin page
+//     - Log out, go to choose app page, you're still logged out
+//     - Log out, go to admin page, you're still logged out
+//   - Log out, Go to a particular application page, log in to one-app non-admin, you're at the page
+//   - Log out, Go to a particular application page, log in to multi-app non-admin, select app, you're at the page
+//   - Log out, GO to a paritulcar admin page, log in as admin, you're at the page
 
 public class LoginPage extends AbstractPage {
 
@@ -20,7 +50,12 @@ public class LoginPage extends AbstractPage {
     protected CleartextPassword password = null;
 
     public LoginPage() {
-        if (ServicePortalSession.get().isLoggedIn()) setResponsePage(ApplicationHomePage.class);
+        if (getSession().loggedInUserData != null) {
+            try (var tx = DeploymentParameters.get().newDbTransaction()) {
+                throwRedirectToPageAfterLogin(tx);
+                tx.commit();
+            }
+        }
 
         var form = new StatelessForm<Object>("form") { @Override public void onSubmit() { LoginPage.this.onSubmit(); } };
         add(form);
@@ -32,37 +67,24 @@ public class LoginPage extends AbstractPage {
 
     protected void onSubmit() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var databasePassword = tx.jooq()
-                .select(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT)
-                .from(SERVICE_PORTAL_LOGIN)
+            @CheckForNull var login = tx.jooq()
+                .selectFrom(SERVICE_PORTAL_LOGIN)
                 .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(username))
-                .fetchOne(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT);
+                .fetchOne();
 
-            if (databasePassword == null || ! databasePassword.is(password)) {
+            if (login == null || ! login.getPasswordBcrypt().is(password)) {
                 error("User doesn't exist or password wrong");
                 return;
             }
 
-            var applications = tx.jooq()
-                .select(SERVICE_PORTAL_LOGIN_APPLICATION.APPLICATION_NAME, APPLICATION_CONFIG.DISPLAY_NAME)
-                .from(SERVICE_PORTAL_LOGIN_APPLICATION)
-                .join(APPLICATION_CONFIG).on(APPLICATION_CONFIG.APPLICATION_NAME.eq(SERVICE_PORTAL_LOGIN_APPLICATION.APPLICATION_NAME))
-                .where(SERVICE_PORTAL_LOGIN_APPLICATION.USERNAME.eq(username))
-                .fetch();
+            var applicationCount = tx.jooq().selectCount().from(SERVICE_PORTAL_LOGIN_APPLICATION)
+                .where(SERVICE_PORTAL_LOGIN_APPLICATION.USERNAME.eq(username)).fetchSingle().value1();
             
-            if (applications.isEmpty()) {
-                error("No applications configured for this user");
-            }
-            else if (applications.size() == 1) {
-                ServicePortalSession.get().login(username, applications.get(0).value1(), applications.get(0).value2(), false);
-                continueToOriginalDestination();
-                setResponsePage(ApplicationHomePage.class);
-            }
-            else {
-                setResponsePage(new ChooseApplicationPage(tx, username));
-            }
-
-            tx.commit();
+            getSession().bind();
+            getSession().loggedInUserData = new ServicePortalSession.LoggedInUserData(username, login.getAdmin(),
+                applicationCount > 1);
+            
+            throwRedirectToPageAfterLogin(tx);
         }
     }
 }

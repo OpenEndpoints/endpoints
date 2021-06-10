@@ -4,8 +4,8 @@ import endpoints.PublishEnvironment;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointContentMenuItem;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointFormMenuItem;
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;
-import endpoints.serviceportal.wicket.page.AbstractLoggedInPage;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
+import endpoints.serviceportal.wicket.page.AbstractLoggedInApplicationPage;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.wicket.markup.html.basic.Label;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
-public abstract class EndpointPage extends AbstractLoggedInPage {
+public abstract class EndpointPage extends AbstractLoggedInApplicationPage {
     
     protected @Getter @Setter @Nonnull PublishEnvironment environmentDropDownChoice;
 
@@ -46,7 +46,7 @@ public abstract class EndpointPage extends AbstractLoggedInPage {
         add(environmentForm);
     }
 
-    public static @Nonnull AbstractLoggedInPage newPage(
+    public static @Nonnull AbstractLoggedInApplicationPage newPage(
         @Nonnull PublishEnvironment environment, @Nonnull MultiEnvironmentEndpointLeafMenuItem item
     ) {
         var i = item.itemForEnvironment.get(environment);

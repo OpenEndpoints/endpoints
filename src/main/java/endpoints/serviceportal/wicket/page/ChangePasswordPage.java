@@ -13,7 +13,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN;
 
-public class ChangePasswordPage extends AbstractLoggedInPage {
+public class ChangePasswordPage extends AbstractLoggedInApplicationPage {
 
     @Getter @Setter CleartextPassword oldPasswordField, newPassword1Field, newPassword2Field;
 
@@ -38,7 +38,7 @@ public class ChangePasswordPage extends AbstractLoggedInPage {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
 
             var oldPassword = tx.jooq().select(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT)
-                .from(SERVICE_PORTAL_LOGIN).where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().getLoggedInDataOrThrow().username))
+                .from(SERVICE_PORTAL_LOGIN).where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().getLoggedInUserDataOrThrow().username))
                 .fetchOne().value1();
             if ( ! oldPassword.is(oldPasswordField)) {
                 error("Old password wrong");
@@ -52,7 +52,7 @@ public class ChangePasswordPage extends AbstractLoggedInPage {
 
             tx.jooq().update(SERVICE_PORTAL_LOGIN)
                 .set(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT, new BCryptPassword(newPassword1Field))
-                .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().getLoggedInDataOrThrow().username))
+                .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().getLoggedInUserDataOrThrow().username))
                 .execute();
 
             info("Password changed successfully");

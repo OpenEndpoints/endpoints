@@ -5,9 +5,6 @@ import endpoints.DeploymentParameters;
 import endpoints.PublishEnvironment;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointContentMenuItem;
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;
-import endpoints.serviceportal.wicket.page.AbstractLoggedInPage;
-import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
-import org.apache.wicket.markup.html.basic.Label;
 
 import javax.annotation.Nonnull;
 

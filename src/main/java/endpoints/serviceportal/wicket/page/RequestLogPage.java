@@ -52,9 +52,9 @@ import static org.apache.wicket.util.time.Duration.seconds;
 import static org.jooq.impl.DSL.field;
 import static org.jooq.impl.DSL.trueCondition;
 
-public class RequestLogPage extends AbstractLoggedInPage {
+public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
-    protected final @Nonnull ApplicationName applicationName = getSession().getLoggedInDataOrThrow().application;
+    protected final @Nonnull ApplicationName applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
     protected @Getter @Setter @Nonnull PublishEnvironment filterEnvironment = live;
     protected @Getter @Setter @Nonnull DateRangeOption dateRange = DateRangeOption.getValues(now(UTC)).get(0);
     protected @Getter @Setter @CheckForNull NodeName filterEndpoint = null;
