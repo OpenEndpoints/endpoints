@@ -67,6 +67,11 @@ public class LoginPage extends AbstractPage {
 
     protected void onSubmit() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
+            if (DeploymentParameters.get().isSingleApplicationMode()) {
+                error("Cannot log in to Service Portal when deployment is 'single application mode'");
+                return;
+            }
+            
             @CheckForNull var login = tx.jooq()
                 .selectFrom(SERVICE_PORTAL_LOGIN)
                 .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(username))
