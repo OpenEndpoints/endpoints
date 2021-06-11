@@ -34,12 +34,6 @@
     .icon {
       transform: translate(0, -1px);
     }
-    .feedbackPanelINFO {
-      color: green;
-    }
-    .feedbackPanelERROR {
-      color: red;
-    }
   </style>
 
 </head>
@@ -52,40 +46,37 @@
     <span><a wicket:id="logout" href="#">Log Out</a></span>
   </div>
   <div class="uk-flex uk-flex-center uk-flex-top uk-margin-large-top uk-height-viewport">
-    <div style="width: 900px" class="uk-padding-small">
-      <h2 style="text-align: center">Application Admin</h2>
+    <div class="uk-width-xlarge uk-padding-small">
+      <h2 style="text-align: center">Delete Application</h2>
 
-        <div wicket:id="feedback"></div>
-      
-        <span wicket:id="noApplications">There are no applications yet.</span>
+      <div class="uk-card uk-card-default uk-card-small">
+        <div class="uk-card-body">
 
-        <table class="uk-table uk-table-small">
-        <tr wicket:id="application">
-          <td wicket:id="name">example-application</td>
-          <td wicket:id="displayName">Application #1</td>
-          <td align="right">
-            <a wicket:id="edit" href="AdminEditApplicationPage.html">
-              <span class="icon" uk-icon="cog"></span> 
-              Configure
-            </a>
-            &nbsp;|&nbsp;
-            <a wicket:id="delete" href="AdminDeleteApplicationPage.html">
-              <span class="icon" uk-icon="trash"></span>
-              Delete
-            </a>
-            &nbsp;|&nbsp;
-            <a wicket:id="login" href="#">
-              <span class="icon" uk-icon="settings"></span>
-              Open Service Portal
-            </a>
-          </td>
-        </tr>
-      </table>
+          <div class="uk-margin">
+            Application Name: <b wicket:id="name">Example</b>
+            <br/>
+            Application Display Name: <b wicket:id="displayName">Example</b>
+          </div>
+          <div class="uk-margin">
+            This cannot be undone.
+          </div>
+
+        </div>
+        <div class="uk-card-footer">
+          <div class="uk-margin">
+            <div class="uk-form-controls">
+              <button wicket:id="submit" class="uk-button uk-button-danger">
+                <span class="icon" style="padding-right: 5px;" uk-icon="trash"></span>
+                Delete Application
+              </button>
+              <a wicket:id="cancel" href="#" style="padding-left: 20px" class="uk-button uk-button-link">Cancel</a>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
       
-      <button wicket:id="add" class="uk-button uk-button-primary">
-        <span class="icon" style="padding-right: 5px;" uk-icon="plus-circle"></span>
-        Add New Application
-      </button>
     </div>
   
     <!-- FOOTER -->

@@ -38,6 +38,11 @@ public class AdminApplicationListPage extends AbstractLoggedInAdminPage {
                     item.add(new Label("displayName", record.getDisplayName()));
                     item.add(new BookmarkablePageLink<>("edit", AdminEditApplicationPage.class, 
                         new PageParameters().set("app", record.getApplicationName().name)));
+                    item.add(new Link<>("delete") {
+                        @Override public void onClick() {
+                            setResponsePage(new AdminDeleteApplicationPage(record));
+                        }
+                    });
                     item.add(new Link<>("login") {
                         @Override public void onClick() {
                             ServicePortalSession.get().loggedInApplicationData =
