@@ -4,6 +4,7 @@ import endpoints.DeploymentParameters;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import org.apache.wicket.RestartResponseAtInterceptPageException;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 
 public abstract class AbstractLoggedInAdminPage extends AbstractPage {
@@ -20,6 +21,7 @@ public abstract class AbstractLoggedInAdminPage extends AbstractPage {
         }
         
         add(new Label("username", getSession().loggedInUserData.username));
+        add(new BookmarkablePageLink<>("changePassword", AdminChangePasswordPage.class));
         add(new Link<>("logout") {
             @Override public void onClick() {
                 ServicePortalSession.get().invalidate();
