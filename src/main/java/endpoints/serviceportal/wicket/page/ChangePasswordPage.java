@@ -3,6 +3,7 @@ package endpoints.serviceportal.wicket.page;
 import com.databasesandlife.util.BCryptPassword;
 import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import endpoints.DeploymentParameters;
+import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
 import lombok.Getter;
@@ -10,6 +11,8 @@ import lombok.Setter;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.model.PropertyModel;
+
+import javax.annotation.Nonnull;
 
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN;
 
@@ -24,7 +27,7 @@ public class ChangePasswordPage extends AbstractLoggedInApplicationPage {
 
         Form form = new Form<Void>("form") {
             @Override protected void onSubmit() {
-                onChangePassword();
+                onChangePassword(true, oldPasswordField, newPassword1Field, newPassword2Field);
             }
         };
         add(form);
@@ -34,30 +37,39 @@ public class ChangePasswordPage extends AbstractLoggedInApplicationPage {
         form.add(new PasswordTextField("newPassword2", new PropertyModel<>(this, "newPassword2Field")));
     }
 
-    public void onChangePassword() {
+    public static boolean onChangePassword(
+        boolean checkOldPassword, @Nonnull CleartextPassword oldPasswordField, 
+        @Nonnull CleartextPassword newPassword1Field, @Nonnull CleartextPassword newPassword2Field
+    ) {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
+            var session = ServicePortalSession.get();
 
-            var oldPassword = tx.jooq().select(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT)
-                .from(SERVICE_PORTAL_LOGIN).where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().getLoggedInUserDataOrThrow().username))
-                .fetchOne().value1();
-            if ( ! oldPassword.is(oldPasswordField)) {
-                error("Old password wrong");
-                return;
+            if (checkOldPassword) {
+                var oldPassword = tx.jooq()
+                    .select(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT)
+                    .from(SERVICE_PORTAL_LOGIN)
+                    .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(session.getLoggedInUserDataOrThrow().username))
+                    .fetchOne().value1();
+                if ( ! oldPassword.is(oldPasswordField)) {
+                    session.error("Old password wrong");
+                    return false;
+                }
             }
 
             if ( ! newPassword1Field.equals(newPassword2Field)) {
-                error("New passwords differ");
-                return;
+                session.error("New passwords differ");
+                return false;
             }
 
             tx.jooq().update(SERVICE_PORTAL_LOGIN)
                 .set(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT, new BCryptPassword(newPassword1Field))
-                .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().getLoggedInUserDataOrThrow().username))
+                .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(session.getLoggedInUserDataOrThrow().username))
                 .execute();
 
-            info("Password changed successfully");
+            session.info("Password changed successfully");
 
             tx.commit();
+            return true;
         }
     }
 }
