@@ -63,6 +63,7 @@ public class ChangePasswordPage extends AbstractLoggedInApplicationPage {
 
             tx.jooq().update(SERVICE_PORTAL_LOGIN)
                 .set(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT, new BCryptPassword(newPassword1Field))
+                .set(SERVICE_PORTAL_LOGIN.MUST_CHANGE_PASSWORD, false)
                 .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(session.getLoggedInUserDataOrThrow().username))
                 .execute();
 
