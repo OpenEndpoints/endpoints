@@ -26,7 +26,7 @@ public class PublishProcess {
     @Nonnull PublishEnvironment environment;
 
     @FunctionalInterface
-    public interface PublishLog {
+    public interface PublishLogger {
         public void println(String line);
     }
 
@@ -49,7 +49,7 @@ public class PublishProcess {
             .execute();
     }
 
-    public @Nonnull GitRevision publish(@Nonnull DbTransaction tx, @Nonnull PublishLog log) throws ApplicationInvalidException {
+    public @Nonnull GitRevision publish(@Nonnull DbTransaction tx, @Nonnull PublishLogger log) throws ApplicationInvalidException {
         File directory = null;
         try (var ignored = new Timer("publish '"+applicationName.name+"'")) {
             // Otherwise acquiring lock of application leads to: ERROR: could not serialize access due to concurrent update
