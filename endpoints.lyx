@@ -269,7 +269,7 @@ and
 \begin_layout Standard
 Debugging means: the input and output of the parameter transformation is
  stored in the request log.
- These XML files may then be downloaded in the service portal.
+ These XML files may then be downloaded in the Service Portal.
 \end_layout
 
 \begin_layout Standard
@@ -284,6 +284,60 @@ parameters
 \end_inset
 
  available to the main endpoints processing flow.
+\end_layout
+
+\begin_layout Subsection
+Service Portal
+\end_layout
+
+\begin_layout Standard
+The Service Portal is available under the 
+\family typewriter
+/service-portal
+\family default
+ URL.
+ By default a user with username 
+\family typewriter
+admin
+\family default
+ and password 
+\family typewriter
+admin
+\family default
+ is created; this password must be changed on first login.
+ 
+\end_layout
+
+\begin_layout Standard
+The purpose of the Service Portal is to be able to publish the application,
+ look at the request log, and perform various other actions.
+\end_layout
+
+\begin_layout Standard
+An 
+\begin_inset Quotes eld
+\end_inset
+
+admin
+\begin_inset Quotes erd
+\end_inset
+
+ section of the Service Portal allows additional applications to be created,
+ previous ones to be deleted, etc.
+\end_layout
+
+\begin_layout Standard
+If the deployment is 
+\begin_inset Quotes eld
+\end_inset
+
+single application
+\begin_inset Quotes erd
+\end_inset
+
+ mode then it is not possible to log in to the Service Portal, as it is
+ not possible to create additional applications or publish existing applications
+ in this mode.
 \end_layout
 
 \begin_layout Section
@@ -3641,8 +3695,8 @@ No hash calculations are performed.
 \end_layout
 
 \begin_layout Standard
-In order to make the display and execution of an endpoint by the service
- portal as similar as possible to the normal execution of an endpoint, increment
+In order to make the display and execution of an endpoint by the Service
+ Portal as similar as possible to the normal execution of an endpoint, increment
 al IDs are assigned, request log entries are written, tasks are executed,
  and if 
 \family typewriter
@@ -4525,7 +4579,7 @@ The Service Portal Login Tables
 \end_layout
 
 \begin_layout Standard
-Which users may log into the service portal are stored in the 
+Which users may log into the Service Portal are stored in the 
 \family typewriter
 service_
 \begin_inset space \hspace{}
@@ -4545,7 +4599,7 @@ login
 \begin_layout Standard
 After the user has logged in, they have access to a certain number of applicatio
 ns.
- Which applications a service portal user has access to is stored in the
+ Which applications a Service Portal user has access to is stored in the
  
 \family typewriter
 service_
@@ -4570,7 +4624,7 @@ application
 
 \begin_layout Standard
 The intention is that both these tables are updated manually.
- The service portal reads from these tables but, currently, no software
+ The Service Portal reads from these tables but, currently, no software
  writes to these tables.
 \end_layout
 
