@@ -12,6 +12,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
+import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN;
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN_APPLICATION;
 import static java.time.ZoneOffset.UTC;
 
@@ -38,6 +39,10 @@ public class AbstractPage extends WebPage {
         }
 
         if (getSession().loggedInUserData.isAdmin) {
+            var mustChangePassword = tx.jooq().select(SERVICE_PORTAL_LOGIN.MUST_CHANGE_PASSWORD).from(SERVICE_PORTAL_LOGIN)
+                .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(getSession().loggedInUserData.username)).fetchSingle().value1();
+            if (mustChangePassword) throw new RestartResponseException(AdminChangePasswordPage.newMandatoryChangePasswordPage());
+
             continueToOriginalDestination();
             throw new RestartResponseException(AdminApplicationListPage.class);
         }
