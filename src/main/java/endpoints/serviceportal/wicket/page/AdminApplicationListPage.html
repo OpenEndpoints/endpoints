@@ -1,13 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="uk-height-1-1 uk-notouch" xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-YOU ARE AN ADMIN.
 
-<div wicket:id="feedback"></div>
+  <title>Application Admin</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- UIkit CSS -->
+  <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.offerready.min.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Khula:300,400">
+  <!-- UIkit JS -->
+  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
+  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons-offerready.min.js"></script>
+  <!-- FAVICON -->
+  <link rel="icon" href="https://commons.offer-ready.com/brand/favicon.ico">
+  
+  <style>
+    .logout {
+      text-align:right; 
+      padding:10px;
+    }
+    .logout span {
+      padding-left: 15px;
+    }
+    table {
+      margin: 30px 0 30px 0 !important;
+    }
+    table tr {
+      border-top: 1px solid lightgray;
+      border-bottom: 1px solid lightgray;
+    }
+    .icon {
+      transform: translate(0, -1px);
+    }
+    .feedbackPanelINFO {
+      color: green;
+    }
+    .feedbackPanelERROR {
+      color: red;
+    }
+  </style>
+
+</head>
+
+
+<body class="uk-height-1-1">
+  <div class="logout">
+    <span wicket:id="username">adrian</span>
+    <span><a href="#">Change Password</a></span>
+    <span><a wicket:id="logout" href="#">Log Out</a></span>
+  </div>
+  <div class="uk-flex uk-flex-center uk-flex-top uk-margin-large-top uk-height-viewport">
+    <div style="width: 900px" class="uk-padding-small">
+      <h2 style="text-align: center">Application Admin</h2>
+
+        <div wicket:id="feedback"></div>
+      
+        <span wicket:id="noApplications">There are no applications yet.</span>
+
+        <table class="uk-table uk-table-small">
+        <tr wicket:id="application">
+          <td wicket:id="name">example-application</td>
+          <td wicket:id="displayName">Application #1</td>
+          <td align="right">
+            <a wicket:id="edit" href="AdminEditApplicationPage.html">
+              <span class="icon" uk-icon="cog"></span> 
+              Configure
+            </a>
+            &nbsp;|&nbsp;
+            <a href="DeleteApplicationPage.html">
+              <span class="icon" uk-icon="trash"></span>
+              Delete
+            </a>
+            &nbsp;|&nbsp;
+            <a wicket:id="login" href="#">
+              <span class="icon" uk-icon="settings"></span>
+              Open Service Portal
+            </a>
+          </td>
+        </tr>
+      </table>
+      
+      <button wicket:id="add" class="uk-button uk-button-primary">
+        <span class="icon" style="padding-right: 5px;" uk-icon="plus-circle"></span>
+        Add New Application
+      </button>
+    </div>
+  
+    <!-- FOOTER -->
+    <div class="uk-position-bottom-center uk-position-small uk-visible@m">
+      <div class="uk-text-center uk-text-small uk-text-muted">
+      Offer-Ready Service Portal <span wicket:enclosure="">(<span wicket:id="environment">AWS PROD</span>)</span><br/>
+      (C) Offer-Ready IT-Services & Consulting GmbH <span wicket:id="year">2018</span>. All Rights Reserved.<br/>
+      <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
+      </div>
+    </div>
+  </div>
 
 </body>
+
 </html>
