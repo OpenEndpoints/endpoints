@@ -29,8 +29,6 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.regex.Pattern;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -175,7 +173,7 @@ public class EndpointServlet extends HttpServlet {
                 @Override public @Nonnull List<UploadedFile> getUploadedFiles() {
                     return Optional.ofNullable(req.getContentType()).orElse("").startsWith("multipart/form-data")
                         ? req.getParts().stream().filter(p -> p.getContentType() != null).map(ServletUploadedFile::new).collect(toList())
-                        : emptyList();
+                        : List.of();
                 }
                 @Override public @Nonnull InputStream getInputStream() throws EndpointExecutionFailedException {
                     try { return req.getInputStream(); }

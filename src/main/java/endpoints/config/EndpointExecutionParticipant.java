@@ -13,8 +13,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -44,7 +42,7 @@ public abstract class EndpointExecutionParticipant {
     }
 
     public @Nonnull Set<IntermediateValueName> getOutputIntermediateValues() {
-        return emptySet();
+        return Set.of();
     }
 
     @Value
@@ -91,6 +89,6 @@ public abstract class EndpointExecutionParticipant {
     public static void assertNoCircularDependencies(@Nonnull List<EndpointExecutionParticipant> nodes)
     throws ConfigurationException {
         for (var x : nodes) 
-            assertNoCircularDependenciesStartingFrom(nodes, emptyList(), x);
+            assertNoCircularDependenciesStartingFrom(nodes, List.of(), x);
     }
 }

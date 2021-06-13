@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.emptyMap;
 
 public class EndpointPanel extends Panel {
 
@@ -125,6 +123,6 @@ public class EndpointPanel extends Panel {
     
     /** Convenience method */
     public @Nonnull EndpointPanel execute(@Nonnull DbTransaction tx) {
-        return execute(tx, emptyMap(), emptyList());
+        return execute(tx, Map.of(), List.of());
     }
 }
