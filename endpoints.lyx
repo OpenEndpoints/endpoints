@@ -283,6 +283,24 @@ preview
 .
 \end_layout
 
+\begin_layout Description
+
+\family typewriter
+debug
+\family default
+ This requests debug.
+ Applications can have debug enabled or not.
+ Only if applications have debug enabled 
+\emph on
+and
+\emph default
+ the 
+\family typewriter
+debug
+\family default
+ parameter is passed to the request, does debugging occur.
+\end_layout
+
 \begin_layout Subsection
 Debugging
 \end_layout
