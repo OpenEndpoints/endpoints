@@ -36,7 +36,7 @@ public class DeploymentParameters {
     
     private static DeploymentParameters sharedInstance = null;
 
-    public final @Nonnull URL baseUrl;
+    /** Has trailing slash */ public final @Nonnull URL baseUrl;
     public final @Nonnull String jdbcUrl;
     public final @Nonnull File publishedApplicationsDirectory;
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
