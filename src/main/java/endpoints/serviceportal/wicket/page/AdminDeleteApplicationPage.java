@@ -10,6 +10,7 @@ import org.apache.wicket.markup.html.link.Link;
 import javax.annotation.Nonnull;
 
 import static endpoints.generated.jooq.Tables.*;
+import static org.jooq.impl.DSL.select;
 
 public class AdminDeleteApplicationPage extends AbstractLoggedInAdminPage {
     
@@ -26,6 +27,14 @@ public class AdminDeleteApplicationPage extends AbstractLoggedInAdminPage {
     
     public void onSubmit(@Nonnull ApplicationName name) {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
+            tx.jooq().deleteFrom(SHORT_LINK_TO_ENDPOINT_PARAMETER)
+                .where(SHORT_LINK_TO_ENDPOINT_PARAMETER.SHORT_LINK_TO_ENDPOINT_CODE.in(
+                    select(SHORT_LINK_TO_ENDPOINT.SHORT_LINK_TO_ENDPOINT_CODE)
+                    .from(SHORT_LINK_TO_ENDPOINT)
+                    .where(SHORT_LINK_TO_ENDPOINT.APPLICATION.eq(name))
+                )).execute();
+            tx.jooq().deleteFrom(SHORT_LINK_TO_ENDPOINT)
+                .where(SHORT_LINK_TO_ENDPOINT.APPLICATION.eq(name)).execute();
             tx.jooq().deleteFrom(APPLICATION_PUBLISH)
                 .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(name)).execute();
             tx.jooq().deleteFrom(REQUEST_LOG)

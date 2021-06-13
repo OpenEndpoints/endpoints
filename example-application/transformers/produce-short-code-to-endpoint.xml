@@ -1,0 +1,4 @@
+  <transformer data-source="short-code-to-endpoint">
+    <xslt-file name="extract-html.xslt"/>
+    <content-type type="text/html; charset=utf-8"/>
+  </transformer>

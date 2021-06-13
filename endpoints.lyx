@@ -2130,6 +2130,113 @@ regex
 \end_layout
 
 \begin_layout Subsubsection
+Creating a 
+\begin_inset Quotes eld
+\end_inset
+
+Short Link To Endpoint
+\begin_inset Quotes erd
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Some email programs may have issues with long links.
+ Links to endpoints (containing all parameters) may get long, so this can
+ become a problem.
+ The 
+\begin_inset Quotes eld
+\end_inset
+
+Short Link To Endpoint
+\begin_inset Quotes erd
+\end_inset
+
+ feature allows shorter links to endpoints (including all parameters) to
+ be created.
+ This is analogous to 
+\begin_inset Quotes eld
+\end_inset
+
+Forward To Endpoint
+\begin_inset Quotes erd
+\end_inset
+
+, with the exception that rather than the destination endpoint getting executed
+ immediately, a link is created to the processing of that endpoint.
+\end_layout
+
+\begin_layout Standard
+The task described in this section creates a short-link in the database
+ with a random code.
+ The resulting full link, including the code and also including the base
+ URL of the current installation of Endpoints, is written to an output intermedi
+ate variable.
+\end_layout
+
+\begin_layout Standard
+Use a syntax like the following to create a short link to an endpoint in
+ the variable 
+\family typewriter
+${link}
+\family default
+.
+\end_layout
+
+\begin_layout LyX-Code
+<task 
+\end_layout
+
+\begin_layout LyX-Code
+   class="endpoints.task.CreateShortLinkToEndpointTask" 
+\end_layout
+
+\begin_layout LyX-Code
+   destination-endpoint-name=
+\begin_inset Quotes qrd
+\end_inset
+
+my-other-endpoint
+\begin_inset Quotes qrd
+\end_inset
+
+
+\end_layout
+
+\begin_layout LyX-Code
+   output-intermediate-value=
+\begin_inset Quotes qrd
+\end_inset
+
+link
+\begin_inset Quotes qrd
+\end_inset
+
+/>
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Newline newline
+\end_inset
+
+<success>
+\end_layout
+
+\begin_layout LyX-Code
+   <input-intermediate-value name="link"/>
+\end_layout
+
+\begin_layout LyX-Code
+   ...
+\end_layout
+
+\begin_layout LyX-Code
+</success>
+\end_layout
+
+\begin_layout Subsubsection
 Custom Task
 \end_layout
 

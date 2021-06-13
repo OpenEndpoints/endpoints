@@ -8,6 +8,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.config.Application;
+import endpoints.config.ApplicationName;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
@@ -74,9 +75,9 @@ public class HttpRequestSpecificationTest extends TestCase {
 
             var server = new Server(port);
             server.setHandler(new AbstractHandler() {
-                @SneakyThrows(ConfigurationException.class)
-                @Override public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-                throws IOException {
+                @SneakyThrows(ConfigurationException.class) @Override public void handle(
+                    String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response
+                ) throws IOException {
                     response.setStatus(HttpServletResponse.SC_OK);
                     deliverResponse.deliverResponse(request, response);
                     baseRequest.setHandled(true);
@@ -91,7 +92,8 @@ public class HttpRequestSpecificationTest extends TestCase {
 
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
-                var context = new TransformationContext(application, tx, new ThreadPool(), params,
+                var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
+                    application, tx, new ThreadPool(), params,
                     ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), Map.of());
                 var resultContainer = new Object() {
                     public Element element;

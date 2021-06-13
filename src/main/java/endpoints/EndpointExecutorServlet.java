@@ -1,8 +1,7 @@
 package endpoints;
 
-import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import com.databasesandlife.util.Timer;
-import com.databasesandlife.util.jdbc.DbTransaction.CannotConnectToDatabaseException;
+import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
 import endpoints.EndpointExecutor.RequestInvalidException;
 import endpoints.PublishEnvironment.PublishEnvironmentNotFoundException;
@@ -12,28 +11,28 @@ import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.flywaydb.core.Flyway;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
-import java.util.*;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("serial")
-public class EndpointServlet extends HttpServlet {
+public class EndpointExecutorServlet extends AbstractEndpointsServlet {
     
     @RequiredArgsConstructor
     protected static class ServletUploadedFile extends UploadedFile {
@@ -50,19 +49,6 @@ public class EndpointServlet extends HttpServlet {
         }
     }
     
-    // CORS pre-flight request
-    @Override
-    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        var headers = new ArrayList<String>();
-        req.getHeaderNames().asIterator().forEachRemaining(h -> headers.add(h));
-
-        resp.setStatus(HttpServletResponse.SC_NO_CONTENT);
-        resp.setHeader("Access-Control-Allow-Headers", String.join(", ", headers));
-        resp.setHeader("Access-Control-Allow-Methods", req.getMethod());
-        resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
-        resp.flushBuffer();
-    }
-
     protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull Request request) {
         if ( ! DeploymentParameters.get().xsltDebugLog) return;
         
@@ -110,9 +96,7 @@ public class EndpointServlet extends HttpServlet {
 //        System.out.println(hexString.toString());
 //        System.out.println("***********************");
 
-        // CORS
-        if (StringUtils.isNotEmpty(req.getHeader("Origin")))
-            resp.setHeader("Access-Control-Allow-Origin", req.getHeader("Origin"));
+        setCorsHeaders(req, resp);
 
         try (var ignored = new Timer(getClass().getSimpleName())) {
             var path = req.getRequestURI().substring(req.getContextPath().length());
@@ -199,28 +183,8 @@ public class EndpointServlet extends HttpServlet {
         }
     }
     
-    @Override
-    public void init() throws ServletException {
-        super.init();
-
-        var flyway = new Flyway();
-        flyway.setDataSource(DeploymentParameters.get().jdbcUrl, null, null);
-        flyway.setLocations("classpath:endpoints/migration");
-        flyway.migrate();
-
-        try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            DeploymentParameters.get().getApplications(tx); // load all previously-published applications at startup
-            tx.commit();
-        }
-        catch (CannotConnectToDatabaseException e) {
-            Logger.getLogger(getClass()).warn("Cannot load applications at servlet startup, "
-                + "will load lazily during requests instead: Database connection problem", e);
-        }
-    }
-    
     @Override 
-    protected void doGet(@Nonnull HttpServletRequest req, @Nonnull HttpServletResponse resp)
-    throws ServletException, IOException {
+    protected void doGet(@Nonnull HttpServletRequest req, @Nonnull HttpServletResponse resp) throws IOException {
         doPost(req, resp);
     }
 }

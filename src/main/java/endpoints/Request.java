@@ -10,6 +10,12 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * This basically models an HTTP request which is processed by endpoints.
+ * This is not entirely accurate as this can be "faked" e.g. by embedding the software into a Wicket page, or unit test, etc.
+ * Further, if e.g. a short link is used, the short link is first decoded, the Request object models the request saved
+ * with the short link, it does not represent the parameterless request which was made to the shortlink servlet.
+ */
 public interface Request {
     
     @CheckForNull InetAddress getClientIpAddress();
