@@ -6,6 +6,7 @@ import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
+import com.google.common.net.MediaType;
 import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -27,9 +28,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONTokener;
+import org.json.XML;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.CheckForNull;
@@ -42,9 +48,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.file.Files;
@@ -60,6 +64,7 @@ import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExc
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.*;
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
 import static endpoints.generated.jooq.Tables.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.stream;
 import static java.util.Collections.*;
 import static java.util.stream.Collectors.joining;
@@ -246,6 +251,32 @@ public class EndpointExecutor {
                 ParameterTransformationHadErrorException | RequestInvalidException e) { throw new RuntimeException(e); }
         });
     }
+    
+    @SneakyThrows(IOException.class)
+    protected @Nonnull Node[] convertJsonToXml(@Nonnull String contentType, @Nonnull InputStream jsonInputStream) 
+    throws RequestInvalidException {
+        var charset = MediaType.parse(contentType).charset().or(UTF_8);
+        String xmlString;
+        try (var reader = new InputStreamReader(jsonInputStream, charset)) {
+            xmlString = XML.toString(new JSONTokener(reader).nextValue());
+        }
+        catch (JSONException e) { throw new RequestInvalidException("Cannot parse JSON from POST request", e); }
+
+        // The "JSON to XML" conversion does not necessarily have a single root element. XML requires a single root element.
+        var xmlIncludingHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?><json-request>" + xmlString + "</json-request>";
+
+        NodeList nodeList;
+        try { 
+            nodeList =  newDocumentBuilder()
+                .parse(new ByteArrayInputStream(xmlIncludingHeader.getBytes(UTF_8))).getDocumentElement()
+                .getChildNodes();
+        }
+        catch (SAXException e) { throw new RequestInvalidException("Could not convert JSON to valid XML", e); }
+
+        var result = new Node[nodeList.getLength()];
+        for (int i = 0; i < nodeList.getLength(); i++) result[i] = nodeList.item(0);
+        return result;
+    }
 
     @SuppressWarnings("UnusedReturnValue") 
     protected @Nonnull Runnable getParameters(
@@ -274,39 +305,44 @@ public class EndpointExecutor {
             catch (RequestInvalidException e) { throw new RuntimeException(e); }
         };
 
-        switch (Optional.ofNullable(req.getContentTypeIfPost()).orElse("null")) {
-            case "null":
-            case "application/x-www-form-urlencoded":
-            case "multipart/form-data":
-                var inputParameters = req.getParameters().entrySet().stream().collect(toMap(
-                    e -> e.getKey(),
-                    e -> e.getValue().stream().collect(joining(endpoint.getParameterMultipleValueSeparator()))
-                ));
-                if (endpoint.parameterTransformation == null) {
-                    return threads.addTask(() -> validateThenConsumeParameters.accept(inputParameters));
-                } else {
-                    return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
-                        debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                        endpoint.parameterTransformation, autoIncrement, random, inputParameters, validateThenConsumeParameters, 
-                        ParametersCommand.createParametersElements(inputParameters, emptyMap(), req.getUploadedFiles()));
-                }
-
-            case "application/xml":
-                try {
-                    if (endpoint.parameterTransformation == null) throw new RequestInvalidException("Endpoint does not have " +
-                        "<parameter-transformation> defined, therefore cannot accept XML request");
-                    var requestDocument = DomParser.from(req.getInputStream());
-                    return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
-                        debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                        endpoint.parameterTransformation, autoIncrement, random, emptyMap(),
-                        validateThenConsumeParameters, requestDocument);
-                }
-                catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }
-
-            default:
-                throw new RequestInvalidException("Unexpected content type '" + req.getContentTypeIfPost()
-                    + "': expected 'application/x-www-form-urlencoded', 'multipart/form-data' or 'application/xml'");
+        var contentType = req.getContentTypeIfPost();
+        if (contentType == null 
+                || contentType.equals("application/x-www-form-urlencoded") 
+                || contentType.equals("multipart/form-data")) {
+            var inputParameters = req.getParameters().entrySet().stream().collect(toMap(
+                e -> e.getKey(),
+                e -> e.getValue().stream().collect(joining(endpoint.getParameterMultipleValueSeparator()))
+            ));
+            if (endpoint.parameterTransformation == null) {
+                return threads.addTask(() -> validateThenConsumeParameters.accept(inputParameters));
+            } else {
+                return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
+                    debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
+                    endpoint.parameterTransformation, autoIncrement, random, inputParameters, validateThenConsumeParameters,
+                    ParametersCommand.createParametersElements(inputParameters, emptyMap(), req.getUploadedFiles()));
+            }
         }
+        else if (contentType.contains("xml") || contentType.contains("json")) {
+            try {
+                if (endpoint.parameterTransformation == null) throw new RequestInvalidException("Endpoint does not have " +
+                    "<parameter-transformation> defined, therefore cannot accept XML or JSON request " +
+                    "with Content-Type '" + req.getContentTypeIfPost() + "'");
+                final @Nonnull Node[] requestDocument;
+                if (contentType.contains("xml")) requestDocument = new Node[] { DomParser.from(req.getInputStream()) };
+                else if (contentType.contains("json")) requestDocument = convertJsonToXml(contentType, req.getInputStream());
+                else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
+                Logger.getLogger(getClass()).debug("Request JSON converted to XML\n" + Arrays.stream(requestDocument)
+                    .map(x -> x instanceof Element ? formatXmlPretty((Element) x) : "(not an element)")
+                    .collect(joining("\n")));
+                return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
+                    debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
+                    endpoint.parameterTransformation, autoIncrement, random, emptyMap(),
+                    validateThenConsumeParameters, requestDocument);
+            }
+            catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }
+        }
+        else throw new RequestInvalidException("Unexpected Content Type '" + req.getContentTypeIfPost()
+            + "': Must either be a GET request, or a POST request from a <form>, or POST request with XML or JSON body");
     }
 
     protected void assertHashCorrect(
