@@ -365,6 +365,16 @@
                                             <expression>REVISION</expression>
                                         </forcedType>
                                         <forcedType>
+                                            <userType>endpoints.ShortLinkToEndpointCode</userType>
+                                            <converter>endpoints.jooq.ShortLinkToEndpointCodeConverter</converter>
+                                            <expression>SHORT_LINK_TO_ENDPOINT_CODE</expression>
+                                        </forcedType>
+                                        <forcedType>
+                                            <userType>endpoints.config.ParameterName</userType>
+                                            <converter>endpoints.jooq.ParameterNameConverter</converter>
+                                            <expression>PARAMETER_NAME</expression>
+                                        </forcedType>
+                                        <forcedType>
                                             <userType>endpoints.RequestId</userType>
                                             <converter>endpoints.jooq.RequestIdConverter</converter>
                                             <expression>REQUEST_ID</expression>

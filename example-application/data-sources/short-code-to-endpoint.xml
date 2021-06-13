@@ -1,0 +1,10 @@
+<data-source>
+    <literal-xml>
+        <html>
+            <body>
+                Click on this shortcode:
+                <a href="${short-code-link}">${short-code-link}</a>
+            </body>
+        </html>
+    </literal-xml>
+</data-source>

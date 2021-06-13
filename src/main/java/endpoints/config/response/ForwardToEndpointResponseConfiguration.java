@@ -37,7 +37,6 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
             else inputParameterPatterns = patterns;
         }
         catch (ConfigurationException e) { throw new ConfigurationException("<forward-to-endpoint>", e); }
-
     }
 
     // For unit test

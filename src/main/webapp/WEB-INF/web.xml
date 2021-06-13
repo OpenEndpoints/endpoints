@@ -7,13 +7,24 @@
 
   <servlet>
     <servlet-name>endpoint</servlet-name>
-    <servlet-class>endpoints.EndpointServlet</servlet-class>
+    <servlet-class>endpoints.EndpointExecutorServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
     <multipart-config/>
   </servlet>
   <servlet-mapping>
     <servlet-name>endpoint</servlet-name>
     <url-pattern>/</url-pattern>
+  </servlet-mapping>
+
+  <servlet>
+    <servlet-name>short-link-to-endpoint</servlet-name>
+    <servlet-class>endpoints.ShortLinkToEndpointServlet</servlet-class>
+    <load-on-startup>1</load-on-startup>
+    <multipart-config/>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>short-link-to-endpoint</servlet-name>
+    <url-pattern>/shortlink/*</url-pattern>
   </servlet-mapping>
 
   <servlet>

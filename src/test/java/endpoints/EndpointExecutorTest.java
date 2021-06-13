@@ -78,7 +78,8 @@ public class EndpointExecutorTest extends TestCase {
                             new EmptyResponseConfiguration(DomParser.from("<foo/>"))
                         );
                         
-                        var context = new TransformationContext(Application.newForTesting(Map.of()), tx, threads,
+                        var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
+                            Application.newForTesting(Map.of()), tx, threads,
                             Map.of(new ParameterName("param"), param), error, RequestId.newRandom(), 
                             Request.newForTesting(), Map.of());
                         

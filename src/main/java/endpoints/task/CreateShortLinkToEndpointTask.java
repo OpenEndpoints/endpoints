@@ -1,0 +1,79 @@
+package endpoints.task;
+
+import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
+import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import com.offerready.xslt.WeaklyCachedXsltTransformer;
+import endpoints.DeploymentParameters;
+import endpoints.ShortLinkToEndpointCode;
+import endpoints.TransformationContext;
+import endpoints.config.IntermediateValueName;
+import endpoints.config.NodeName;
+import endpoints.config.ParameterName;
+import endpoints.config.Transformer;
+import endpoints.generated.jooq.tables.records.ShortLinkToEndpointParameterRecord;
+import endpoints.generated.jooq.tables.records.ShortLinkToEndpointRecord;
+import org.w3c.dom.Element;
+
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static com.databasesandlife.util.DomParser.assertNoOtherElements;
+import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
+import static java.time.Instant.now;
+
+public class CreateShortLinkToEndpointTask extends Task {
+    
+    protected final @Nonnull NodeName destinationEndpoint;
+    protected final @Nonnull IntermediateValueName outputIntermediateValue;
+
+    public CreateShortLinkToEndpointTask(
+        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, int indexFromZero, @Nonnull Element config
+    ) throws ConfigurationException {
+        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
+        assertNoOtherElements(config);
+        destinationEndpoint = new NodeName(getMandatoryAttribute(config, "destination-endpoint-name"));
+        outputIntermediateValue = new IntermediateValueName(getMandatoryAttribute(config, "output-intermediate-value"));
+    }
+
+    @Override 
+    public @Nonnull Set<IntermediateValueName> getOutputIntermediateValues() {
+        var result = new HashSet<>(super.getOutputIntermediateValues());
+        result.add(outputIntermediateValue);
+        return result;
+    }
+
+    @Override
+    protected void executeThenScheduleSynchronizationPoint(
+        @Nonnull TransformationContext context, @Nonnull SynchronizationPoint workComplete
+    ) {
+        synchronized (context.tx.db) {
+            var result = ShortLinkToEndpointCode.newRandom();
+            
+            var linkRecord = new ShortLinkToEndpointRecord();
+            linkRecord.setShortLinkToEndpointCode(result);
+            linkRecord.setApplication(context.applicationName);
+            linkRecord.setEnvironment(context.environment);
+            linkRecord.setEndpoint(destinationEndpoint);
+            linkRecord.setCreatedOn(now());
+            context.tx.db.insert(linkRecord);
+
+            var params = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+            for (var e : params.entrySet()) {
+                var parameterRecord = new ShortLinkToEndpointParameterRecord();
+                parameterRecord.setShortLinkToEndpointCode(result);
+                parameterRecord.setParameterName(new ParameterName(e.getKey()));
+                parameterRecord.setParameterValue(e.getValue());
+                context.tx.db.insert(parameterRecord);
+            }
+            
+            context.intermediateValues.put(outputIntermediateValue,
+                DeploymentParameters.get().baseUrl.toExternalForm() + "shortlink/" + result.getCode());
+            
+            context.threads.addTask(workComplete);
+        }
+    }
+}

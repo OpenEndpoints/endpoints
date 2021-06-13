@@ -153,7 +153,8 @@ public class EndpointExecutor {
     
     @SuppressFBWarnings("SA_LOCAL_SELF_ASSIGNMENT")
     protected @Nonnull Runnable transformXmlIntoParameters(
-        @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
+        @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
+        @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull ThreadPool threads, @Nonnull Endpoint endpoint, @Nonnull RequestId requestId, 
         @Nonnull Request req, boolean debugAllowed, boolean debugRequested, 
         @Nonnull ParameterTransformationLogger parameterTransformationLogger,
@@ -196,7 +197,7 @@ public class EndpointExecutor {
         appendTextElement(inputFromApplicationElement, "base-url", DeploymentParameters.get().baseUrl.toExternalForm());
 
         // Schedule execution of e.g. <xml-from-application>
-        var context = new TransformationContext(application, tx, threads, requestParameters,
+        var context = new TransformationContext(environment, applicationName, application, tx, threads, requestParameters,
             ParameterNotFoundPolicy.emptyString, requestId, req, autoInc);
         var dataSourceResults = new ArrayList<DataSourceCommandFetcher>();
         for (var c : parameterTransformation.dataSourceCommands)
@@ -280,7 +281,8 @@ public class EndpointExecutor {
 
     @SuppressWarnings("UnusedReturnValue") 
     protected @Nonnull Runnable getParameters(
-        @Nonnull ApplicationName applicationName, @Nonnull Application application, @Nonnull ApplicationTransaction tx,
+        @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
+        @Nonnull Application application, @Nonnull ApplicationTransaction tx,
         @Nonnull ThreadPool threads, @Nonnull Endpoint endpoint, @Nonnull RequestId requestId,
         @Nonnull Request req, boolean debugAllowed, boolean debugRequested,
         @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
@@ -316,7 +318,7 @@ public class EndpointExecutor {
             if (endpoint.parameterTransformation == null) {
                 return threads.addTask(() -> validateThenConsumeParameters.accept(inputParameters));
             } else {
-                return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
+                return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                     endpoint.parameterTransformation, autoIncrement, random, inputParameters, validateThenConsumeParameters,
                     ParametersCommand.createParametersElements(inputParameters, Map.of(), req.getUploadedFiles()));
@@ -334,7 +336,7 @@ public class EndpointExecutor {
                 Logger.getLogger(getClass()).debug("Request JSON converted to XML\n" + Arrays.stream(requestDocument)
                     .map(x -> x instanceof Element ? formatXmlPretty((Element) x) : "(not an element)")
                     .collect(joining("\n")));
-                return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
+                return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                     endpoint.parameterTransformation, autoIncrement, random, Map.of(),
                     validateThenConsumeParameters, requestDocument);
@@ -590,7 +592,7 @@ public class EndpointExecutor {
         @CheckForNull String hashToCheck, @Nonnull RequestId requestId, @Nonnull Request req,
         @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
     ) throws EndpointExecutionFailedException, RequestInvalidException, TransformationFailedException {
-        getParameters(applicationName, application, tx, threads, endpoint, requestId, req,
+        getParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
             appConfig.debugAllowed, debugRequested, parameterTransformationLogger,
             autoInc, autoIncrement, random, 
             parameters -> {
@@ -598,7 +600,7 @@ public class EndpointExecutor {
                     if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
                     
                     try (var ignored3 = new Timer("Execute <task>s and generate response")) {
-                        var context = new TransformationContext(application, tx, threads, parameters,
+                        var context = new TransformationContext(environment, applicationName, application, tx, threads, parameters,
                             ParameterNotFoundPolicy.error, requestId, req, autoInc);
                         scheduleTasksAndSuccess(environment, applicationName, appConfig,
                             context, endpoint, autoInc, autoIncrement, random, responseConsumer);
@@ -694,7 +696,8 @@ public class EndpointExecutor {
                     var threads = new ThreadPool();
                     threads.setThreadNamePrefix(getClass().getName() + " <error>");
                     var autoInc = newLazyNumbers(applicationName, environment, now);
-                    var context = new TransformationContext(application, tx, threads, errorExpansionValues,
+                    var context = new TransformationContext(environment, applicationName,
+                        application, tx, threads, errorExpansionValues,
                         ParameterNotFoundPolicy.error, requestId, req, autoInc);
                     threads.addTask(new Response(context, endpoint.error, false, errorResponse));
                     

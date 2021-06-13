@@ -2,10 +2,7 @@ package endpoints;
 
 import com.databasesandlife.util.ThreadPool;
 import com.offerready.xslt.BufferedDocumentGenerationDestination;
-import endpoints.config.Application;
-import endpoints.config.IntermediateValueName;
-import endpoints.config.ParameterName;
-import endpoints.config.Transformer;
+import endpoints.config.*;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +27,8 @@ public class TransformationContext {
 
     public enum ParameterNotFoundPolicy { error, emptyString };
 
+    public final @Nonnull PublishEnvironment environment;
+    public final @Nonnull ApplicationName applicationName;
     public final @Nonnull Application application;
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads;
