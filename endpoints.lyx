@@ -163,16 +163,28 @@ POST
 \begin_inset space ~
 \end_inset
 
-Request:
+Request
 \begin_inset space ~
 \end_inset
 
+with
+\begin_inset space ~
+\end_inset
 
+XML
+\begin_inset space ~
+\end_inset
+
+Body If the Content Type contains the string 
+\family typewriter
+xml
+\family default
+ (for example the Content Type 
 \family typewriter
 application/xml
 \family default
- In this case arbitrary XML is supplied, which is passed to the parameter
- transformation structure, inside the 
+), arbitrary XML is supplied, which is passed to the parameter transformation
+ structure, inside the 
 \family typewriter
 <input-from-request>
 \family default
@@ -183,6 +195,54 @@ application/xml
  elements.
 \end_layout
 
+\begin_layout Description
+POST
+\begin_inset space ~
+\end_inset
+
+Requset
+\begin_inset space ~
+\end_inset
+
+with
+\begin_inset space ~
+\end_inset
+
+JSON
+\begin_inset space ~
+\end_inset
+
+Body If the Content Type contains the string 
+\family typewriter
+json
+\family default
+ (for example the Content Type 
+\family typewriter
+application/json
+\family default
+), JSON is expected in the incoming request body.
+ This is converted to XML and, as with XML requests, placed inside the 
+\family typewriter
+<input-from-request>
+\family default
+ element instead of the normal 
+\family typewriter
+<parameter>
+\family default
+ elements.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Note that the JSON to XML conversion process can produce mutliple elements,
+ in which case all are placed directly underneath the 
+\family typewriter
+<input-from-request>
+\family default
+ element.
+\end_layout
+
+\end_deeper
 \begin_layout Standard
 There are the following special parameters.
  They are supplied along with the normal parameters, apart from in the case
