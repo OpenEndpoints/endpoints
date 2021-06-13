@@ -15,7 +15,6 @@ import junit.framework.TestCase;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -42,7 +41,7 @@ public class EndpointExecutorTest extends TestCase {
                 @Nonnull XsltCompilationThreads threads, int idx, 
                 @Nonnull String id, @Nonnull String afterXml, @Nonnull Runnable task
             ) throws ConfigurationException  {
-                super(threads, new File("/"), Collections.emptyMap(), 
+                super(threads, new File("/"), Map.of(), 
                     new File("/"), idx, DomParser.from("<foo id='"+id+"'>"+afterXml+"</foo>"));
                 this.task = task;
             }

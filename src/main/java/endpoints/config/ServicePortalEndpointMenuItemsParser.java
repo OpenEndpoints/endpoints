@@ -15,8 +15,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 
-import static java.util.Collections.emptyList;
-
 public class ServicePortalEndpointMenuItemsParser extends DomParser {
 
     protected @Nonnull Set<PublishEnvironment> parseEnvironments(@Nonnull Element el) throws ConfigurationException {
@@ -96,7 +94,7 @@ public class ServicePortalEndpointMenuItemsParser extends DomParser {
     throws ConfigurationException {
         try {
             if (! file.exists()) return new ServicePortalEndpointMenuFolder("Root", 
-                EnumSet.allOf(PublishEnvironment.class), emptyList());
+                EnumSet.allOf(PublishEnvironment.class), List.of());
                 
             var rootElement = from(file);
             if ( ! "service-portal-endpoint-menu-items".equals(rootElement.getTagName()))

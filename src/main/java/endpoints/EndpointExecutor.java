@@ -200,7 +200,7 @@ public class EndpointExecutor {
             ParameterNotFoundPolicy.emptyString, requestId, req, autoInc);
         var dataSourceResults = new ArrayList<DataSourceCommandFetcher>();
         for (var c : parameterTransformation.dataSourceCommands)
-            dataSourceResults.add(c.scheduleExecution(context, emptySet()));
+            dataSourceResults.add(c.scheduleExecution(context, Set.of()));
 
         return threads.addTaskWithDependencies(dataSourceResults, () -> {
             try {
@@ -319,7 +319,7 @@ public class EndpointExecutor {
                 return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                     endpoint.parameterTransformation, autoIncrement, random, inputParameters, validateThenConsumeParameters,
-                    ParametersCommand.createParametersElements(inputParameters, emptyMap(), req.getUploadedFiles()));
+                    ParametersCommand.createParametersElements(inputParameters, Map.of(), req.getUploadedFiles()));
             }
         }
         else if (contentType.contains("xml") || contentType.contains("json")) {
@@ -336,7 +336,7 @@ public class EndpointExecutor {
                     .collect(joining("\n")));
                 return transformXmlIntoParameters(applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                    endpoint.parameterTransformation, autoIncrement, random, emptyMap(),
+                    endpoint.parameterTransformation, autoIncrement, random, Map.of(),
                     validateThenConsumeParameters, requestDocument);
             }
             catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }

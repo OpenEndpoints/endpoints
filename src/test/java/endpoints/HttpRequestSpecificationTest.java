@@ -32,11 +32,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.databasesandlife.util.ThreadPool.unwrapException;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
 
 public class HttpRequestSpecificationTest extends TestCase {
 
@@ -93,11 +92,11 @@ public class HttpRequestSpecificationTest extends TestCase {
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
                 var context = new TransformationContext(application, tx, new ThreadPool(), params,
-                    ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), emptyMap());
+                    ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), Map.of());
                 var resultContainer = new Object() {
                     public Element element;
                 };
-                httpSpec.scheduleExecutionAndParseResponse(context, emptySet(), e -> resultContainer.element = e);
+                httpSpec.scheduleExecutionAndParseResponse(context, Set.of(), e -> resultContainer.element = e);
                 
                 // In EndpointsExecutor, only the threads.execute catches Exceptions
                 // so we simulate that behaviour here. That's because all the HTTP requests must happen
