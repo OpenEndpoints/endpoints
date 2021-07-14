@@ -275,7 +275,7 @@ public class EndpointExecutor {
         catch (SAXException e) { throw new RequestInvalidException("Could not convert JSON to valid XML", e); }
 
         var result = new Node[nodeList.getLength()];
-        for (int i = 0; i < nodeList.getLength(); i++) result[i] = nodeList.item(0);
+        for (int i = 0; i < nodeList.getLength(); i++) result[i] = nodeList.item(i);
         return result;
     }
 
