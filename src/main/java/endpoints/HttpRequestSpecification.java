@@ -26,6 +26,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONTokener;
 import org.json.XML;
+import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
@@ -59,6 +60,7 @@ import static java.lang.Boolean.parseBoolean;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.jsoup.nodes.Document.OutputSettings.Syntax.xml;
 
 public class HttpRequestSpecification {
 
@@ -506,6 +508,18 @@ public class HttpRequestSpecification {
                     }
                     catch (SAXException e) {
                         throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "' contained invalid XML", e);
+                    }
+                }
+                else if (urlConnection.getContentType().toLowerCase().contains("html")) {
+                    try (var inputStream = urlConnection.getInputStream()) {
+                        var document = Jsoup.parse(inputStream, null, "");
+                        document.outputSettings().syntax(xml);
+                        var xmlString = document.html();
+                        var xml = DomParser.from(xmlString);
+                        after.accept(xml);
+                    }
+                    catch (ConfigurationException e) {
+                        throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "': HTML could not be parsed", e);
                     }
                 }
                 else throw new HttpRequestFailedException(url.toExternalForm(), null, 

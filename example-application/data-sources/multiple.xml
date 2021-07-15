@@ -24,6 +24,9 @@
     <url>https://www.w3schools.com/xml/note.xml</url>
     <post-process xslt="values.xslt"/>
   </xml-from-url>
+  <xml-from-url tag="databasesandlife-html">
+    <url>https://www.databasesandlife.com/</url>
+  </xml-from-url>
   <xml-from-application file="xml-subdirectory/spheres.fo">
     <post-process xslt="values.xslt"/>
   </xml-from-application>

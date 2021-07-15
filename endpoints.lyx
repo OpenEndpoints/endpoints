@@ -2688,11 +2688,12 @@ ignore-if-error="true"
 
 \begin_layout Standard
 If XML is received then that XML is the result of this data source.
- If JSON is received then it is converted to JSON with a root element 
+ If JSON is received then it is converted to XML with a root element 
 \family typewriter
 <response>
 \family default
 .
+ If HTML is received then it is converted to XML.
  If no content is received then 
 \family typewriter
 <empty-response/>
