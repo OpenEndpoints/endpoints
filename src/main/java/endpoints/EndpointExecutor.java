@@ -211,6 +211,10 @@ public class EndpointExecutor {
                         inputParametersDocument.getDocumentElement().appendChild(
                             inputParametersDocument.importNode(element, true));
 
+                // Debug Log
+                Logger.getLogger(getClass()).debug("Parameter Transformation Input:\n" 
+                    + formatXmlPretty(inputParametersDocument.getDocumentElement()));
+
                 // Transform
                 boolean debug = debugAllowed && debugRequested;
                 if (debug) parameterTransformationLogger.input = inputParametersDocument.getDocumentElement();
@@ -276,6 +280,19 @@ public class EndpointExecutor {
 
         var result = new Node[nodeList.getLength()];
         for (int i = 0; i < nodeList.getLength(); i++) result[i] = nodeList.item(i);
+
+        Logger.getLogger(getClass()).debug("POST request JSON converted to XML, output is:\n" + Arrays.stream(result)
+            .map(x -> x instanceof Element ? formatXmlPretty((Element) x) : "(not an element)")
+            .collect(joining("\n")));
+        
+        return result;
+    }
+    
+    /** Places all the children into a new container element */
+    protected @Nonnull Element encloseElement(@Nonnull String surroundingTag, @Nonnull Node... children) {
+        var doc = DomParser.newDocumentBuilder().newDocument();
+        var result = doc.createElement(surroundingTag);
+        for (var c : children) result.appendChild(doc.importNode(c, true));
         return result;
     }
 
@@ -329,13 +346,12 @@ public class EndpointExecutor {
                 if (endpoint.parameterTransformation == null) throw new RequestInvalidException("Endpoint does not have " +
                     "<parameter-transformation> defined, therefore cannot accept XML or JSON request " +
                     "with Content-Type '" + req.getContentTypeIfPost() + "'");
-                final @Nonnull Node[] requestDocument;
-                if (contentType.contains("xml")) requestDocument = new Node[] { DomParser.from(req.getInputStream()) };
-                else if (contentType.contains("json")) requestDocument = convertJsonToXml(contentType, req.getInputStream());
+                final @Nonnull Element requestDocument;
+                if (contentType.contains("xml"))
+                    requestDocument = encloseElement("xml", DomParser.from(req.getInputStream()));
+                else if (contentType.contains("json")) 
+                    requestDocument = encloseElement("json", convertJsonToXml(contentType, req.getInputStream()));
                 else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
-                Logger.getLogger(getClass()).debug("Request JSON converted to XML\n" + Arrays.stream(requestDocument)
-                    .map(x -> x instanceof Element ? formatXmlPretty((Element) x) : "(not an element)")
-                    .collect(joining("\n")));
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                     endpoint.parameterTransformation, autoIncrement, random, Map.of(),
