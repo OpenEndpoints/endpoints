@@ -184,11 +184,15 @@ xml
 application/xml
 \family default
 ), arbitrary XML is supplied, which is passed to the parameter transformation
- structure, inside the 
+ structure, inside an 
+\family typewriter
+<xml>
+\family default
+ tag inside 
 \family typewriter
 <input-from-request>
 \family default
- element instead of the normal 
+, instead of the normal 
 \family typewriter
 <parameter>
 \family default
@@ -221,7 +225,11 @@ json
 application/json
 \family default
 ), JSON is expected in the incoming request body.
- This is converted to XML and, as with XML requests, placed inside the 
+ This is converted to XML and, as with XML requests, placed inside 
+\family typewriter
+<json>
+\family default
+ inside 
 \family typewriter
 <input-from-request>
 \family default
@@ -232,17 +240,6 @@ application/json
  elements.
 \end_layout
 
-\begin_deeper
-\begin_layout Standard
-Note that the JSON to XML conversion process can produce mutliple elements,
- in which case all are placed directly underneath the 
-\family typewriter
-<input-from-request>
-\family default
- element.
-\end_layout
-
-\end_deeper
 \begin_layout Standard
 There are the following special parameters.
  They are supplied along with the normal parameters, apart from in the case

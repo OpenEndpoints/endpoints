@@ -4,6 +4,8 @@
     <xsl:template match="/">
         <parameter-transformation-output>
             <xsl:copy-of select="/parameter-transformation-input/input-from-request/parameter[@name != 'hash' and @name != 'environment']"/>
+            <xsl:copy-of select="/parameter-transformation-input/input-from-request/xml/parameter[@name != 'hash' and @name != 'environment']"/>
+            <xsl:copy-of select="/parameter-transformation-input/input-from-request/json/parameter[@name != 'hash' and @name != 'environment']"/>
             <parameter name="user-agent">
                 <xsl:attribute name="value" select="/parameter-transformation-input/input-from-request/http-header-user-agent/text()"/>
             </parameter>
