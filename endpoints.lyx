@@ -4151,6 +4151,14 @@ The following environment variables are mandatory in Multiple Application
 \begin_layout Description
 
 \family typewriter
+ENDPOINTS_BASE_URL 
+\family default
+See above
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 ENDPOINTS_JDBC_URL
 \family default
  See above
