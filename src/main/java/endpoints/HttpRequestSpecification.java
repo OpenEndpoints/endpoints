@@ -24,8 +24,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
-import org.json.JSONTokener;
-import org.json.XML;
 import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -40,7 +38,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import java.io.*;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -477,28 +478,14 @@ public class HttpRequestSpecification {
                     after.accept(response.getDocumentElement());
                 }
                 else if (urlConnection.getContentType().toLowerCase().contains("json")) {
-                    var responseCharset = MediaType.parse(urlConnection.getContentType()).charset().or(UTF_8);
-                    String xmlString;
-                    try (var reader = new InputStreamReader(urlConnection.getInputStream(), responseCharset)) {
-                        xmlString = XML.toString(new JSONTokener(reader).nextValue());
+                    try {
+                        var xmlFromJson = new JsonToXmlConverter().convert(
+                            urlConnection.getContentType(), urlConnection.getInputStream(), "response");
+                        after.accept(xmlFromJson);
                     }
                     catch (JSONException e) {
                         throw new HttpRequestFailedException(url.toExternalForm(), null, 
                             "Cannot parse JSON response from '" + url + "'", e);
-                    }
-    
-                    // The "JSON to XML" conversion does not necessarily have a single root element. XML requires a single root element.
-                    var xmlIncludingHeader = "<?xml version=\"1.0\" encoding=\"utf-8\"?><response>" + xmlString + "</response>";
-    
-                    try {
-                        after.accept(newDocumentBuilder().parse(
-                            new ByteArrayInputStream(xmlIncludingHeader.getBytes(UTF_8))).getDocumentElement());
-                    }
-                    catch (SAXException e) {
-                        Logger.getLogger(HttpRequestSpecification.this.getClass())
-                            .info("Response JSON, converted to XML: " + xmlIncludingHeader);
-                        throw new HttpRequestFailedException(url.toExternalForm(), null, 
-                            "Could not convert JSON at URL '" + url + "' to valid XML", e);
                     }
                 }
                 else if (urlConnection.getContentType().toLowerCase().contains("xml")) {
