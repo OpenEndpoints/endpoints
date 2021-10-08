@@ -237,7 +237,12 @@ application/json
 \family typewriter
 <parameter>
 \family default
- elements.
+ elements, with any characters which would be illegal in XML (for example
+ element name starting with a digit) replaced by 
+\family typewriter
+_xxxx_
+\family default
+ containing their hex unicode character code.
 \end_layout
 
 \begin_layout Standard
@@ -2692,7 +2697,12 @@ If XML is received then that XML is the result of this data source.
 \family typewriter
 <response>
 \family default
-.
+, with any characters which would be illegal in XML (for example element
+ name starting with a digit) replaced by 
+\family typewriter
+_xxxx_
+\family default
+ containing their hex unicode character code.
  If HTML is received then it is converted to XML.
  If no content is received then 
 \family typewriter
@@ -3125,7 +3135,7 @@ send emails.
 <redirect-to>
 \family default
  specifies where.
- Paramters like 
+ Parameters like 
 \family typewriter
 ${foo}
 \family default
@@ -3185,7 +3195,12 @@ subdir/
 file.pdf"
 \family default
  are supported.
- Parameters like 
+ 
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Parameters like 
 \family typewriter
 ${foo}
 \family default
