@@ -3209,9 +3209,10 @@ ${foo}
 filename
 \family default
  attribute.
+ This is to prevent accidentally making more files accessible (if the client
+ guesses the right filename) than intended.
 \end_layout
 
-\begin_deeper
 \begin_layout Standard
 If the 
 \family typewriter
