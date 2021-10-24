@@ -2,11 +2,13 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:panel>
-  <div class="uk-width-1-1 uk-grid-margin uk-first-column" wicket:id="feedbackul">
-    <div class="uk-card-body uk-card-small" wicket:id="messages">
-      <span wicket:id="message">A message</span>
+  <wicket:container wicket:id="feedbackul">
+    <div uk-alert wicket:id="messages">
+      <span wicket:id="message" style="display:block">
+        Fehlermeldung.
+      </span>
     </div>
-  </div>
+  </wicket:container>
 </wicket:panel>
 </body>
 </html>

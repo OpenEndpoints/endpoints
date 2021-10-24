@@ -1,56 +1,55 @@
+
 <!DOCTYPE html>
 <html class="uk-height-1-1 uk-notouch" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
-<head>
 
+<head>
   <title>Endpoints Service Portal</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
-  <!-- UIkit CSS -->
-  <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.offerready.min.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Khula:300,400">
-  <!-- UIkit JS -->
-  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
-  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons-offerready.min.js"></script>
-  <!-- FAVICON -->
-  <link rel="icon" href="https://commons.offer-ready.com/brand/favicon.ico">
-
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-  <script>
-    $(function() {
-      $("input:text:visible:first").focus();
-    })
-  </script>
+  <!-- UIkit -->
+  <link rel="stylesheet" href="https://cdn.openendpoints.io/uikit/theme.10.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js@7.1.0/public/assets/scripts/choices.min.js"></script>
+  <script src="https://getuikit.com/assets/uikit/dist/js/uikit.min.js"></script>
+  <script src="https://getuikit.com/assets/uikit/dist/js/uikit-icons.min.js"></script>
+
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,500;0,600;1,500;1,600;1,700&amp;family=Roboto+Mono:ital,wght@0,500;1,500&amp;family=Roboto:ital,wght@0,300;0,400;1,300;1,400&amp;display=swap" rel="stylesheet">
+
+  <!-- FAVICON -->
+  <link rel="icon" href="https://cdn.openendpoints.io/logo/favicon.png">
 
 </head>
+<body>
 
-
-<body class="uk-height-1-1">
+<div class="uk-section uk-section-default uk-section-large uk-background-secondary">
   <div class="uk-flex uk-flex-center uk-flex-top uk-margin-large-top uk-height-viewport">
-    <div class="uk-width-medium uk-padding-small">
-      <div><img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/></div>
-      <form wicket:id="form" method="post" class="uk-form">
+    <div class="uk-width-large uk-padding-small">
+      <div class="uk-margin-large-bottom"><img src="https://cdn.openendpoints.io/logo/logo-background-primary.svg" width="100%" alt="Logo"/></div>
+      <form method="post" class="uk-form" id="id1" wicket:id="form">
         <fieldset class="uk-fieldset">
 
-          <legend class="uk-legend">Service Portal</legend>
           <wicket:container wicket:id="feedback" id="x"/>
           <div class="uk-margin">
             <div class="uk-inline uk-width-1-1">
-              <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: user"></span>
-              <input wicket:id="username" class="uk-input" required placeholder="Username" type="text" name="username">
+              <span class="uk-form-icon uk-form-icon-flip uk-icon" data-uk-icon="icon: user"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <circle fill="none" stroke="#000" stroke-width="1.1" cx="9.9" cy="6.4" r="4.4"></circle> <path fill="none" stroke="#000" stroke-width="1.1" d="M1.5,19 C2.3,14.5 5.8,11.2 10,11.2 C14.2,11.2 17.7,14.6 18.5,19.2"></path></svg></span>
+              <input wicket:id="username" class="uk-input" style="color:#fff !important;" required="" placeholder="Username" type="text" name="username" value="">
             </div>
           </div>
           <div class="uk-margin">
             <div class="uk-inline uk-width-1-1">
-              <span class="uk-form-icon uk-form-icon-flip" data-uk-icon="icon: lock"></span>
-              <input wicket:id="password" class="uk-input" required placeholder="Password" type="password" name="password">
+              <span class="uk-form-icon uk-form-icon-flip uk-icon" data-uk-icon="icon: lock"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <rect fill="none" stroke="#000" height="10" width="13" y="8.5" x="3.5"></rect> <path fill="none" stroke="#000" d="M6.5,8 L6.5,4.88 C6.5,3.01 8.07,1.5 10,1.5 C11.93,1.5 13.5,3.01 13.5,4.88 L13.5,8"></path></svg></span>
+              <input wicket:id="password" class="uk-input" style="color:#fff !important;" required="" placeholder="Password" type="password" name="password" value="">
             </div>
           </div>
 
           <div class="uk-margin">
-            <button type="submit" class="uk-button uk-button-primary uk-button-primary uk-width-1-1">LOG IN</button>
+            <button type="submit" class="uk-button uk-button-secondary uk-button-small uk-width-1-1">LOG IN</button>
           </div>
         </fieldset>
       </form>
@@ -59,13 +58,18 @@
     <!-- FOOTER -->
     <div class="uk-position-bottom-center uk-position-small uk-visible@m">
       <div class="uk-text-center uk-text-small uk-text-muted">
-      Offer-Ready Service Portal <span wicket:enclosure="">(<span wicket:id="environment">AWS PROD</span>)</span><br/>
-      (C) Offer-Ready IT-Services & Consulting GmbH <span wicket:id="year">2018</span>. All Rights Reserved.<br/>
-      <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
+          <span>
+            &lt;OpenEndpoints/&gt; is a project designed and sponsored by <a href="https://www.offerready.com" target="_blank">OfferReady</a>.
+            <span wicket:enclosure="">(<span wicket:id="environment">AWS PROD</span>)</span>
+          </span>
       </div>
     </div>
+
+
   </div>
+</div>
+
+
 
 </body>
-
 </html>

@@ -1,6 +1,7 @@
 package endpoints.serviceportal.wicket.page;
 
 import endpoints.DeploymentParameters;
+import endpoints.GitRevision;
 import endpoints.PublishEnvironment;
 import endpoints.PublishProcess;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
@@ -9,8 +10,12 @@ import org.apache.log4j.Logger;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
+import org.apache.wicket.model.LoadableDetachableModel;
 
 import javax.annotation.Nonnull;
+
+import java.util.Map;
+import java.util.Optional;
 
 import static endpoints.PublishProcess.setApplicationToPublished;
 import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
@@ -21,11 +26,8 @@ public class PublishPage extends AbstractLoggedInApplicationPage {
     public PublishPage() {
         super(NavigationItem.PublishPage, null);
 
-        for (var environment : PublishEnvironment.values()) {
-            var container = new WebMarkupContainer(environment.name());
-            add(container);
-
-            container.add(new Label("current", () -> {
+        for (var environment : PublishEnvironment.values()) 
+            add(new Label(environment.name() + ".revision", () -> {
                 try (var tx = DeploymentParameters.get().newDbTransaction()) {
                     var currentRevision = tx.jooq()
                         .select(APPLICATION_PUBLISH.REVISION)
@@ -36,10 +38,9 @@ public class PublishPage extends AbstractLoggedInApplicationPage {
                     return currentRevision == null ? "Not published" : currentRevision.getAbbreviated();
                 }
             }));
-            container.add(new Link<Void>("publish") { @Override public void onClick() { onPublish(environment); }});
-        }
 
         add(new ServicePortalFeedbackPanel("feedback"));
+        add(new Link<Void>("preview.publish") { @Override public void onClick() { onPublish(PublishEnvironment.preview); }});
         add(new Link<Void>("promote") { @Override public void onClick() { onPromote(); }});
     }
 

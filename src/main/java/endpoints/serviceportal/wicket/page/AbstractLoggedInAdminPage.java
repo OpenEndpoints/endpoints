@@ -19,14 +19,19 @@ public abstract class AbstractLoggedInAdminPage extends AbstractPage {
                 tx.commit();
             }
         }
-        
-        add(new Label("username", getSession().loggedInUserData.username));
-        add(new BookmarkablePageLink<>("changePassword", AdminChangePasswordPage.class));
-        add(new Link<>("logout") {
+
+        class LogoutLink extends Link<Object> {
+            public LogoutLink(String id) { super(id); }
             @Override public void onClick() {
                 ServicePortalSession.get().invalidate();
                 setResponsePage(LoginPage.class);
             }
-        });
+        }
+
+        add(new BookmarkablePageLink<>("desktop.change-password", AdminChangePasswordPage.class));
+        add(new BookmarkablePageLink<>("mobile.change-password", AdminChangePasswordPage.class));
+
+        add(new LogoutLink("desktop.logout").add(new Label("username", getSession().loggedInUserData.username)));
+        add(new LogoutLink("mobile.logout"));
     }
 }

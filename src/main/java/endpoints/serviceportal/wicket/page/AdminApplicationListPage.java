@@ -4,13 +4,13 @@ import endpoints.DeploymentParameters;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.ServicePortalSession.LoggedInApplicationData;
+import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
@@ -21,8 +21,6 @@ public class AdminApplicationListPage extends AbstractLoggedInAdminPage {
     
     public AdminApplicationListPage() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            add(new FeedbackPanel("feedback"));
-
             var applications = tx.jooq().select()
                 .from(APPLICATION_CONFIG)
                 .join(SERVICE_PORTAL_LOGIN_APPLICATION)
@@ -31,6 +29,8 @@ public class AdminApplicationListPage extends AbstractLoggedInAdminPage {
                 .fetchInto(APPLICATION_CONFIG);
 
             add(new WebMarkupContainer("noApplications").setVisible(applications.isEmpty()));
+            add(new BookmarkablePageLink<>("add", AdminEditApplicationPage.class));
+            add(new ServicePortalFeedbackPanel("feedback"));
             add(new ListView<>("application", applications) {
                 @Override protected void populateItem(ListItem<ApplicationConfigRecord> item) {
                     var record = item.getModelObject();
@@ -52,8 +52,6 @@ public class AdminApplicationListPage extends AbstractLoggedInAdminPage {
                     });
                 }
             });
-
-            add(new BookmarkablePageLink<>("add", AdminEditApplicationPage.class));
         }
     }
 }

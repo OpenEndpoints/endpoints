@@ -3,166 +3,162 @@
       xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
 
 <head>
-
     <title>Endpoints Service Portal</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-    <!-- UIkit CSS -->
-    <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.offerready.min.css" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Khula:300,400">
-    <!-- UIkit JS -->
-    <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
-    <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons-offerready.min.js"></script>
+    <!-- UIkit -->
+    <link rel="stylesheet" href="https://cdn.openendpoints.io/uikit/theme.10.css">
+    <script src="https://cdn.jsdelivr.net/npm/choices.js@7.1.0/public/assets/scripts/choices.min.js"></script>
+    <script src="https://getuikit.com/assets/uikit/dist/js/uikit.min.js"></script>
+    <script src="https://getuikit.com/assets/uikit/dist/js/uikit-icons.min.js"></script>
+
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,500;0,600;1,500;1,600;1,700&amp;family=Roboto+Mono:ital,wght@0,500;1,500&amp;family=Roboto:ital,wght@0,300;0,400;1,300;1,400&amp;display=swap" rel="stylesheet">
+
     <!-- FAVICON -->
-    <link rel="icon" href="https://commons.offer-ready.com/brand/favicon.ico">
+    <link rel="icon" href="https://cdn.openendpoints.io/logo/favicon.png">
 
 </head>
 <body>
+<!-- regular top navigation -->
+<div class="uk-section uk-section-xsmall uk-visible@s uk-background-secondary">
+    <div class="uk-container uk-container-large">
+        <nav  class="uk-navbar-container uk-navbar-transparent" uk-navbar="boundary-align: true; align: right;">
+            <div class="uk-navbar-left">
+                <div class="uk-navbar-item">
+                    <img src="https://cdn.openendpoints.io/logo/logo-background-primary.svg" width="300px" alt="Logo"/>
+                </div>
+            </div>
+            <div class="uk-navbar-right">
+                <div class="uk-navbar-item"><a style="color: #fff !important;" class="uk-padding-remove uk-text-right" href="#"><span uk-icon="thumbnails" class="uk-margin-small-right"></span>Change Application</a></div>
+                <div class="uk-navbar-item"><a style="color: #fff !important;" class="uk-padding-remove uk-text-right" href="#"><span uk-icon="lock" class="uk-margin-small-right"></span>Change Password</a></div>
+                <div class="uk-navbar-item"><a style="color: #fff !important;" class="uk-padding-remove uk-text-right" href="#"><span uk-icon="sign-out" class="uk-margin-small-right"></span>Sign Out admin</a></div>
+            </div>
+        </nav>
+    </div>
+</div>
 
 
-<div class="uk-container uk-container-medium">
-
-    <!-- OFF CANVAS MENU (Viewport Small)   -->
-    <div id="offcanvas-nav" uk-offcanvas>
-        <div class="uk-offcanvas-bar">
-
-            <ul class="uk-nav uk-nav-default uk-padding" uk-nav>
-                <li class="uk-active"><a href="ApplicationHomePage.html">Home</a></li>
-                <li><a href="RequestLogPage.html">Request Log</a></li>
-                <li><a href="PublishPage.html">Publish</a></li>
-                <li class="uk-parent">
-                    <a href="#">Security</a>
-                    <ul class="uk-nav-sub">
-                        <li><a href="CalculateHashPage.html">Hash Calculator</a></li>
-                        <li><a href="GenerateNewSecretKeyPage.html">Secret Key</a></li>
-                        <li><a href="ChangePasswordPage.html">Change Password</a></li>
-                    </ul>
-                </li>
-                <li><a href="custom-content.html">Custom Content</a></li>
-                <li><a href="custom-form-and-result.html">Custom Form and Result</a></li>
-                <li class="uk-nav-divider"></li>
-                <li><a>Log Out</a></li>
-            </ul>
-        </div>
+<!-- regular mobile navigation -->
+<div class="uk-section uk-section-xsmall uk-padding-remove-vertical uk-hidden@s uk-background-secondary">
+    <div class="uk-container uk-container-medium">
+        <nav class="uk-navbar-container uk-navbar-transparent" uk-navbar>
+            <div class="uk-navbar-left">
+                <img src="https://cdn.openendpoints.io/logo/logo-background-primary.svg" width="200px" alt="Logo"/>
+            </div>
+            <div class="uk-navbar-right">
+                <ul class="uk-navbar-nav">
+                    <li><a href="#mobile-nav" uk-icon="icon: menu; ratio: 2" uk-toggle></a></li>
+                </ul>
+            </div>
+        </nav>
     </div>
 
 
-    <!-- Mobile View -->
-    <nav class="uk-navbar-container uk-navbar-transparent uk-hidden@s" uk-navbar>
-        <div class="uk-navbar-left">
-            <div class="uk-navbar-item">
-                <img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/>
-            </div>
-        </div>
-        <div class="uk-navbar-right">
-            <div class="uk-navbar-item"><a href="" class="uk-button" uk-toggle="target: #offcanvas-nav"><span uk-icon="icon: menu; ratio: 2"></span></a></div>
-        </div>
-    </nav>
-    <div class="uk-hidden@s uk-margin-small-top uk-margin-small-left"><span uk-icon="album" class="uk-margin-small-right"></span><b>offerready_com</b> | <span uk-icon="user" class="uk-margin-small-right"></span><b>admin</b></div>
+    <!-- This is the off-canvas -->
+    <div id="mobile-nav" uk-offcanvas>
+        <div class="uk-offcanvas-bar">
 
+            <button class="uk-offcanvas-close" type="button" uk-close></button>
 
-    <!-- Regular View -->
-    <nav  class="uk-navbar-container uk-navbar-transparent uk-visible@s" uk-navbar>
-        <div class="uk-navbar-left">
-            <div class="uk-navbar-item">
-                <img src="https://commons.offer-ready.com/brand/logo.svg" alt="Logo"/>
-            </div>
-            <!-- <div class="uk-navbar-item">
-              <button class="uk-button uk-button-link" type="button" uk-toggle="target: #toggle-nav"><span uk-icon="icon: menu; ratio: 2"></span></button>
-            </div> -->
-        </div>
-        <div class="uk-navbar-right">
-            <div class="uk-navbar-item uk-visible@m"><span uk-icon="location" class="uk-margin-small-right"></span>SERVICE PORTAL</div>
-            <div class="uk-navbar-item"><span uk-icon="album" class="uk-margin-small-right"></span><span wicket:id="application">offerready_com</span></div>
-            <div class="uk-navbar-item"><span uk-icon="user" class="uk-margin-small-right"></span><span wicket:id="username">admin</span></div>
-            <div class="uk-navbar-item"><span uk-icon="lock" class="uk-margin-small-right"></span><a wicket:id="logout" href="#">Log Out</a></div>
-        </div>
-    </nav>
+            <ul class="uk-nav">
 
-
-    <div uk-grid class="uk-margin-large-top">
-
-        <div class="uk-width-1-4  uk-visible@s">
-            <ul wicket:id="navigation2" class="uk-nav uk-nav-primary uk-padding" uk-nav>
-                <li class="uk-active"><a href="ApplicationHomePage.html">Home</a></li>
-                <li><a href="RequestLogPage.html">Request Log</a></li>
-                <li><a href="PublishPage.html">Publish</a></li>
-                <li class="uk-parent">
-                    <a href="#">Security</a>
-                    <ul class="uk-nav-sub">
-                        <li><a href="CalculateHashPage.html">Hash Calculator</a></li>
-                        <li><a href="GenerateNewSecretKeyPage.html">Secret Key</a></li>
-                        <li><a href="ChangePasswordPage.html">Change Password</a></li>
-                    </ul>
-                </li>
-                <li><a href="custom-content.html">Custom Content</a></li>
-                <li><a href="custom-form-and-result.html">Custom Form and Result</a></li>
+                <li><a class="uk-active uk-padding-remove-vertical" href="#" disabled="disabled">Home</a></li>
+                <li><a class="uk-padding-remove-vertical" href="#">Request Log</a></li>
+                <li><a class="uk-padding-remove-vertical" href="#">Publish</a></li>
+                <li><a class="uk-padding-remove-vertical" href="#">Calculate Hash</a></li>
+                <li><a class="uk-padding-remove-vertical" href="#">Change Application</a></li>
+                <li><a class="uk-padding-remove-vertical" href="#">Change Password</a></li>
+                <li><a class="uk-padding-remove-vertical" href="#">Sign Out</a></li>
             </ul>
+
         </div>
-        <div class="uk-width-expand">
-            <wicket:extend>
-            <div uk-grid class="uk-grid-small">
+    </div>
+</div>
 
-                <div class="uk-width-1-1"><h1 class="uk-heading-primary uk-heading-bullet" wicket:id="applicationDisplayName">Display Name</h1></div>
+<!--  Body -->
+<div class="uk-section uk-section-default uk-section-xsmall uk-padding-remove-vertical">
+    <div class="uk-container uk-container-large">
 
-                <wicket:container wicket:id="feedback" id="x"/>
+        <div uk-grid class="uk-margin-large-top">
+            <div class="uk-width-1-4 uk-visible@s">
+                <!-- Regular View - Side Navigation -->
+                <ul class="uk-nav uk-nav-default" uk-nav="">
+                    <li class="uk-nav-header">WashTec Ticket Hub</li>
+                    <li class="uk-active"><a class="uk-padding-remove-vertical" href="#" disabled="disabled">Home</a></li>
+                    <li class=""><a class="uk-padding-remove-vertical" href="#">Request Log</a></li>
+                    <li class=""><a class="uk-padding-remove-vertical" href="#" >Publish</a></li>
+                    <li class=""><a class="uk-padding-remove-vertical" href="#">Calculate Hash</a></li>
+                </ul>
+            </div>
+            <div class="uk-width-expand">
+                <wicket:extend>
 
-                <div class="uk-width-1-1">
+                    <div uk-grid="" class="uk-grid-small uk-grid uk-grid-stack">
 
+                        <div class="uk-width-1-1 uk-margin-bottom"><h1 class="uk-heading-medium">Home</h1></div>
 
-                    <div class="uk-card uk-card-default uk-card-small">
+                        <wicket:container wicket:id="feedback" id="x"/>
 
-                        <div class="uk-card-body">
+                        <div class="uk-width-1-1 uk-grid-margin uk-first-column">
 
-                            <table class="uk-table uk-table-divider uk-table-small uk-table-responsive">
-                                <tr>
-                                    <td>Application&nbsp;Name:</td>
-                                    <td colspan=2 wicket:id="applicationName">offerready_com</td>
-                                </tr>
-                                <tr>
-                                    <td>Code&nbsp;Repository:</td>
-                                    <td colspan=2 wicket:id="repository">https://bitbucket.org/offer-ready/epapp-offerready_com.git</td>
-                                </tr>
-                                <tr>
-                                    <td>Preview&nbsp;URL:</td>
-                                    <td colspan=2 wicket:id="urlPreview">https://endpoints.offer-ready.com/offerready_com/{endpoint}?environment=preview&amp;{parameter}</td>
-                                </tr>
-                                <tr>
-                                    <td>Live&nbsp;URL:</td>
-                                    <td colspan=2 wicket:id="urlLive">https://endpoints.offer-ready.com/offerready_com/{endpoint}?{parameter}</td>
-                                </tr>
-                                <tr>
-                                    <td>Debug:</td>
-                                    <td wicket:id="currentDebugAllowed">Allowed</td>
-                                    <td style="text-align: right">
-                                        <a wicket:id="toggleDebugAllowed" href="#">Change</a> 
-                                        | 
-                                        <a wicket:id="clearDebugLog" href="#">Clear debug log</a></td>
-                                </tr>
-                            </table>
+                            <div class="uk-card uk-card-default uk-card-small">
+
+                                <div class="uk-card-body">
+
+                                    <table class="uk-table uk-table-divider uk-table-small uk-table-responsive">
+                                        <tbody><tr>
+                                            <td>Application&nbsp;Name:</td>
+                                            <td wicket:id="applicationName" colspan="2">offerready_com</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Code&nbsp;Repository:</td>
+                                            <td wicket:id="repository" colspan="2">https://bitbucket.org/offer-ready/epapp-offerready_com.git</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Preview&nbsp;URL:</td>
+                                            <td wicket:id="urlPreview" colspan="2">https://endpoints.offer-ready.com/offerready_com/{endpoint}?environment=preview&amp;{parameter}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Live&nbsp;URL:</td>
+                                            <td wicket:id="urlLive" colspan="2">https://endpoints.offer-ready.com/offerready_com/{endpoint}?{parameter}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Debug:</td>
+                                            <td wicket:id="currentDebugAllowed">Debug Not Allowed</td>
+                                            <td style="text-align: right">
+                                                <a wicket:id="toggleDebugAllowed" href="#">Change</a>
+                                                |
+                                                <a wicket:id="clearDebugLog" href="#">Clear debug log</a></td>
+                                        </tr>
+                                        </tbody></table>
+
+                                </div>
+                            </div>
 
                         </div>
                     </div>
-
-                </div>
+                </wicket:extend>
             </div>
-            </wicket:extend>
         </div>
-
     </div>
 </div>
 
-<!-- FOOTER -->
-<div class="uk-section uk-section-default uk-section-large">
+
+<!-- FOOTER - Regular View and Mobile View -->
+<div class="uk-section uk-section-default uk-section-xlarge">
     <div class="uk-container">
-      <div class="uk-text-center uk-text-small uk-text-muted">
-      Offer-Ready Service Portal (AWS PROD)<br/>
-      (C) Offer-Ready IT-Services & Consulting GmbH 2018. All Rights Reserved.<br/>
-      <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
-      </div>
+        <div class="uk-text-center uk-text-small uk-text-muted">
+            <span>&lt;OpenEndpoints/&gt; is a project designed and sponsored by <a href="https://www.offerready.com" target="_blank">OfferReady</a>.</span>
+        </div>
     </div>
 </div>
+
 
 </body>
 </html>

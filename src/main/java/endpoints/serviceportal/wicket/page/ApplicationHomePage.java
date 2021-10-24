@@ -35,7 +35,6 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
             app = tx.jooq().fetchOne(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
 
             add(new ServicePortalFeedbackPanel("feedback"));
-            add(new Label("applicationDisplayName", getSession().getLoggedInApplicationDataOrThrow().applicationDisplayName));
             add(new Label("applicationName", applicationName.name));
             add(new Label("repository", applicationRepo.url));
             add(new Label("urlPreview", new URL(applicationUrl, "{endpoint}?environment=preview&{parameter}").toExternalForm()));

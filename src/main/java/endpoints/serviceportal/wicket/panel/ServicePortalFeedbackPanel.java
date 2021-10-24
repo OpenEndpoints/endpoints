@@ -26,6 +26,9 @@ public class ServicePortalFeedbackPanel extends FeedbackPanel {
         super(wicketId, containerFeedbackMessageFilter);
     }
 
+    /**
+     * Adds "class" to "messages" item
+     */
     @Override protected ListItem<FeedbackMessage> newMessageItem(int index, @Nonnull IModel<FeedbackMessage> itemModel) {
         var result = super.newMessageItem(index, itemModel);
         result.add(AttributeModifier.append("class", new Model<String>() {

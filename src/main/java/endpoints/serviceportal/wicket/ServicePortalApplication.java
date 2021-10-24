@@ -65,7 +65,6 @@ public class ServicePortalApplication extends WebApplication {
         mountPage("/request-log", RequestLogPage.class);
         mountPage("/publish", PublishPage.class);
         mountPage("/calculate-hash", CalculateHashPage.class);
-        mountPage("/secret-key", GenerateNewSecretKeyPage.class);
     }
 
     @Override public @Nonnull ServicePortalSession newSession(@Nonnull Request request, @Nonnull Response response) {
