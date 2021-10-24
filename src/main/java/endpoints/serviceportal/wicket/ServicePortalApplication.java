@@ -45,6 +45,9 @@ public class ServicePortalApplication extends WebApplication {
         // If the session expires, then show "session expired", don't just silently lose the user's state
         // http://stackoverflow.com/a/29318116/220627
         getPageSettings().setRecreateBookmarkablePagesAfterExpiry(false);
+        
+        // Alas <wicket:container> being output breaks the navigation and feedback panels etc.
+        getMarkupSettings().setStripWicketTags(true);
 
         // Our HTML files are UTF-8 (by default Wicket uses the JVM encoding, which is non-UTF-8 by default on Windows)
         getMarkupSettings().setDefaultMarkupEncoding(StandardCharsets.UTF_8.name());
