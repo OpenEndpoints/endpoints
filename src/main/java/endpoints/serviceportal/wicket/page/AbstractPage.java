@@ -25,7 +25,6 @@ public class AbstractPage extends WebPage {
     public AbstractPage() {
         add(new Label("environment", DeploymentParameters.get().servicePortalEnvironmentDisplayName)
             .setVisible(DeploymentParameters.get().servicePortalEnvironmentDisplayName != null));
-        add(new Label("year", Instant.now().atZone(UTC).toLocalDate().format(DateTimeFormatter.ofPattern("yyyy"))));
     }
 
     protected void throwRedirectToPageAfterLogin(@Nonnull DbTransaction tx) {

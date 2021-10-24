@@ -7,6 +7,7 @@ import endpoints.GitApplicationRepository;
 import endpoints.config.ApplicationName;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import endpoints.generated.jooq.tables.records.ServicePortalLoginApplicationRecord;
+import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.wicket.RestartResponseException;
@@ -85,7 +86,7 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
                 else authType = AuthType.authPublic;
             }
             
-            add(new Label("title", application == null ? "Create New Application" : "Edit Application '"+application.name+"'"));
+            add(new Label("title", application == null ? "Add Application" : "Update Application '"+application.name+"'"));
             
             var form = new Form<>("form");
             add(form);
@@ -93,7 +94,7 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
             var authRadioGroup = new RadioGroup<>("authRadioGroup", LambdaModel.of(this::getAuthType, this::setAuthType));
             form.add(authRadioGroup);
 
-            authRadioGroup.add(new FeedbackPanel("feedback"));
+            authRadioGroup.add(new ServicePortalFeedbackPanel("feedback"));
             authRadioGroup.add(new TextField<>("nameNew", LambdaModel.of(this::getName, this::setName))
                 .setRequired(true).setVisible(application == null));
             authRadioGroup.add(new Label("nameExisting", name).setVisible(application != null));
@@ -113,7 +114,7 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
                 @Override public void onSubmit() {
                     AdminEditApplicationPage.this.onSubmit();
                 }
-            }.add(new Label("label", application == null ? "Create Application" : "Update Application")));
+            }.add(new Label("label", application == null ? "Add Application" : "Update Application")));
         }
     }
     

@@ -108,131 +108,141 @@
         </div>
         <div class="uk-width-expand">
             <wicket:extend>
-            <div uk-grid class="uk-grid-small">
-                <div class="uk-width-1-1"><h1 class="uk-heading-primary uk-heading-bullet">Request Log</h1></div>
 
-                <div class="uk-width-1-1 uk-margin-small-top uk-visible@s">
-                    <button class="uk-button uk-button-link" uk-toggle="target: #what-this-is-about; cls: uk-hidden"><span uk-icon="icon: question" class="uk-margin-small-right"></span>What is this about?</button>
-                    <div id="what-this-is-about" class="uk-hidden">
-                        <ul>
-                            <li>Status code 200 corresponds to "No Error". All other status codes indicate a problem or invalid data rejected by the data validation rules.</li>
-                        </ul>
+                <div class="uk-hidden@m">
+                    <div class="uk-alert uk-alert-primary">
+                        Unfortunately, the <b>Request-Log</b> cannot be displayed on small devices.
                     </div>
                 </div>
 
-                <div class="uk-width-1-1 uk-margin-small-top uk-hidden@s">
-                    This is the mobile view of the request log. Details are available on the desktop view only.
-                </div>
+                <div class="uk-visible@m">
+                    <div class="uk-width-1-1 uk-margin-bottom"><h1 class="uk-heading-medium">Request Log</h1></div>
 
-                <div>
-                    
-                    <form class="uk-form  uk-visible@s" wicket:id="filter">
-                        <div class="uk-width-1-1 uk-card uk-card-small uk-margin-top">
-                            <div class="uk-flex uk-flex-between">
-                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="environment"><option>Last 30 days</option></select>
-                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="dateRange"><option>Live Environment</option></select>
-                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="endpoint"><option>All Endpoints</option></select>
-                                <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium" wicket:id="statusCode"><option>All Status Codes</option></select>
+                    <div>
+                        
+                        <form class="uk-form  uk-visible@s" wicket:id="filter">
+                            <div class="uk-width-1-1 uk-card uk-card-small uk-margin-top">
+                                <div class="uk-flex uk-flex-between">
+                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="environment"><option>Last 30 days</option></select>
+                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="dateRange"><option>Live Environment</option></select>
+                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="endpoint"><option>All Endpoints</option></select>
+                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium" wicket:id="statusCode"><option>All Status Codes</option></select>
+                                </div>
+                            </div>
+                        </form>
+    
+                        <div class="uk-width-1-1" wicket:id="results">
+                            <table class="uk-table uk-table-divider uk-table-small uk-table-justify uk-margin-small-top">
+                                <thead>
+                                <tr>
+                                  <th width="19%">Date (UTC) <span uk-icon="icon: arrow-down"></span></th>
+                                  <th width="19%">Endpoint</th>
+                                  <th width="19%">Status Code</th>
+                                  <th width="19%"><div uk-tooltip="title: per Endpoint">Incremental ID</div></th>
+                                  <th width="19%">Random ID</th>
+                                  <th width="5%">Details</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <wicket:container wicket:id="row" id="x">
+                                <tr wicket:id="tableRow">
+                                    <td wicket:id="dateTimeShortUtc">26 Nov 2018, 07:26</td>
+                                    <td wicket:id="endpoint">json</td>
+                                    <td wicket:id="statusCode">200</td>
+                                    <td wicket:id="incrementalIdPerEndpoint">22</td>
+                                    <td wicket:id="randomIdPerApplication">8009389471</td>
+                                    <td><a wicket:id="toggle"><span wicket:id="text">Show</span></a></td>
+                                </tr>
+                                <tr wicket:id="details" style="border-top:none;">
+                                    <td colspan="6">
+                                        <table class="uk-table uk-table-justify uk-text-small uk-margin-medium-left">
+                                            <tr>
+                                                <td>UTC Date/Time:</td>
+                                                <td wicket:id="dateTimeUtc">15 November 2018, 15:28:26.697, UTC</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Request ID:</td>
+                                                <td wicket:id="requestId">15 November 2018, 15:28:26.697, UTC</td>
+                                            </tr>
+                                            <tr>
+                                                <td>User Agent:</td>
+                                                <td wicket:id="userAgent">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</td>
+                                            </tr>
+                                            <wicket:enclosure child="exceptionMessage">
+                                            <tr>
+                                                <td>Exception Message:</td>
+                                                <td wicket:id="exceptionMessage">Expected hash &#039;de02cbb9130e18d3d08af76b0a2ecf952e7c2d78126ed52af42273f049ca5751&#039; (won&#039;t be displayed on live system)</td>
+                                            </tr>
+                                            </wicket:enclosure>
+                                            <wicket:enclosure child="httpRequestFailedUrl">
+                                                <tr>
+                                                    <td>Underlying Failed HTTP Request URL:</td>
+                                                    <td wicket:id="httpRequestFailedUrl">http://www.uboot.com/</td>
+                                                </tr>
+                                            </wicket:enclosure>
+                                            <wicket:enclosure child="httpRequestFailedStatusCode">
+                                                <tr>
+                                                    <td>Underlying Failed HTTP Request Status Code:</td>
+                                                    <td wicket:id="httpRequestFailedStatusCode">404</td>
+                                                </tr>
+                                            </wicket:enclosure>
+                                            <wicket:enclosure child="xsltParameterErrorMessage">
+                                                <tr>
+                                                    <td>XSLT Parameter Processing Error Message:</td>
+                                                    <td wicket:id="xsltParameterErrorMessage">Param 'foo' not found</td>
+                                                </tr>
+                                            </wicket:enclosure>
+                                            <wicket:enclosure child="downloadInputXml">
+                                                <tr>
+                                                    <td>Parameter Transformation (Debug):</td>
+                                                    <td>
+                                                        <a wicket:id="downloadInputXml" href="#">Download Input XML</a>
+                                                        |
+                                                        <a wicket:id="downloadOutputXml" href="#">Download Output XML</a>
+                                                        <span wicket:id="outputXmlNotAvailable">(Output Not Available)</span>
+                                                    </td>
+                                                </tr>
+                                            </wicket:enclosure>
+                                        </table>
+                                    </td>
+                                </tr>
+                                </wicket:container>
+                                <wicket:remove>
+                                <tr>
+                                  <td>26 Nov 2018, 07:26</td>
+                                  <td>json</td>
+                                  <td class="">200</td>
+                                  <td>22</td>
+                                  <td>8009389471</td>
+                                  <td>
+                                    <a id="id456" uk-toggle="target: #id456; cls: uk-hidden">Show</a>
+                                    <a id="id456" class="uk-hidden" uk-toggle="target: #id456; cls: uk-hidden">Hide</a>
+                                  </td>
+                                </tr>
+                                <tr id="id456" class="uk-hidden" style="border-top:none;">
+                                  <td colspan="6">
+                                    <dl class="uk-description-list uk-margin-medium-left">
+                                      <dt>UTC Date/Time:</dt>
+                                      <dd>15 November 2018, 15:28:26.697, UTC</dd>
+                                      <dt>CET Date/Time:</dt>
+                                      <dd>15 November 2018, 16:28:26.697, UTC</dd>
+                                      <dt>User Agent:</dt>
+                                      <dd>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</dd>
+                                      <dt>Exception Message:</dt>
+                                      <dd>Expected hash &#039;de02cbb9130e18d3d08af76b0a2ecf952e7c2d78126ed52af42273f049ca5751&#039; (won&#039;t be displayed on live system)</dd>
+                                    </dl>
+                                  </td>
+                                </tr>
+                                </wicket:remove>
+                                </tbody>
+                            </table>
+                            
+                            <div wicket:enclosure="" class="uk-width-1-1 uk-margin uk-visible@s">
+                                <strong>Plus <span wicket:id="extraRowCount">3000</span> more rows</strong>
                             </div>
                         </div>
-                    </form>
-
-                    <div class="uk-width-1-1" wicket:id="results">
-                        <table class="uk-table uk-table-divider uk-table-small uk-table-justify uk-margin-small-top uk-visible@s">
-                            <thead>
-                            <tr>
-                              <th width="19%">Date (UTC) <span uk-icon="icon: arrow-down"></span></th>
-                              <th width="19%">Endpoint</th>
-                              <th width="19%">Status Code</th>
-                              <th width="19%"><div uk-tooltip="title: per Endpoint">Incremental ID</div></th>
-                              <th width="19%">Random ID</th>
-                              <th width="5%">Details</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <wicket:container wicket:id="row" id="x">
-                            <tr wicket:id="tableRow">
-                                <td wicket:id="dateTimeShortUtc">26 Nov 2018, 07:26</td>
-                                <td wicket:id="endpoint">json</td>
-                                <td wicket:id="statusCode">200</td>
-                                <td wicket:id="incrementalIdPerEndpoint">22</td>
-                                <td wicket:id="randomIdPerApplication">8009389471</td>
-                                <td><a wicket:id="toggle"><span wicket:id="text">Show</span></a></td>
-                            </tr>
-                            <tr wicket:id="details" style="border-top:none;">
-                                <td colspan="6">
-                                    <dl class="uk-description-list uk-margin-medium-left">
-                                        <dt>UTC Date/Time:</dt>
-                                        <dd wicket:id="dateTimeUtc">15 November 2018, 15:28:26.697, UTC</dd>
-                                        <dt>Request ID:</dt>
-                                        <dd wicket:id="requestId">15 November 2018, 15:28:26.697, UTC</dd>
-                                        <dt>User Agent:</dt>
-                                        <dd wicket:id="userAgent">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</dd>
-                                        <wicket:enclosure child="exceptionMessage">
-                                            <dt>Exception Message:</dt>
-                                            <dd wicket:id="exceptionMessage">Expected hash &#039;de02cbb9130e18d3d08af76b0a2ecf952e7c2d78126ed52af42273f049ca5751&#039; (won&#039;t be displayed on live system)</dd>
-                                        </wicket:enclosure>
-                                        <wicket:enclosure child="httpRequestFailedUrl">
-                                            <dt>Underlying Failed HTTP Request URL:</dt>
-                                            <dd wicket:id="httpRequestFailedUrl">http://www.uboot.com/</dd>
-                                        </wicket:enclosure>
-                                        <wicket:enclosure child="httpRequestFailedStatusCode">
-                                            <dt>Underlying Failed HTTP Request Status Code:</dt>
-                                            <dd wicket:id="httpRequestFailedStatusCode">404</dd>
-                                        </wicket:enclosure>
-                                        <wicket:enclosure child="xsltParameterErrorMessage">
-                                            <dt>XSLT Parameter Processing Error Message:</dt>
-                                            <dd wicket:id="xsltParameterErrorMessage">Param 'foo' not found</dd>
-                                        </wicket:enclosure>
-                                        <wicket:enclosure child="downloadInputXml">
-                                            <dt>Parameter Transformation (Debug):</dt>
-                                            <dd>
-                                                <a wicket:id="downloadInputXml" href="#">Download Input XML</a>
-                                                |
-                                                <a wicket:id="downloadOutputXml" href="#">Download Output XML</a>
-                                                <span wicket:id="outputXmlNotAvailable">(Output Not Available)</span>
-                                            </dd>
-                                        </wicket:enclosure>
-                                    </dl>
-                                </td>
-                            </tr>
-                            </wicket:container>
-                            <wicket:remove>
-                            <tr>
-                              <td>26 Nov 2018, 07:26</td>
-                              <td>json</td>
-                              <td class="">200</td>
-                              <td>22</td>
-                              <td>8009389471</td>
-                              <td>
-                                <a id="id456" uk-toggle="target: #id456; cls: uk-hidden">Show</a>
-                                <a id="id456" class="uk-hidden" uk-toggle="target: #id456; cls: uk-hidden">Hide</a>
-                              </td>
-                            </tr>
-                            <tr id="id456" class="uk-hidden" style="border-top:none;">
-                              <td colspan="6">
-                                <dl class="uk-description-list uk-margin-medium-left">
-                                  <dt>UTC Date/Time:</dt>
-                                  <dd>15 November 2018, 15:28:26.697, UTC</dd>
-                                  <dt>CET Date/Time:</dt>
-                                  <dd>15 November 2018, 16:28:26.697, UTC</dd>
-                                  <dt>User Agent:</dt>
-                                  <dd>Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</dd>
-                                  <dt>Exception Message:</dt>
-                                  <dd>Expected hash &#039;de02cbb9130e18d3d08af76b0a2ecf952e7c2d78126ed52af42273f049ca5751&#039; (won&#039;t be displayed on live system)</dd>
-                                </dl>
-                              </td>
-                            </tr>
-                            </wicket:remove>
-                            </tbody>
-                        </table>
-                        
-                        <div wicket:enclosure="" class="uk-width-1-1 uk-margin uk-visible@s">
-                            <strong>Plus <span wicket:id="extraRowCount">3000</span> more rows</strong>
-                        </div>
+    
                     </div>
-
-                </div>
 
             </div>
             </wicket:extend>

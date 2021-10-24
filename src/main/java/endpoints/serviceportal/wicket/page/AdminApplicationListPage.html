@@ -1,103 +1,153 @@
+
 <!DOCTYPE html>
 <html class="uk-height-1-1 uk-notouch" xmlns="http://www.w3.org/1999/xhtml"
       xmlns:wicket="https://raw.githubusercontent.com/apache/wicket/master/wicket-core/src/main/resources/META-INF/wicket.xsd">
-<head>
 
-  <title>Application Admin</title>
+<head>
+  <title>Endpoints Service Portal</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
-  <!-- UIkit CSS -->
-  <link rel="stylesheet" href="https://commons.offer-ready.com/uikit/3.0.0-rc.23/css/uikit.offerready.min.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Khula:300,400">
-  <!-- UIkit JS -->
-  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit.min.js"></script>
-  <script src="https://commons.offer-ready.com/uikit/3.0.0-rc.23/js/uikit-icons-offerready.min.js"></script>
+  <!-- UIkit -->
+  <link rel="stylesheet" href="https://cdn.openendpoints.io/uikit/theme.10.css">
+  <script src="https://cdn.jsdelivr.net/npm/choices.js@7.1.0/public/assets/scripts/choices.min.js"></script>
+  <script src="https://getuikit.com/assets/uikit/dist/js/uikit.min.js"></script>
+  <script src="https://getuikit.com/assets/uikit/dist/js/uikit-icons.min.js"></script>
+
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,500;0,600;1,500;1,600;1,700&amp;family=Roboto+Mono:ital,wght@0,500;1,500&amp;family=Roboto:ital,wght@0,300;0,400;1,300;1,400&amp;display=swap" rel="stylesheet">
+
   <!-- FAVICON -->
-  <link rel="icon" href="https://commons.offer-ready.com/brand/favicon.ico">
-  
-  <style>
-    .logout {
-      text-align:right; 
-      padding:10px;
-    }
-    .logout span {
-      padding-left: 15px;
-    }
-    table {
-      margin: 30px 0 30px 0 !important;
-    }
-    table tr {
-      border-top: 1px solid lightgray;
-      border-bottom: 1px solid lightgray;
-    }
-    .icon {
-      transform: translate(0, -1px);
-    }
-    .feedbackPanelINFO {
-      color: green;
-    }
-    .feedbackPanelERROR {
-      color: red;
-    }
-  </style>
+  <link rel="icon" href="https://cdn.openendpoints.io/logo/favicon.png">
 
 </head>
-
-
-<body class="uk-height-1-1">
-  <div class="logout">
-    <span wicket:id="username">adrian</span>
-    <span><a wicket:id="changePassword" href="#">Change Password</a></span>
-    <span><a wicket:id="logout" href="#">Log Out</a></span>
-  </div>
-  <div class="uk-flex uk-flex-center uk-flex-top uk-margin-large-top uk-height-viewport">
-    <div style="width: 900px" class="uk-padding-small">
-      <h2 style="text-align: center">Application Admin</h2>
-
-        <div wicket:id="feedback"></div>
-      
-        <span wicket:id="noApplications">There are no applications yet.</span>
-
-        <table class="uk-table uk-table-small">
-        <tr wicket:id="application">
-          <td wicket:id="name">example-application</td>
-          <td wicket:id="displayName">Application #1</td>
-          <td align="right">
-            <a wicket:id="edit" href="AdminEditApplicationPage.html">
-              <span class="icon" uk-icon="cog"></span> 
-              Configure
-            </a>
-            &nbsp;|&nbsp;
-            <a wicket:id="delete" href="AdminDeleteApplicationPage.html">
-              <span class="icon" uk-icon="trash"></span>
-              Delete
-            </a>
-            &nbsp;|&nbsp;
-            <a wicket:id="login" href="#">
-              <span class="icon" uk-icon="settings"></span>
-              Open Service Portal
-            </a>
-          </td>
-        </tr>
-      </table>
-      
-      <button wicket:id="add" class="uk-button uk-button-primary">
-        <span class="icon" style="padding-right: 5px;" uk-icon="plus-circle"></span>
-        Add New Application
-      </button>
-    </div>
-  
-    <!-- FOOTER -->
-    <div class="uk-position-bottom-center uk-position-small uk-visible@m">
-      <div class="uk-text-center uk-text-small uk-text-muted">
-      Offer-Ready Service Portal <span wicket:enclosure="">(<span wicket:id="environment">AWS PROD</span>)</span><br/>
-      (C) Offer-Ready IT-Services & Consulting GmbH <span wicket:id="year">2018</span>. All Rights Reserved.<br/>
-      <a href="https://www.offer-ready.com" target="_blank">www.offer-ready.com</a>
+<body>
+<!-- regular top navigation -->
+<div class="uk-section uk-section-xsmall uk-visible@s uk-background-secondary">
+  <div class="uk-container uk-container-large">
+    <nav  class="uk-navbar-container uk-navbar-transparent" uk-navbar="boundary-align: true; align: right;">
+      <div class="uk-navbar-left">
+        <div class="uk-navbar-item">
+          <img src="https://cdn.openendpoints.io/logo/logo-background-primary.svg" width="300px" alt="Logo"/>
+        </div>
       </div>
+      <div class="uk-navbar-right">
+        <div class="uk-navbar-item"><a wicket:id="desktop.change-password" style="color: #fff !important;" class="uk-padding-remove uk-text-right" href="#"><span uk-icon="lock" class="uk-margin-small-right"></span>Change Password</a></div>
+        <div class="uk-navbar-item"><a wicket:id="desktop.logout" style="color: #fff !important;" class="uk-padding-remove uk-text-right" href="#"><span uk-icon="sign-out" class="uk-margin-small-right"></span>Sign Out <span wicket:id="username">username</span></a></div>
+      </div>
+    </nav>
+  </div>
+</div>
+
+
+<!-- regular mobile navigation -->
+<div class="uk-section uk-section-xsmall uk-padding-remove-vertical uk-hidden@s uk-background-secondary">
+  <div class="uk-container uk-container-medium">
+    <nav class="uk-navbar-container uk-navbar-transparent" uk-navbar>
+      <div class="uk-navbar-left">
+        <img src="https://cdn.openendpoints.io/logo/logo-background-primary.svg" width="200px" alt="Logo"/>
+      </div>
+      <div class="uk-navbar-right">
+        <ul class="uk-navbar-nav">
+          <li><a href="#mobile-nav" uk-icon="icon: menu; ratio: 2" uk-toggle></a></li>
+        </ul>
+      </div>
+    </nav>
+  </div>
+
+
+  <!-- This is the off-canvas -->
+  <div id="mobile-nav" uk-offcanvas>
+    <div class="uk-offcanvas-bar">
+
+      <button class="uk-offcanvas-close" type="button" uk-close></button>
+
+      <ul class="uk-nav">
+        <li><a wicket:id="mobile.change-password" class="uk-padding-remove-vertical" href="#">Change Password</a></li>
+        <li><a wicket:id="mobile.logout" class="uk-padding-remove-vertical" href="#">Sign Out</a></li>
+      </ul>
+
     </div>
   </div>
+</div>
+
+<!--  Body -->
+<div class="uk-section uk-section-default uk-section-xsmall uk-padding-remove-vertical">
+  <div class="uk-container uk-container-large">
+
+    <div uk-grid class="uk-margin-large-top">
+
+
+      <div class="uk-width-1-1">
+
+        <div uk-grid="" class="uk-grid-small uk-grid uk-grid-stack">
+
+          <div class="uk-width-1-1 uk-margin-bottom"><h1 class="uk-heading-medium">Change Application</h1></div>
+
+          <div class="uk-width-1-1 uk-grid-margin uk-first-column">
+
+            <div class="uk-margin-large-bottom">
+              <button class="uk-button uk-button-small uk-button-secondary" wicket:id="add">
+                <span class="icon uk-icon" style="padding-right: 5px;" uk-icon="plus-circle"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <circle fill="none" stroke="#000" stroke-width="1.1" cx="9.5" cy="9.5" r="9"></circle> <line fill="none" stroke="#000" x1="9.5" y1="5" x2="9.5" y2="14"></line> <line fill="none" stroke="#000" x1="5" y1="9.5" x2="14" y2="9.5"></line></svg></span>
+                Add New Application
+              </button>
+            </div>
+
+            <div wicket:id="feedback"></div>
+
+            <span wicket:id="noApplications">There are no applications yet.</span>
+
+            <table class="uk-table uk-table-small uk-table-divider">
+              <tbody><tr wicket:id="application">
+                <td wicket:id="name">offerready_com</td>
+                <td wicket:id="displayName">offerready_com</td>
+                <td align="right">
+                  <a wicket:id="edit" href="AdminEditApplicationPage.html">
+                    <span class="icon uk-icon" uk-icon="cog"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <circle fill="none" stroke="#000" cx="9.997" cy="10" r="3.31"></circle> <path fill="none" stroke="#000" d="M18.488,12.285 L16.205,16.237 C15.322,15.496 14.185,15.281 13.303,15.791 C12.428,16.289 12.047,17.373 12.246,18.5 L7.735,18.5 C7.938,17.374 7.553,16.299 6.684,15.791 C5.801,15.27 4.655,15.492 3.773,16.237 L1.5,12.285 C2.573,11.871 3.317,10.999 3.317,9.991 C3.305,8.98 2.573,8.121 1.5,7.716 L3.765,3.784 C4.645,4.516 5.794,4.738 6.687,4.232 C7.555,3.722 7.939,2.637 7.735,1.5 L12.263,1.5 C12.072,2.637 12.441,3.71 13.314,4.22 C14.206,4.73 15.343,4.516 16.225,3.794 L18.487,7.714 C17.404,8.117 16.661,8.988 16.67,10.009 C16.672,11.018 17.415,11.88 18.488,12.285 L18.488,12.285 Z"></path></svg></span>
+                    Settings
+                  </a>
+                  &nbsp;|&nbsp;
+                  <a wicket:id="delete" href="AdminDeleteApplicationPage.html">
+                    <span class="icon uk-icon" uk-icon="trash"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <polyline fill="none" stroke="#000" points="6.5 3 6.5 1.5 13.5 1.5 13.5 3"></polyline> <polyline fill="none" stroke="#000" points="4.5 4 4.5 18.5 15.5 18.5 15.5 4"></polyline> <rect x="8" y="7" width="1" height="9"></rect> <rect x="11" y="7" width="1" height="9"></rect> <rect x="2" y="3" width="16" height="1"></rect></svg></span>
+                    Delete
+                  </a>
+                  &nbsp;|&nbsp;
+                  <a wicket:id="login" href="#">
+                    <span class="icon uk-icon" uk-icon="settings"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"> <ellipse fill="none" stroke="#000" cx="6.11" cy="3.55" rx="2.11" ry="2.15"></ellipse> <ellipse fill="none" stroke="#000" cx="6.11" cy="15.55" rx="2.11" ry="2.15"></ellipse> <circle fill="none" stroke="#000" cx="13.15" cy="9.55" r="2.15"></circle> <rect x="1" y="3" width="3" height="1"></rect> <rect x="10" y="3" width="8" height="1"></rect> <rect x="1" y="9" width="8" height="1"></rect> <rect x="15" y="9" width="3" height="1"></rect> <rect x="1" y="15" width="3" height="1"></rect> <rect x="10" y="15" width="8" height="1"></rect></svg></span>
+                    Open
+                  </a>
+                </td>
+              </tr>
+              </tbody></table>
+
+          </div>
+        </div>
+
+      </div>
+
+
+
+    </div>
+  </div>
+</div>
+
+
+<!-- FOOTER - Regular View and Mobile View -->
+<div class="uk-section uk-section-default uk-section-xlarge">
+  <div class="uk-container">
+    <div class="uk-text-center uk-text-small uk-text-muted">
+        <span>
+          &lt;OpenEndpoints/&gt; is a project designed and sponsored by <a href="https://www.offerready.com" target="_blank">OfferReady</a>.
+          <span wicket:enclosure="">(<span wicket:id="environment">AWS PROD</span>)</span>
+        </span>
+    </div>
+  </div>
+</div>
+
 
 </body>
-
 </html>
