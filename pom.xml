@@ -74,6 +74,28 @@
                     <!-- license file -->
                     <resource><directory>${basedir}/saxon-pe</directory></resource>
                 </resources>
+                <plugins>
+                    <!-- if license file is missing, fail now as opposed to at runtime with "license file not found" -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <phase>prepare-package</phase>
+                                <goals><goal>enforce</goal></goals>
+                                <configuration>
+                                    <rules>
+                                        <requireFilesExist>
+                                            <files><file>${project.build.outputDirectory}/saxon-license.lic</file></files>
+                                        </requireFilesExist>
+                                    </rules>
+                                    <fail>true</fail>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
             </build>
         </profile>
     </profiles>
