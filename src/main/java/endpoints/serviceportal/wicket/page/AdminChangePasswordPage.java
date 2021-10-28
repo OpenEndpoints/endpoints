@@ -42,7 +42,8 @@ public class AdminChangePasswordPage extends AbstractLoggedInAdminPage {
         var result = new AdminChangePasswordPage();
         result.get("form:oldPassword").setVisible(false);
         result.get("form:cancel").setVisible(false);
-        result.get("changePassword").setVisible(false); // in top nav
+        result.get("desktop.change-password").setVisible(false);
+        result.get("mobile.change-password").setVisible(false);
         result.checkOldPassword = false;
         ServicePortalSession.get().info("You must change your password the first time you log in");
         return result;
