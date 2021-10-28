@@ -20,22 +20,21 @@ public class AdminChangePasswordPage extends AbstractLoggedInAdminPage {
     @Getter @Setter CleartextPassword oldPasswordField, newPassword1Field, newPassword2Field;
     
     public AdminChangePasswordPage() {
-        var form = new Form("form");
-        add(form);
+        add(new ServicePortalFeedbackPanel("feedback"));
         
-        form.add(new ServicePortalFeedbackPanel("feedback"));
-        form.add(new PasswordTextField("oldPassword",  new PropertyModel<>(this, "oldPasswordField")));
-        form.add(new PasswordTextField("newPassword1", new PropertyModel<>(this, "newPassword1Field")));
-        form.add(new PasswordTextField("newPassword2", new PropertyModel<>(this, "newPassword2Field")));
-
-        form.add(new BookmarkablePageLink<>("cancel", AdminApplicationListPage.class));
-        form.add(new Button("submit") {
+        var form = new Form<>("form") {
             @Override public void onSubmit() {
                 boolean success = ChangePasswordPage.onChangePassword(
                     checkOldPassword, oldPasswordField, newPassword1Field, newPassword2Field);
                 if (success) setResponsePage(AdminApplicationListPage.class);
             }
-        });
+        };
+        add(form);
+        
+        form.add(new PasswordTextField("oldPassword",  new PropertyModel<>(this, "oldPasswordField")));
+        form.add(new PasswordTextField("newPassword1", new PropertyModel<>(this, "newPassword1Field")));
+        form.add(new PasswordTextField("newPassword2", new PropertyModel<>(this, "newPassword2Field")));
+        form.add(new BookmarkablePageLink<>("cancel", AdminApplicationListPage.class));
     }
     
     public static @Nonnull AdminChangePasswordPage newMandatoryChangePasswordPage() {
