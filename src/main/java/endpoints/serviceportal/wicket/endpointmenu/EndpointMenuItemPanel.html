@@ -38,9 +38,13 @@
                 </ul>
             </li>
             <wicket:panel>
-                <li wicket:id="leaf"><a wicket:id="link" href="#"><span wicket:id="name">Custom Content</span></a></li>
+                <li wicket:id="leaf">
+                    <a class="uk-padding-remove-vertical" wicket:id="link" href="#">
+                        <span wicket:id="name">Custom Content</span>
+                    </a>
+                </li>
                 <li wicket:id="folder" class="uk-parent">
-                    <a href="#" wicket:id="name">Folder name</a>
+                    <a class="uk-padding-remove-vertical" href="#" wicket:id="name">Folder name</a>
                     <ul class="uk-nav-sub">
                         <wicket:container wicket:id="children" id="x">
                             <li wicket:id="child"><a href="#">Endpoint Form #1</a></li>
