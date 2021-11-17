@@ -294,9 +294,10 @@ public class EndpointHierarchyParser extends DomParser {
                 soFar.stream().map(x -> "'" + x.name + "'").collect(Collectors.joining(" -> ")));
         }
         
-        soFar.add(current);
+        var newSoFar = new ArrayList<>(soFar);
+        newSoFar.add(current);
         for (var dest : references.get(current))
-            assertNoCircularReferencesStartingFrom(references, soFar, dest);
+            assertNoCircularReferencesStartingFrom(references, newSoFar, dest);
     }
 
     protected static void assertEndpointForwardsExitAndNoCircularReferences(@Nonnull EndpointHierarchyNode root) 
