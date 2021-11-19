@@ -25,7 +25,8 @@ public class EndpointMenuItemPanel extends Panel {
     public EndpointMenuItemPanel(
         @Nonnull String wicketId, 
         @CheckForNull MultiEnvironmentEndpointLeafMenuItem selected,
-        @Nonnull MultiEnvironmentEndpointMenuItem item
+        @Nonnull MultiEnvironmentEndpointMenuItem item,
+        boolean isTopLevel
     ) {
         super(wicketId);
 
@@ -36,6 +37,7 @@ public class EndpointMenuItemPanel extends Panel {
                 setResponsePage(EndpointPage.newPage(environment, leaf));
             }
         };
+        leafLink.add(new WebMarkupContainer("non-top-level-symbol").setVisible( ! isTopLevel));
         leafLink.add(new Label("name", item.menuItemName));
 
         var leafLi = new WebMarkupContainer("leaf");
@@ -46,6 +48,7 @@ public class EndpointMenuItemPanel extends Panel {
 
         var folderLi = new WebMarkupContainer("folder");
         folderLi.setVisible(item instanceof MultiEnvironmentEndpointMenuFolder);
+        folderLi.add(new WebMarkupContainer("non-top-level-symbol").setVisible( ! isTopLevel));
         folderLi.add(new Label("name", item.menuItemName));
         folderLi.add(new ListView<>("children",
             () -> {
@@ -53,7 +56,7 @@ public class EndpointMenuItemPanel extends Panel {
                 return ((MultiEnvironmentEndpointMenuFolder)item).children;
             }) {
             @Override protected void populateItem(ListItem<MultiEnvironmentEndpointMenuItem> item) {
-                item.add(new EndpointMenuItemPanel("child", selected, item.getModelObject()));
+                item.add(new EndpointMenuItemPanel("child", selected, item.getModelObject(), false));
             }
         });
         folderLi.add(new AttributeModifier("class", item.contains(selected) ? "uk-active" : "uk-parent"));
@@ -78,7 +81,7 @@ public class EndpointMenuItemPanel extends Panel {
         
         return new ListView<>(containerWicketId, displayItems.children) {
             @Override protected void populateItem(ListItem<MultiEnvironmentEndpointMenuItem> item) {
-                item.add(new EndpointMenuItemPanel(liWicketId, selected, item.getModelObject()));
+                item.add(new EndpointMenuItemPanel(liWicketId, selected, item.getModelObject(), true));
             }
         };
     }
