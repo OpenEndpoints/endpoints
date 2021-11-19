@@ -89,7 +89,7 @@ Vagrant.configure(2) do |config|
 
     echo --- Build software
     sudo -u vagrant /bin/bash -c 'source /etc/environment && mvn -f /vagrant/pom.xml clean test'
-    echo 'mvn -f /vagrant/pom.xml -Dspotbugs.skip=true jetty:run' >> ~vagrant/.bash_history
+    echo 'mvn -f /vagrant/pom.xml -Dspotbugs.skip=true clean jetty:run' >> ~vagrant/.bash_history
 
     echo --- Create example-application PostgreSQL schema
     (cd /tmp && sudo -u postgres psql -c "create database example_application")
@@ -149,7 +149,7 @@ Vagrant.configure(2) do |config|
     echo ''
     echo '-----------------------------------------------------------------'
     echo 'After "vagrant ssh", use:'
-    echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true jetty:run '
+    echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true clean jetty:run '
     echo '    Then surf to: '
     echo '       http://localhost:9758/example-application/json?param-in-hash=x&email-address=y&email-address=email-address&hash=95be18ae19a5ac3c67d1db62826eed239615563d28e46f87c61bd609b12a1f5f&debug=true '
     echo '       http://localhost:9758/service-portal (admin/admin)'
