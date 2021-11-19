@@ -47,7 +47,7 @@ public class EndpointMenuItemPanel extends Panel {
         var folderLi = new WebMarkupContainer("folder");
         folderLi.setVisible(item instanceof MultiEnvironmentEndpointMenuFolder);
         folderLi.add(new Label("name", item.menuItemName));
-        folderLi.add(new ListView<MultiEnvironmentEndpointMenuItem>("children",
+        folderLi.add(new ListView<>("children",
             () -> {
                 assert item instanceof MultiEnvironmentEndpointMenuFolder;  // "folder" not visible if not this class
                 return ((MultiEnvironmentEndpointMenuFolder)item).children;
@@ -76,7 +76,7 @@ public class EndpointMenuItemPanel extends Panel {
         }
         displayItems.prune();
         
-        return new ListView<MultiEnvironmentEndpointMenuItem>(containerWicketId, displayItems.children) {
+        return new ListView<>(containerWicketId, displayItems.children) {
             @Override protected void populateItem(ListItem<MultiEnvironmentEndpointMenuItem> item) {
                 item.add(new EndpointMenuItemPanel(liWicketId, selected, item.getModelObject()));
             }
