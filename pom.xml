@@ -88,6 +88,7 @@
                                     <rules>
                                         <requireFilesExist>
                                             <files><file>${project.build.outputDirectory}/saxon-license.lic</file></files>
+                                            <message>File 'saxon-pe/saxon-license.lic' not found</message>
                                         </requireFilesExist>
                                     </rules>
                                     <fail>true</fail>
