@@ -31,6 +31,14 @@
                     $("#refresh-submit").click();
                     $("input, select").prop('disabled', true);
                 });
+                $("#copy-hash").click(function() {
+                    var text = $("#generated-hash").text();
+                    navigator.clipboard.writeText(text);
+                });
+                $("#copy-url").click(function() {
+                    var text = $("#generated-url").text();
+                    navigator.clipboard.writeText(text);
+                });
             });
         </script>
     </wicket:head>
@@ -194,10 +202,20 @@
 
                         </div>
 
-                        <div wicket:enclosure="" class="uk-alert uk-alert-success uk-width-1-1">
-                            <div class="uk-padding-small" ><b>Calculated Hash:</b><span wicket:id="generatedHash" id="generated-hash" class="uk-margin-small-left uk-text-break">fa82c06caa1a051d8b008c19364ed9cd23ca01f9b23b22b6e90df1b6f3db4f71</span></div>
-                        </div>
+                        <div wicket:id="result" class="uk-alert uk-alert-success uk-width-1-1">
+                            <div class="uk-padding-small" id="id4f9f4">
+                                <b>Calculated Hash:</b>
+                                <span id="generated-hash" wicket:id="generatedHash" class="uk-margin-small-left uk-text-break">fa82c06caa1a051d8b008c19364ed9cd23ca01f9b23b22b6e90df1b6f3db4f71</span>
+                            </div>
+                            <div class="uk-padding-small">
+                                <b>URL:</b>
+                                <span id="generated-url" wicket:id="generatedUrl" class="uk-margin-small-left uk-text-break">https://endpoints.offer-ready.com/myapplication/myendpoint?param1=foo&amp;param2=bar&amp;hash=fa82c06caa1a051d8b008c19364ed9cd23ca01f9b23b22b6e90df1b6f3db4f71</span>
 
+                            </div>
+                            <div class="uk-padding-small">
+                                <button id="copy-hash" class="uk-button uk-button-link">Copy Hash to Clipboard</button>|<button id="copy-url" class="uk-button uk-button-link">Copy URL to Clipboard</button>
+                            </div>
+                        </div>
                     </div>
                 </wicket:extend>
             </div>
