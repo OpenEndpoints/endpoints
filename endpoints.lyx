@@ -2964,6 +2964,21 @@ ${foo}
 \begin_layout Description
 
 \family typewriter
+<request-log>
+\family default
+ This outputs all request log entries for the current application.
+ Request log entries are deleted after a certain period of time, and thus
+ request log entries which have not been deleted are returned.
+ See the 
+\family typewriter
+RequestLogCommand
+\family default
+ Java class for more informaion on which fields are returned in which format.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 <command
 \begin_inset space ~
 \end_inset

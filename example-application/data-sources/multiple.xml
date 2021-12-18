@@ -94,5 +94,6 @@
   <xml-from-url expand-parameters-in-response="false">
     <url>https://httpbin.org/response-headers?key=Unexpanded:%20%24%7Bparam-in-hash%7D</url>
   </xml-from-url>
+  <request-log/>
   <post-process xslt="values.xslt"/>
 </data-source>

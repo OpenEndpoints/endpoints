@@ -41,6 +41,7 @@ public abstract class DataSourceCommand {
                 case "xml-from-application": className = XmlFromApplicationCommand.class.getName(); break;
                 case "xml-from-database": className = XmlFromDatabaseCommand.class.getName(); break;
                 case "md5": className = MD5Command.class.getName(); break;
+                case "request-log": className = RequestLogCommand.class.getName(); break;
                 case "command": className = getMandatoryAttribute(command, "class"); break;
                 default: throw new ConfigurationException("Command tag <"+command.getTagName()+"> unrecognized");
             }
