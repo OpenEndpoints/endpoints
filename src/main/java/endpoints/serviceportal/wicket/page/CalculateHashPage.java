@@ -1,6 +1,7 @@
 package endpoints.serviceportal.wicket.page;
 
 import com.databasesandlife.util.Timer;
+import com.databasesandlife.util.WebEncodingUtils;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import com.databasesandlife.util.wicket.MapModel;
 import endpoints.DeploymentParameters;
@@ -16,6 +17,8 @@ import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -24,6 +27,8 @@ import org.apache.wicket.model.LambdaModel;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -62,11 +67,28 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
             }
         });
         
-        add(new Label("generatedHash", this::getGeneratedHash) {
+        var result = new WebMarkupContainer("result") {
             @Override public boolean isVisible() {
                 return generatedHash != null;
             }
-        });
+        };
+        add(result);
+
+        result.add(new Label("generatedHash", this::getGeneratedHash));
+        result.add(new Label("generatedUrl", this::getGeneratedUrl));
+    }
+
+    @SneakyThrows(MalformedURLException.class)
+    protected String getGeneratedUrl() {
+        var params = new HashMap<String, String>();
+        for (var e : parameters.entrySet()) params.put(e.getKey().getName(), e.getValue());
+        params.put("hash", generatedHash);
+
+        assert endpoint != null : "Generated URL is only visible if generatedHash successful which requires endpoint != null";
+        
+        var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
+        var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/" + endpoint.name);
+        return applicationUrl + "?" + WebEncodingUtils.encodeGetParameters(params);
     }
 
     public void calculateHash() {
