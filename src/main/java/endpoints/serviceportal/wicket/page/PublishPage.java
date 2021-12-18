@@ -6,7 +6,7 @@ import endpoints.PublishEnvironment;
 import endpoints.PublishProcess;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
@@ -48,14 +48,14 @@ public class PublishPage extends AbstractLoggedInApplicationPage {
         var application = getSession().getLoggedInApplicationDataOrThrow().application;
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var publish = new PublishProcess(application, environment);
-            var revision = publish.publish(tx, line -> Logger.getLogger(PublishPage.class).info(line));
+            var revision = publish.publish(tx, line -> LoggerFactory.getLogger(PublishPage.class).info(line));
             var envText = environment == PublishEnvironment.live ? "" : " to " + environment.name() + " environment";
             getSession().info("Successfully published '" + getSession().getLoggedInApplicationDataOrThrow().applicationDisplayName + "'" + envText);
             setResponsePage(PublishPage.class); // Cause navigation to reload (e.g. custom menu items changed after publish)
             tx.commit();
         }
         catch (PublishProcess.ApplicationInvalidException e) {
-            Logger.getLogger(getClass()).warn("Publish of '" + application.name + "' on '" + environment.name() + "' failed", e);
+            LoggerFactory.getLogger(getClass()).warn("Publish of '" + application.name + "' on '" + environment.name() + "' failed", e);
             error(e.getMessage());
         }
     }

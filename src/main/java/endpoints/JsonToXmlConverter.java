@@ -1,6 +1,6 @@
 package endpoints;
 
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -77,7 +77,7 @@ public class JsonToXmlConverter {
             return newDocumentBuilder().parse(new ByteArrayInputStream(xmlIncludingHeader.getBytes(UTF_8))).getDocumentElement();
         }
         catch (SAXException e) {
-            Logger.getLogger(getClass()).info("JSON converted to XML: " + xmlIncludingHeader);
+            LoggerFactory.getLogger(getClass()).info("JSON converted to XML: " + xmlIncludingHeader);
             throw new JSONException(e);
         }
     } 

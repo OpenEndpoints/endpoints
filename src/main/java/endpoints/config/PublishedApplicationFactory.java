@@ -10,7 +10,7 @@ import endpoints.GitApplicationRepository.RepositoryCommandFailedException;
 import endpoints.PublishEnvironment;
 import endpoints.GitRevision;
 import lombok.*;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -71,7 +71,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
                     }
                 }
                 catch (Exception e) {
-                    Logger.getLogger(getClass()).error("Cannot load application '"+name.name+"' (will skip)", e);
+                    LoggerFactory.getLogger(getClass()).error("Cannot load application '"+name.name+"' (will skip)", e);
                 }
             });
         }
@@ -112,7 +112,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             repo.checkoutAtomicallyIfNecessary(revision, directory);
 
             // Load the application and put into our cache
-            Logger.getLogger(getClass()).info("Application '" + name.name + "' has changed or was never loaded: will reload...");
+            LoggerFactory.getLogger(getClass()).info("Application '" + name.name + "' has changed or was never loaded: will reload...");
             var threads = new XsltCompilationThreads();
             cachedApp = new CachedApplication();
             cachedApp.revision = revision;

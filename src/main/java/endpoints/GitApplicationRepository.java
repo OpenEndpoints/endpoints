@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -100,7 +100,7 @@ public class GitApplicationRepository {
             @Override public void run() {
                 try { FileUtils.deleteDirectory(dir); }
                 catch (Exception e) {
-                    Logger.getLogger(getClass()).warn("Uncaught exception while deleting temporary directory '" + dir + "'", e);
+                    LoggerFactory.getLogger(getClass()).warn("Uncaught exception while deleting temporary directory '" + dir + "'", e);
                 }
             }
         };

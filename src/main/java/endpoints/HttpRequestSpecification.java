@@ -22,7 +22,7 @@ import endpoints.datasource.TransformationFailedException;
 import lombok.SneakyThrows;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONException;
 import org.jsoup.Jsoup;
 import org.w3c.dom.Document;
@@ -281,7 +281,7 @@ public class HttpRequestSpecification {
         }
         if (e instanceof HttpRequestFailedException) {
             if (ignoreIfError) {
-                Logger.getLogger(HttpRequestSpecification.this.getClass()).warn(e.getMessage());
+                LoggerFactory.getLogger(HttpRequestSpecification.this.getClass()).warn(e.getMessage());
                 return;
             } else {
                 throw new RuntimeException(e);
@@ -403,7 +403,7 @@ public class HttpRequestSpecification {
                             requestBodyJsonTransformer.newTransformer().transform(
                                 new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
                             if (DeploymentParameters.get().xsltDebugLog)
-                                Logger.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
+                                LoggerFactory.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
                             IOUtils.write(json.toString(), o, UTF_8.name());
                         } else {
                             throw new RuntimeException("Unreachable");

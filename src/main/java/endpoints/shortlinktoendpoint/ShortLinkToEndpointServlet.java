@@ -7,7 +7,7 @@ import endpoints.EndpointExecutor.RequestInvalidException;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.ParameterName;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -48,7 +48,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
                 .and(SHORT_LINK_TO_ENDPOINT.EXPIRES_ON.gt(now()))
                 .fetchOne();
             if (shortLink == null) {
-                Logger.getLogger(getClass()).error("Code '" + code.getCode() + "' not found");
+                LoggerFactory.getLogger(getClass()).error("Code '" + code.getCode() + "' not found");
                 resp.sendError(404, "Code '" + code.getCode() + "' not found");
                 return;
             }
@@ -94,11 +94,11 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
             resp.sendError(400, "Endpoint specified in this short link not found in the application");
         }
         catch (RequestInvalidException e) {
-            Logger.getLogger(getClass()).error("Request invalid", e);
+            LoggerFactory.getLogger(getClass()).error("Request invalid", e);
             resp.sendError(400, "Request invalid: " + e.getMessage());
         }
         catch (Exception e) { 
-            Logger.getLogger(getClass()).error("An internal error occurred", e);
+            LoggerFactory.getLogger(getClass()).error("An internal error occurred", e);
             resp.sendError(500, "An internal error occurred");
         }
     }

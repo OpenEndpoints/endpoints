@@ -4484,6 +4484,11 @@ Terraform is used to provision the software on AWS.
  The Terraform file and Terraform state is checked in to Git.
 \end_layout
 
+\begin_layout Itemize
+We use SLF4J's logging API to log, and Logback as the implementation (which
+ supports SLF4J's log API out-of-the-box).
+\end_layout
+
 \begin_layout Subsection
 Service Portal
 \end_layout
