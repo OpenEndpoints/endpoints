@@ -211,10 +211,10 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     details.add(new Label("xsltParameterErrorMessage", rec.getXsltParameterErrorMessage())
                         .setVisible(rec.getXsltParameterErrorMessage() != null));
                     details.add(new ResourceLink<Element>("downloadInputXml",
-                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input.xml"))
+                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input-"+id.id+".xml"))
                         .setVisible(entry.hasParameterTransformationInputXml));
                     details.add(new ResourceLink<Element>("downloadOutputXml",
-                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output.xml"))
+                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output-"+id.id+".xml"))
                         .setVisible(entry.hasParameterTransformationOutputXml));
                     details.add(new WebMarkupContainer("outputXmlNotAvailable")
                         .setVisible(!entry.hasParameterTransformationOutputXml));
