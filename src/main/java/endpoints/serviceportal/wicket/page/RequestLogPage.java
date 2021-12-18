@@ -15,7 +15,7 @@ import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -130,7 +130,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
         @Override protected @Nonnull String getData(Attributes x) {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                Logger.getLogger(getClass()).info("Downloading " + field + " for request_log_id " + id.getId() + "...");
+                LoggerFactory.getLogger(getClass()).info("Downloading " + field + " for request_log_id " + id.getId() + "...");
                 var element = tx.jooq().select(field).from(REQUEST_LOG).where(REQUEST_LOG.APPLICATION.eq(applicationName))
                     .and(REQUEST_LOG.REQUEST_ID.eq(id)).fetchOne().value1();
                 return DomParser.formatXmlPretty(element);

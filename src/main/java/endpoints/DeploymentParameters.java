@@ -9,7 +9,7 @@ import endpoints.config.ApplicationName;
 import endpoints.config.FixedPathApplicationFactory;
 import endpoints.config.PublishedApplicationFactory;
 import lombok.SneakyThrows;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -85,7 +85,7 @@ public class DeploymentParameters {
         singleApplicationModeTimezoneId = 
             getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
 
-        Logger.getLogger(getClass()).info("Endpoints server application is in " + 
+        LoggerFactory.getLogger(getClass()).info("Endpoints server application is in " + 
             (isSingleApplicationMode() 
                 ? "SINGLE APPLICATION mode" 
                 : "MULTIPLE APPLICATIONS mode (via service portal, publishing from Git)"));

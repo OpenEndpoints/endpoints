@@ -1,7 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.Timer;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -26,7 +26,7 @@ public abstract class DailyJob {
     }
     
     public void start() {
-        Logger.getLogger(getClass()).info("Scheduling " + getClass().getSimpleName()
+        LoggerFactory.getLogger(getClass()).info("Scheduling " + getClass().getSimpleName()
             + " daily at " + scheduleUtc.format(DateTimeFormatter.ofPattern("HH:mm")) + " UTC");
         var thread = new Thread(this::runThread, getClass().getSimpleName());
         thread.start();
@@ -40,7 +40,7 @@ public abstract class DailyJob {
             var wait = Duration.between(currentTimeUtc, scheduleUtc);
             if (wait.isNegative()) wait = wait.plusDays(1);
             if (wait.isNegative()) throw new RuntimeException("Unreachable");
-            Logger.getLogger(getClass()).info(String.format(
+            LoggerFactory.getLogger(getClass()).info(String.format(
                 "Waiting %.1f hours hours until next %s", (double) wait.getSeconds() / 60 / 60, getClass().getSimpleName()));
             
             try { Thread.sleep(wait.toMillis()); }
@@ -50,7 +50,7 @@ public abstract class DailyJob {
                 performJob(); 
             }
             catch (Throwable e) {
-                Logger.getLogger(getClass()).error(getClass().getSimpleName() + " threw excpetion", e);
+                LoggerFactory.getLogger(getClass()).error(getClass().getSimpleName() + " threw excpetion", e);
             }
         }
     }

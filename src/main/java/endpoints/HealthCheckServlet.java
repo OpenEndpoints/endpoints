@@ -1,7 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.Timer;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -25,7 +25,7 @@ public class HealthCheckServlet extends HttpServlet {
             resp.sendError(SC_OK);
         }
         catch (Exception e) {
-            Logger.getLogger(getClass()).warn("Health check not OK", e);
+            LoggerFactory.getLogger(getClass()).warn("Health check not OK", e);
             throw e;
         }
     }

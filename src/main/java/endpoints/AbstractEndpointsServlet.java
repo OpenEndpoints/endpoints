@@ -2,7 +2,7 @@ package endpoints;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
 import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.flywaydb.core.Flyway;
 
 import javax.annotation.Nonnull;
@@ -46,7 +46,7 @@ public abstract class AbstractEndpointsServlet extends HttpServlet {
             tx.commit();
         }
         catch (DbTransaction.CannotConnectToDatabaseException e) {
-            Logger.getLogger(getClass()).warn("Cannot load applications at servlet startup, "
+            LoggerFactory.getLogger(getClass()).warn("Cannot load applications at servlet startup, "
                 + "will load lazily during requests instead: Database connection problem", e);
         }
     }

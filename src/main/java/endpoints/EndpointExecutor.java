@@ -26,7 +26,7 @@ import endpoints.task.TaskId;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -143,7 +143,7 @@ public class EndpointExecutor {
         var str = result.toString();
         if (str.length() > 20_000) str = str.substring(0, 10_000) + "[...truncated...]" + str.substring(str.length() - 10_000);
         
-        Logger.getLogger(logClass).info(msg + "\n" + str);
+        LoggerFactory.getLogger(logClass).info(msg + "\n" + str);
     }
     
     @SuppressFBWarnings("SA_LOCAL_SELF_ASSIGNMENT")
@@ -207,7 +207,7 @@ public class EndpointExecutor {
                             inputParametersDocument.importNode(element, true));
 
                 // Debug Log
-                Logger.getLogger(getClass()).debug("Parameter Transformation Input:\n" 
+                LoggerFactory.getLogger(getClass()).debug("Parameter Transformation Input:\n" 
                     + formatXmlPretty(inputParametersDocument.getDocumentElement()));
 
                 // Transform
@@ -262,7 +262,7 @@ public class EndpointExecutor {
             var result = new Node[nodeList.getLength()];
             for (int i = 0; i < nodeList.getLength(); i++) result[i] = nodeList.item(i);
 
-            Logger.getLogger(getClass()).debug("POST request JSON converted to XML, output is:\n" + Arrays.stream(result)
+            LoggerFactory.getLogger(getClass()).debug("POST request JSON converted to XML, output is:\n" + Arrays.stream(result)
                 .map(x -> x instanceof Element ? formatXmlPretty((Element) x) : "(not an element)")
                 .collect(joining("\n")));
 
@@ -678,7 +678,7 @@ public class EndpointExecutor {
             catch (Exception e) {
                 try (var tx = new ApplicationTransaction(application);
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
-                    Logger.getLogger(getClass()).warn("Delivering error", e);
+                    LoggerFactory.getLogger(getClass()).warn("Delivering error", e);
 
                     var errorResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                         public BufferedHttpResponseDocumentGenerationDestination destination;

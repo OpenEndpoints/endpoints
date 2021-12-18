@@ -11,7 +11,7 @@ import endpoints.config.ParameterName;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.SneakyThrows;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ResourceLink;
@@ -114,7 +114,7 @@ public class EndpointPanel extends Panel {
                 });
         }
         catch (EndpointExecutionFailedException e) {
-            Logger.getLogger(getClass()).warn("Error while generating EndpointPanel (displayed to user)", e);
+            LoggerFactory.getLogger(getClass()).warn("Error while generating EndpointPanel (displayed to user)", e);
             error(e.getMessage()); 
         }
         

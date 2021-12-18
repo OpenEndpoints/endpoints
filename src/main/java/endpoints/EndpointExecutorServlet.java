@@ -12,7 +12,7 @@ import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpiryJob;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -53,7 +53,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
     protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull Request request) {
         if ( ! DeploymentParameters.get().xsltDebugLog) return;
         
-        var log = Logger.getLogger(getClass());
+        var log = LoggerFactory.getLogger(getClass());
         
         log.info("Request class: " + servletRequest.getClass());
         log.info("Part class: " + request.getUploadedFiles().stream()
@@ -180,11 +180,11 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
         }
         catch (RequestInvalidException e) {
-            Logger.getLogger(getClass()).error("Request invalid", e);
+            LoggerFactory.getLogger(getClass()).error("Request invalid", e);
             resp.sendError(400, "Request invalid: " + e.getMessage());
         }
         catch (Exception e) { 
-            Logger.getLogger(getClass()).error("An internal error occurred", e);
+            LoggerFactory.getLogger(getClass()).error("An internal error occurred", e);
             resp.sendError(500, "An internal error occurred");
         }
     }

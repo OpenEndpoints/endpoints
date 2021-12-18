@@ -132,14 +132,14 @@
             <scope>provided</scope>  <!-- only does compile-type stuff -->
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.2.8</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.25</version>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>1.7.32</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -160,7 +160,7 @@
         <dependency>
             <groupId>com.databasesandlife</groupId>
             <artifactId>java-common</artifactId>
-            <version>15.3.0</version>
+            <version>16.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
@@ -180,7 +180,7 @@
         <dependency>
             <groupId>com.offerready</groupId>
             <artifactId>xslt-library</artifactId>
-            <version>4.0.0</version>
+            <version>5.0.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.saxon</groupId>
