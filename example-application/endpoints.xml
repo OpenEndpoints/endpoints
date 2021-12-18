@@ -101,7 +101,7 @@
         <parameter name="referrer"/>
         <parameter name="base-url"/>
         <parameter-transformation xslt="add-values-from-parameter-transformation-input.xslt"/>
-        <task class="endpoints.task.CreateShortLinkToEndpointTask" 
+        <task class="endpoints.task.CreateShortLinkToEndpointTask" expires-in-minutes="1440"
               destination-endpoint-name="json4" output-intermediate-value="short-code-link"/>
         <success>
           <input-intermediate-value name="short-code-link"/>

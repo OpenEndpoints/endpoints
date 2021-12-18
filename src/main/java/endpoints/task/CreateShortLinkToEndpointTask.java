@@ -4,7 +4,6 @@ import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import endpoints.DeploymentParameters;
-import endpoints.ShortLinkToEndpointCode;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.NodeName;
@@ -12,22 +11,24 @@ import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
 import endpoints.generated.jooq.tables.records.ShortLinkToEndpointParameterRecord;
 import endpoints.generated.jooq.tables.records.ShortLinkToEndpointRecord;
+import endpoints.shortlinktoendpoint.ShortLinkToEndpointCode;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.databasesandlife.util.DomParser.assertNoOtherElements;
-import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static java.time.Instant.now;
+import static com.databasesandlife.util.DomParser.*;
 
 public class CreateShortLinkToEndpointTask extends Task {
     
     protected final @Nonnull NodeName destinationEndpoint;
     protected final @Nonnull IntermediateValueName outputIntermediateValue;
+    protected final @Nonnull Duration expiry;
 
     public CreateShortLinkToEndpointTask(
         @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
@@ -37,6 +38,7 @@ public class CreateShortLinkToEndpointTask extends Task {
         assertNoOtherElements(config);
         destinationEndpoint = new NodeName(getMandatoryAttribute(config, "destination-endpoint-name"));
         outputIntermediateValue = new IntermediateValueName(getMandatoryAttribute(config, "output-intermediate-value"));
+        expiry = Duration.ofMinutes(parseMandatoryIntAttribute(config, "expires-in-minutes"));
     }
 
     @Override 
@@ -52,13 +54,15 @@ public class CreateShortLinkToEndpointTask extends Task {
     ) {
         synchronized (context.tx.db) {
             var result = ShortLinkToEndpointCode.newRandom();
+            var now = Instant.now();
             
             var linkRecord = new ShortLinkToEndpointRecord();
             linkRecord.setShortLinkToEndpointCode(result);
             linkRecord.setApplication(context.applicationName);
             linkRecord.setEnvironment(context.environment);
             linkRecord.setEndpoint(destinationEndpoint);
-            linkRecord.setCreatedOn(now());
+            linkRecord.setCreatedOn(now);
+            linkRecord.setExpiresOn(now.plus(expiry));
             context.tx.db.insert(linkRecord);
 
             var params = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);

@@ -8,6 +8,7 @@ import endpoints.PublishEnvironment.PublishEnvironmentNotFoundException;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
+import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpiryJob;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -78,6 +79,11 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
             log.info(String.format(Locale.ENGLISH, "Uploaded file: field='%s', size %,d bytes, first bytes (hex) = %s",
                 e.getFieldName(), bytes.length, hexString.toString()));
         }
+    }
+
+    @Override public void init() throws ServletException {
+        super.init();
+        new ShortLinkToEndpointExpiryJob().start();
     }
 
     @Override
