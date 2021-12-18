@@ -1,4 +1,4 @@
-package endpoints;
+package endpoints.shortlinktoendpoint;
 
 import com.databasesandlife.util.gwtsafe.CleartextPassword;
 import lombok.Value;

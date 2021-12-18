@@ -2215,6 +2215,18 @@ link
 \begin_inset Quotes qrd
 \end_inset
 
+
+\end_layout
+
+\begin_layout LyX-Code
+   expires-in-minutes=
+\begin_inset Quotes qrd
+\end_inset
+
+1440
+\begin_inset Quotes qrd
+\end_inset
+
 />
 \begin_inset Newline newline
 \end_inset
@@ -4564,6 +4576,40 @@ continue to original page
  That is to say, if you try to access one, and then you are logged out,
  you have the opportunity to log in and then choose an application if necessary
  and then continue to that page.
+\end_layout
+
+\begin_layout Subsection
+Daily Jobs
+\end_layout
+
+\begin_layout Standard
+There are certain jobs that need to be run regularly, specifically deletion
+ of old items.
+ For convenience, these jobs are run once a day (although they could, in
+ principle, be run with any other frequency.)
+\end_layout
+
+\begin_layout Standard
+So that the installation of this process does not need to complicate the
+ installation instructions, these jobs are done from the main web server
+ process.
+\end_layout
+
+\begin_layout Standard
+This means that, in a load-balanced set up, there might be multiple processes
+ executing these jobs.
+ To prevent the situation that all servers are restarted at the same time,
+ and thus all daily jobs are done at the same time, upon startup a daily
+ job decides on a random time within the day e.g.
+ 12:48, and always executes its jobs at that time.
+\end_layout
+
+\begin_layout Standard
+See the 
+\family typewriter
+DailyJob
+\family default
+ superclass for more information.
 \end_layout
 
 \begin_layout Section

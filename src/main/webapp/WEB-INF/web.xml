@@ -18,7 +18,7 @@
 
   <servlet>
     <servlet-name>short-link-to-endpoint</servlet-name>
-    <servlet-class>endpoints.ShortLinkToEndpointServlet</servlet-class>
+    <servlet-class>endpoints.shortlinktoendpoint.ShortLinkToEndpointServlet</servlet-class>
     <load-on-startup>1</load-on-startup>
     <multipart-config/>
   </servlet>

@@ -1,6 +1,6 @@
 package endpoints.jooq;
 
-import endpoints.ShortLinkToEndpointCode;
+import endpoints.shortlinktoendpoint.ShortLinkToEndpointCode;
 import org.jooq.Converter;
 
 import javax.annotation.CheckForNull;

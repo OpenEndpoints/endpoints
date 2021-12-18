@@ -160,7 +160,7 @@
         <dependency>
             <groupId>com.databasesandlife</groupId>
             <artifactId>java-common</artifactId>
-            <version>15.1.0</version>
+            <version>15.3.0</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
@@ -388,7 +388,7 @@
                                             <expression>REVISION</expression>
                                         </forcedType>
                                         <forcedType>
-                                            <userType>endpoints.ShortLinkToEndpointCode</userType>
+                                            <userType>endpoints.shortlinktoendpoint.ShortLinkToEndpointCode</userType>
                                             <converter>endpoints.jooq.ShortLinkToEndpointCodeConverter</converter>
                                             <expression>SHORT_LINK_TO_ENDPOINT_CODE</expression>
                                         </forcedType>
