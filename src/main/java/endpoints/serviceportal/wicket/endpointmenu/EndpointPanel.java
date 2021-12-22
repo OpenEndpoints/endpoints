@@ -23,6 +23,7 @@ import org.apache.wicket.request.resource.BaseDataResource;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.servlet.http.Cookie;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.List;
@@ -97,7 +98,8 @@ public class EndpointPanel extends Panel {
                     return new IpAddressDeterminer().getRequestIpAddress(
                         (((ServletWebRequest) RequestCycle.get().getRequest()).getContainerRequest()));
                 }
-                @Override public @Nonnull String getReferrer() { return "Service Portal"; }
+                @Override public @Nonnull Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() { return Map.of(); } 
+                @Override public @Nonnull List<Cookie> getCookies() { return List.of(); }
                 @Override public @Nonnull String getUserAgent() { return "Service Portal"; }
                 @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }

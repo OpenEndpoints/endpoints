@@ -5,6 +5,7 @@ import endpoints.config.ParameterName;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.servlet.http.Cookie;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.List;
@@ -20,11 +21,13 @@ public interface Request {
     
     @CheckForNull InetAddress getClientIpAddress();
     
+    /** @return Keys are lowercase (as HTTP headers are case-insensitive) */
+    @Nonnull Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies();
+
+    @Nonnull List<Cookie> getCookies();
+
     /** Can return empty string */
     @Nonnull String getUserAgent();
-    
-    /** Can return empty string */
-    @Nonnull String getReferrer();
 
     @CheckForNull String getContentTypeIfPost();
     
@@ -37,8 +40,9 @@ public interface Request {
     public static @Nonnull Request newForTesting() {
         return new Request() {
             @Override public InetAddress getClientIpAddress() { return null; }
+            @Override public Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() { return Map.of(); }
+            @Override public List<Cookie> getCookies() { return List.of(); }
             @Override public String getUserAgent() { return ""; }
-            @Override public String getReferrer() { return ""; }
             @Override public String getContentTypeIfPost() { return null; } 
             @Override public Map<ParameterName, List<String>> getParameters() { return Map.of(); }
             @Override public List<? extends UploadedFile> getUploadedFiles() { return List.of(); }

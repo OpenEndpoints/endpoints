@@ -773,11 +773,19 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
-    <http-header-user-agent>Mozilla/1.0N (Windows)</http-header-user-agent>
+    <http-header name-lowercase="user-agent">Foo</http-header>
 \end_layout
 
 \begin_layout LyX-Code
-    <http-header-referrer>https://..../</http-header-referrer>
+    ...
+\end_layout
+
+\begin_layout LyX-Code
+    <cookie name="Session">12345</cookie>
+\end_layout
+
+\begin_layout LyX-Code
+    ...
 \end_layout
 
 \begin_layout LyX-Code

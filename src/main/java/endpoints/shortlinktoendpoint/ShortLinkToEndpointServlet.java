@@ -62,16 +62,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
                 tx, shortLink.getApplication(), shortLink.getEnvironment());
             var endpoint = application.getEndpoints().findEndpointOrThrow(shortLink.getEndpoint());
 
-            var request = new Request() {
-                @Override public @CheckForNull InetAddress getClientIpAddress() { 
-                    return new IpAddressDeterminer().getRequestIpAddress(req); 
-                }
-                @Override public @Nonnull String getUserAgent() {
-                    return Optional.ofNullable(req.getHeader("User-Agent")).orElse("");
-                }
-                @Override public @Nonnull String getReferrer() {
-                    return Optional.ofNullable(req.getHeader("Referer")).orElse("");
-                }
+            var request = new ServletRequest(req) {
                 @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                     return params.entrySet().stream().collect(toMap(r -> r.getKey(), r -> List.of(r.getValue())));
