@@ -137,40 +137,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
                 return; 
             }
 
-            var request = new Request() {
-                @Override public @CheckForNull InetAddress getClientIpAddress() { 
-                    return new IpAddressDeterminer().getRequestIpAddress(req); 
-                }
-                @Override public @Nonnull String getUserAgent() {
-                    return Optional.ofNullable(req.getHeader("User-Agent")).orElse("");
-                }
-                @Override public @Nonnull String getReferrer() {
-                    return Optional.ofNullable(req.getHeader("Referer")).orElse("");
-                }
-                @Override public @CheckForNull String getContentTypeIfPost() {
-                    return Optional.ofNullable(req.getContentType())
-                        .map(x -> x.replaceAll(";.*$", ""))
-                        .orElse(null);
-                }
-                @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
-                    return req.getParameterMap().entrySet().stream()
-                        .filter(e -> ! e.getKey().equalsIgnoreCase("debug"))
-                        .collect(toMap(
-                            e -> new ParameterName(e.getKey()),
-                            e -> List.of(e.getValue())
-                        ));
-                }
-                @SneakyThrows({ServletException.class, IOException.class})
-                @Override public @Nonnull List<UploadedFile> getUploadedFiles() {
-                    return Optional.ofNullable(req.getContentType()).orElse("").startsWith("multipart/form-data")
-                        ? req.getParts().stream().filter(p -> p.getContentType() != null).map(ServletUploadedFile::new).collect(toList())
-                        : List.of();
-                }
-                @Override public @Nonnull InputStream getInputStream() throws EndpointExecutionFailedException {
-                    try { return req.getInputStream(); }
-                    catch (IOException e) { throw new EndpointExecutionFailedException(400, "I/O problem reading request", e); }
-                }
-            };
+            var request = new ServletRequest(req);
             
             logParamsForDebugging(req, request);
                 

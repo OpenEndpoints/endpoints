@@ -36,6 +36,7 @@ import org.w3c.dom.Node;
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -102,16 +103,19 @@ public class EndpointExecutor {
         public Element input, output;
     }
 
-    protected void appendTextElement(@Nonnull Element parent, @Nonnull String name, @CheckForNull String contents) {
+    protected void appendTextElement(
+        @Nonnull Element parent, @Nonnull String name, @CheckForNull String attrName, @CheckForNull String attrValue,
+        @CheckForNull String contents
+    ) {
         if (contents == null) return;
         var newElement = parent.getOwnerDocument().createElement(name);
         newElement.setTextContent(contents);
+        if (attrName != null && attrValue != null) newElement.setAttribute(attrName, attrValue);
         parent.appendChild(newElement);
     }
 
-    protected void appendTextElement(@Nonnull Element parent, @Nonnull String name, @CheckForNull Integer contents) {
-        if (contents == null) return;
-        appendTextElement(parent, name, Integer.toString(contents));
+    protected void appendTextElement(@Nonnull Element parent, @Nonnull String name, @CheckForNull String contents) {
+        appendTextElement(parent, name, null, null, contents);
     }
 
     /**
@@ -176,8 +180,11 @@ public class EndpointExecutor {
         appendTextElement(inputFromRequestElement, "endpoint", endpoint.name.name);
         if (debugRequested) inputFromRequestElement.appendChild(inputParametersDocument.createElement("debug-requested"));
         for (var n : inputFromRequestContents) inputFromRequestElement.appendChild(inputParametersDocument.importNode(n, true));
-        appendTextElement(inputFromRequestElement, "http-header-user-agent", req.getUserAgent());
-        appendTextElement(inputFromRequestElement, "http-header-referrer", req.getReferrer());
+        for (var param : req.getLowercaseHttpHeadersWithoutCookies().entrySet())
+            for (var value : param.getValue())
+                appendTextElement(inputFromRequestElement, "http-header", "name-lowercase", param.getKey(), value);
+        for (var cookie : req.getCookies())
+            appendTextElement(inputFromRequestElement, "cookie", "name", cookie.getName(), cookie.getValue());
         appendTextElement(inputFromRequestElement, "ip-address",
             req.getClientIpAddress() == null ? null : req.getClientIpAddress().getHostAddress());
 
@@ -471,7 +478,9 @@ public class EndpointExecutor {
             if (config instanceof ForwardToEndpointResponseConfiguration) {
                 var request = new Request() {
                     @Override public @CheckForNull InetAddress getClientIpAddress() { return context.request.getClientIpAddress(); }
-                    @Override public @Nonnull String getReferrer() { return context.request.getReferrer(); }
+                    @Override public @Nonnull Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() {
+                        return context.request.getLowercaseHttpHeadersWithoutCookies(); } 
+                    @Override public @Nonnull List<Cookie> getCookies() { return context.request.getCookies(); }
                     @Override public @Nonnull String getUserAgent() { return context.request.getUserAgent(); }
                     @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                     @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { 
