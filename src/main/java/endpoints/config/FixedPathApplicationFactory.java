@@ -12,12 +12,18 @@ import java.io.File;
 /** Provides only one application called "endpoints" which is at "/var/endpoints/fixed-application" in the filesystem */
 public class FixedPathApplicationFactory extends ApplicationFactory {
 
-    final @Nonnull Application application;
+    protected final static @Nonnull File path = new File("/var/endpoints/fixed-application");
+
+    protected final @Nonnull Application application;
+    
+    public static boolean isFixedPathPresent() {
+        return path.exists();
+    }
 
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public FixedPathApplicationFactory(@Nonnull XsltCompilationThreads threads) {
         try {
-            application = loadApplication(threads, new File("/var/endpoints/fixed-application"));
+            application = loadApplication(threads, path);
         }
         catch (ConfigurationException e) {
             throw new RuntimeException("Application at fixed location is invalid: " + e.getMessage(), e);
