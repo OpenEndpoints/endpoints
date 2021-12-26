@@ -4298,8 +4298,33 @@ JAVA_OPTIONS
  things such as Java heap size.
  By default, Java takes care of assigning the right amount of memory for
  the Docker container.
+ Useful values (multiple values separated by a space)
 \end_layout
 
+\begin_deeper
+\begin_layout Description
+
+\family typewriter
+-verbose:gc
+\family default
+ This causes logs to be printed each time a GC occurs, which show the amount
+ of memory used and reclaimed.
+ Useful for determining if the instance needs to be given more memory, or
+ can be given less memory in order to save money.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+-Dwicket.configuration=development
+\family default
+ This causes exceptions to be output to the browser, which can be useful
+ for debugging in a situation where there is no access to the Docker logfile.
+ This is not recommended for Prod deployment as this can expose internal
+ information which might be useful to attackers.
+\end_layout
+
+\end_deeper
 \begin_layout Subsection
 Memory
 \end_layout
