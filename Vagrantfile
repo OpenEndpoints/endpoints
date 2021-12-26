@@ -74,7 +74,7 @@ Vagrant.configure(2) do |config|
     echo 'ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS=30' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_POSTGRESQL_JDBC=jdbc:postgresql://localhost/example_application?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_MYSQL_JDBC=jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID=Europe/Vienna'
+    echo 'ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID=Europe/Vienna' >> /home/vagrant/docker-env
 
     echo --- /var dirs
     mkdir -p -m 0777 /var/endpoints/applications-checkout
