@@ -26,12 +26,24 @@
     <wicket:head>
         <script>
             $(function() {
-                $(".filter-dropdown").change(function() {
+                $("select.filter-field").change(function() {
                     $(this).parents("form").submit();
-                    $(".filter-dropdown").prop('disabled', true);
                 });
+                $("#filter-form").submit(function() {
+                    // Cannot disable fields before submit otherwise their values won't get submitted
+                    window.setTimeout(function() {
+                        document.getSelection().removeAllRanges();
+                        $(".filter-field").prop('disabled', true);
+                    }, 0);
+                });
+                $("#filter-text").select();
             });
         </script>
+        <style>
+            .filter-highlight {
+                background: #ffe1b3;
+            }
+        </style>
     </wicket:head>
 </head>
 <body>
@@ -120,13 +132,14 @@
 
                     <div>
                         
-                        <form class="uk-form  uk-visible@s" wicket:id="filter">
-                            <div class="uk-width-1-1 uk-card uk-card-small uk-margin-top">
+                        <form class="uk-form uk-visible@s" wicket:id="filter" id="filter-form">
+                            <div uk-grid class="uk-child-width-1-1 uk-grid-collapse">
                                 <div class="uk-flex uk-flex-between">
-                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="environment"><option>Last 30 days</option></select>
-                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="dateRange"><option>Live Environment</option></select>
-                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium uk-margin-small-right" wicket:id="endpoint"><option>All Endpoints</option></select>
-                                    <select class="filter-dropdown uk-select uk-form-small uk-form-width-medium" wicket:id="statusCode"><option>All Status Codes</option></select>
+                                    <select class="filter-field uk-select uk-form-small uk-width-1-6 uk-margin-small-right" wicket:id="environment"><option>Live Environment</option></select>
+                                    <select class="filter-field uk-select uk-form-small uk-width-1-6 uk-margin-small-right" wicket:id="dateRange"><option>Last 30 days</option></select>
+                                    <select class="filter-field uk-select uk-form-small uk-width-1-6 uk-margin-small-right" wicket:id="statusCode"><option>All Status Codes</option></select>
+                                    <select class="filter-field uk-select uk-form-small uk-width-1-6 uk-margin-small-right" wicket:id="endpoint"><option>All Endpoints</option></select>
+                                    <input type="text" class="filter-field uk-input uk-form-small uk-width-expand" id="filter-text" placeholder="Search" wicket:id="text"/>
                                 </div>
                             </div>
                         </form>
@@ -177,7 +190,7 @@
                                             <wicket:enclosure child="httpRequestFailedUrl">
                                                 <tr>
                                                     <td>Underlying Failed HTTP Request URL:</td>
-                                                    <td wicket:id="httpRequestFailedUrl">http://www.uboot.com/</td>
+                                                    <td wicket:id="httpRequestFailedUrl">http://www.<span class="filter-highlight">uboot.com</span>/</td>
                                                 </tr>
                                             </wicket:enclosure>
                                             <wicket:enclosure child="httpRequestFailedStatusCode">
