@@ -19,6 +19,7 @@ import endpoints.config.response.*;
 import endpoints.datasource.DataSourceCommandFetcher;
 import endpoints.datasource.ParametersCommand;
 import endpoints.datasource.TransformationFailedException;
+import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.task.Task;
 import endpoints.task.Task.TaskExecutionFailedException;
@@ -113,16 +114,19 @@ public class EndpointExecutor {
         appendTextElement(parent, name, Integer.toString(contents));
     }
 
+    /**
+     * Note: Assumes application is "locked" i.e. only one instance of this process is running on this application.
+     */
     protected long getNextAutoIncrement(
         @Nonnull DbTransaction tx,
-        @Nonnull ApplicationName app, @Nonnull PublishEnvironment env, @Nonnull NodeName endp
+        @Nonnull ApplicationName application, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpoint
     ) {
         var max = tx.jooq()
-            .select(max(REQUEST_LOG.INCREMENTAL_ID_PER_ENDPOINT))
-            .from(REQUEST_LOG)
-            .where(REQUEST_LOG.APPLICATION.eq(app))
-            .and(REQUEST_LOG.ENVIRONMENT.eq(env))
-            .and(REQUEST_LOG.ENDPOINT.eq(endp))
+            .select(max(REQUEST_LOG_IDS.INCREMENTAL_ID_PER_ENDPOINT))
+            .from(REQUEST_LOG_IDS)
+            .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
+            .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
+            .and(REQUEST_LOG_IDS.ENDPOINT.eq(endpoint))
             .fetchOne().value1();
 
         if (max == null) return 1;
@@ -492,27 +496,35 @@ public class EndpointExecutor {
         }
     }
 
-    protected @Nonnull RequestLogRecord newRequestLogRecord(
+    protected void insertRequestLog(
+        @Nonnull DbTransaction tx,
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpointName,
         @Nonnull Instant now, @Nonnull RequestId requestId, 
         @Nonnull Request req, @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
-        @Nonnull BufferedHttpResponseDocumentGenerationDestination response
+        @Nonnull BufferedHttpResponseDocumentGenerationDestination response,
+        @Nonnull Consumer<RequestLogIdsRecord> alterRequestLogIds, @Nonnull Consumer<RequestLogRecord> alterRequestLog
     ) {
+        var ids = new RequestLogIdsRecord();
+        ids.setRequestId(requestId);
+        ids.setApplication(applicationName);
+        ids.setEnvironment(environment);
+        ids.setEndpoint(endpointName);
+        ids.setOnDemandPerpetualIncrementingNumber(autoInc.get(perpetual).getValueOrNull());
+        ids.setOnDemandYearIncrementingNumber(autoInc.get(year).getValueOrNull());
+        ids.setOnDemandMonthIncrementingNumber(autoInc.get(month).getValueOrNull());
+        alterRequestLogIds.accept(ids);
+        tx.insert(ids);
+        
         var r = new RequestLogRecord();
-        r.setApplication(applicationName);
-        r.setEnvironment(environment);
-        r.setEndpoint(endpointName);
+        r.setRequestId(requestId);
         r.setDatetime(now);
         r.setStatusCode(response.getStatusCode());
         r.setUserAgent(req.getUserAgent());
-        r.setOnDemandPerpetualIncrementingNumber(autoInc.get(perpetual).getValueOrNull());
-        r.setOnDemandYearIncrementingNumber(autoInc.get(year).getValueOrNull());
-        r.setOnDemandMonthIncrementingNumber(autoInc.get(month).getValueOrNull());
         r.setParameterTransformationInput(parameterTransformationLogger.input);
         r.setParameterTransformationOutput(parameterTransformationLogger.output);
-        r.setRequestId(requestId);
-        return r;
+        alterRequestLog.accept(r);
+        tx.insert(r);
     }
     
     protected @Nonnull Response scheduleTasksAndSuccess(
@@ -666,11 +678,11 @@ public class EndpointExecutor {
                     throw e;
                 }
 
-                var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, requestId, req,
-                    parameterTransformationLogger, autoInc, successResponse.destination);
-                r.setIncrementalIdPerEndpoint(autoIncrement);
-                r.setRandomIdPerApplication(random);
-                tx.db.insert(r);
+                insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, req,
+                    parameterTransformationLogger, autoInc, successResponse.destination, r -> {
+                        r.setIncrementalIdPerEndpoint(autoIncrement);
+                        r.setRandomIdPerApplication(random);
+                    }, r -> {});
 
                 tx.commit();
                 responder.respond(successResponse.destination);
@@ -707,16 +719,16 @@ public class EndpointExecutor {
                         throw e2;
                     }
 
-                    var r = newRequestLogRecord(applicationName, environment, endpoint.name, now, requestId, req,
-                        parameterTransformationLogger, autoInc, errorResponse.destination);
-                    r.setExceptionMessage(e.getMessage());
-                    r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
-                        ? (((HttpRequestFailedException) e).url) : null);
-                    r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException
-                        ? (((HttpRequestFailedException) e).responseStatusCode) : null);
-                    r.setXsltParameterErrorMessage(e instanceof ParameterTransformationHadErrorException
-                        ? ((ParameterTransformationHadErrorException) e).error : null);
-                    tx.db.insert(r);
+                    insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, req,
+                        parameterTransformationLogger, autoInc, errorResponse.destination, r -> {}, r -> {
+                            r.setExceptionMessage(e.getMessage());
+                            r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
+                                ? (((HttpRequestFailedException) e).url) : null);
+                            r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException
+                                ? (((HttpRequestFailedException) e).responseStatusCode) : null);
+                            r.setXsltParameterErrorMessage(e instanceof ParameterTransformationHadErrorException
+                                ? ((ParameterTransformationHadErrorException) e).error : null);
+                        });
 
                     tx.commit();
                     responder.respond(errorResponse.destination);

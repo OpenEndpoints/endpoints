@@ -34,6 +34,7 @@ public abstract class DailyJob {
     
     protected abstract void performJob();
     
+    @SuppressWarnings("InfiniteLoopStatement") 
     protected void runThread() {
         while (true) {
             var currentTimeUtc = LocalTime.now(UTC);

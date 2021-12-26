@@ -9,6 +9,7 @@ import endpoints.PublishEnvironment;
 import endpoints.RequestId;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
+import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.serviceportal.DateRangeOption;
 import endpoints.serviceportal.wicket.model.EndpointNamesModel;
@@ -43,6 +44,7 @@ import java.util.*;
 
 import static endpoints.PublishEnvironment.live;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
+import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -63,17 +65,18 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     protected final @Nonnull Set<RequestId> expandedRows = new HashSet<>();
     
     protected @Nonnull Condition getCondition() {
-        return REQUEST_LOG.APPLICATION.eq(applicationName)
-            .and(REQUEST_LOG.ENVIRONMENT.eq(filterEnvironment))
+        return REQUEST_LOG_IDS.APPLICATION.eq(applicationName)
+            .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(filterEnvironment))
             .and(REQUEST_LOG.DATETIME.ge(dateRange.getStartDateUtc(now(UTC)).atStartOfDay(UTC).toInstant()))
             .and(REQUEST_LOG.DATETIME.lt(Optional.ofNullable(dateRange.getEndDateUtc(now(UTC))).orElse(now(UTC))
                 .plus(1, DAYS).atStartOfDay(UTC).toInstant()))
-            .and(filterEndpoint == null ? trueCondition() : REQUEST_LOG.ENDPOINT.eq(filterEndpoint))
+            .and(filterEndpoint == null ? trueCondition() : REQUEST_LOG_IDS.ENDPOINT.eq(filterEndpoint))
             .and(filterStatusCode == null ? trueCondition() : REQUEST_LOG.STATUS_CODE.eq(filterStatusCode));
     }
 
     @AllArgsConstructor
     protected class RequestLogEntry implements Serializable {
+        public RequestLogIdsRecord ids;
         /** Doesn't have the XML fields populated (they might be huge, don't store them in the session) */
         public RequestLogRecord record;
         public boolean hasParameterTransformationInputXml, hasParameterTransformationOutputXml;
@@ -90,15 +93,18 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 fields.add(field(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT.isNotNull()));
                 fields.add(field(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT.isNotNull()));
                 fields.addAll(asList(REQUEST_LOG.fields()));
+                fields.addAll(asList(REQUEST_LOG_IDS.fields()));
                 fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT);
                 fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT);
 
                 return tx.jooq().select(fields)
-                    .from(REQUEST_LOG)
+                    .from(REQUEST_LOG_IDS)
+                    .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
                     .where(getCondition())
                     .orderBy(REQUEST_LOG.DATETIME.desc())
                     .limit(500)
-                    .fetch(r -> new RequestLogEntry(r.into(REQUEST_LOG), r.get(0, Boolean.class), r.get(1, Boolean.class)))
+                    .fetch(r -> new RequestLogEntry(r.into(REQUEST_LOG_IDS), r.into(REQUEST_LOG), 
+                        r.get(0, Boolean.class), r.get(1, Boolean.class)))
                     .stream().collect(toCollection(ArrayList::new));
             }
         }
@@ -107,19 +113,22 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     protected class ResultsCountModel extends CachingFutureModel<Integer> {
         @Override protected @Nonnull Integer populate() {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                return tx.jooq().selectCount().from(REQUEST_LOG).where(getCondition()).fetchOne().value1();
+                return tx.jooq().selectCount()
+                    .from(REQUEST_LOG_IDS)
+                    .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
+                    .where(getCondition()).fetchOne().value1();
             }
         }
     }
     
     protected class XmlDownloadResource extends BaseDataResource<String> {
         protected final @Nonnull RequestId id;
-        protected final @Nonnull Field<Element> field;
+        protected final @Nonnull Field<Element> requestLogField;
 
-        public XmlDownloadResource(@Nonnull RequestId id, @Nonnull Field<Element> field, @Nonnull String filename) {
+        public XmlDownloadResource(@Nonnull RequestId id, @Nonnull Field<Element> requestLogField, @Nonnull String filename) {
             super("application/xml; charset=utf-8", null, filename);
             this.id = id;
-            this.field = field;
+            this.requestLogField = requestLogField;
         }
 
         // By default these are cached, which is bad as they have e.g. link8 and if a new request turns up
@@ -134,9 +143,12 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
         @Override protected @Nonnull String getData(Attributes x) {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                LoggerFactory.getLogger(getClass()).info("Downloading " + field + " for request_log_id " + id.getId() + "...");
-                var element = tx.jooq().select(field).from(REQUEST_LOG).where(REQUEST_LOG.APPLICATION.eq(applicationName))
-                    .and(REQUEST_LOG.REQUEST_ID.eq(id)).fetchOne().value1();
+                LoggerFactory.getLogger(getClass()).info("Downloading " + requestLogField + " for request_log_id " + id.getId() + "...");
+                var element = tx.jooq().select(requestLogField)
+                    .from(REQUEST_LOG_IDS)
+                    .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
+                    .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))
+                    .and(REQUEST_LOG_IDS.REQUEST_ID.eq(id)).fetchOne().value1();
                 return DomParser.formatXmlPretty(element);
             }
         }
@@ -147,8 +159,10 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var endpointsNamesModel = new EndpointNamesModel(this::getFilterEnvironment);
-            var statusCodes = tx.jooq().selectDistinct(REQUEST_LOG.STATUS_CODE).from(REQUEST_LOG)
-                .where(REQUEST_LOG.APPLICATION.eq(applicationName))
+            var statusCodes = tx.jooq().selectDistinct(REQUEST_LOG.STATUS_CODE)
+                .from(REQUEST_LOG_IDS)
+                .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
+                .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))
                 .and(REQUEST_LOG.DATETIME.ge(DateRangeOption.getValues(now(UTC)).stream()
                     .map(d -> d.getStartDateUtc(now(UTC)))
                     .min(Comparator.naturalOrder())
@@ -191,11 +205,11 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     tableRow.add(AttributeAppender.append("class", () -> expandedRows.contains(id) ? "open-row" : ""));
                     tableRow.add(new Label("dateTimeShortUtc", DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
                         .format(rec.getDatetime().atOffset(UTC))));
-                    tableRow.add(new Label("endpoint", rec.getEndpoint().name));
+                    tableRow.add(new Label("endpoint", entry.ids.getEndpoint().name));
                     tableRow.add(new Label("statusCode", rec.getStatusCode())
                         .add(AttributeAppender.append("class", rec.getStatusCode() >= 300 ? "status-error" : "")));
-                    tableRow.add(new Label("incrementalIdPerEndpoint", rec.getIncrementalIdPerEndpoint()));
-                    tableRow.add(new Label("randomIdPerApplication", Optional.ofNullable(rec.getRandomIdPerApplication())
+                    tableRow.add(new Label("incrementalIdPerEndpoint", entry.ids.getIncrementalIdPerEndpoint()));
+                    tableRow.add(new Label("randomIdPerApplication", Optional.ofNullable(entry.ids.getRandomIdPerApplication())
                         .map(x -> x.getId()).orElse(null)));
                     item.add(tableRow);
                     
