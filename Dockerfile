@@ -10,7 +10,6 @@ USER jetty
 # Some things (e.g. Subversion, FOP) need to create dot-directories in Jetty's home dir
 USER root
 RUN mkdir -p -m 0777 /home/jetty
-RUN mkdir -p -m 0777 /var/endpoints/applications-checkout
 USER jetty
 
 # Bug fix: WallStoxx: Multipart sent (only) from the browser, fields would get amalgamated included

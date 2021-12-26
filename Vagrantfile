@@ -76,7 +76,6 @@ Vagrant.configure(2) do |config|
     echo 'ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS=30' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_POSTGRESQL_JDBC=jdbc:postgresql://localhost/example_application?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_MYSQL_JDBC=jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID=Europe/Vienna' >> /home/vagrant/docker-env
 
     echo --- /var dirs
     mkdir -p -m 0777 /var/endpoints/applications-checkout
@@ -171,7 +170,7 @@ Vagrant.configure(2) do |config|
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'
-    echo '          --mount type=bind,source=/vagrant/example-application,target=/var/endpoints/applications-checkout/example-application-symlink \'
+    echo '          --mount type=bind,source=/vagrant/example-application,target=/tmp/example-application-symlink \'
     echo '          --net=host endpoints'
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
