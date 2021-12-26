@@ -4179,8 +4179,7 @@ Multiple Application Mode
 \end_layout
 
 \begin_layout Standard
-The following environment variables are mandatory in Multiple Application
- Mode:
+The following environment variables apply only to Multiple Application Mode:
 \end_layout
 
 \begin_layout Description
@@ -4215,14 +4214,17 @@ ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY
 \family typewriter
 ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME
 \family default
+ Optional.
  For example "Production Environment", for the login screen of the Service
  Portal.
- This variable must be set to indicate that the application is in multi-applicat
-ion mode.
 \end_layout
 
 \begin_layout Subsubsection
-Optional Environment Variables
+Both Modes
+\end_layout
+
+\begin_layout Standard
+The following environment variables apply to both modes:
 \end_layout
 
 \begin_layout Description
@@ -4230,6 +4232,7 @@ Optional Environment Variables
 \family typewriter
 ENDPOINTS_CHECK_HASH
 \family default
+ Optional.
  Default true.
  Can be "false".
  If this is set to "false", no hash checking is done.
@@ -4242,6 +4245,8 @@ ENDPOINTS_CHECK_HASH
 \family typewriter
 ENDPOINTS_DISPLAY_EXPECTED_HASH
 \family default
+ Optional.
+ Default false.
  For debugging, set this to "true" in order to display the expected value
  of security hashes.
 \end_layout
@@ -4251,6 +4256,7 @@ ENDPOINTS_DISPLAY_EXPECTED_HASH
 \family typewriter
 ENDPOINTS_XSLT_DEBUG_LOG
 \family default
+ Optional.
  Default false.
  For debugging, display the input and output to the parameter transformation
  XSLT in the logfile, and also bodies produced by XSLT which will be sent
@@ -4262,6 +4268,7 @@ ENDPOINTS_XSLT_DEBUG_LOG
 \family typewriter
 ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS
 \family default
+ Optional.
  If this is set, then delete old 
 \begin_inset Quotes eld
 \end_inset
@@ -4287,7 +4294,9 @@ request log
 \family typewriter
 JAVA_OPTIONS
 \family default
- things such as Java heap size.
+ Optional.
+ Passed to the JVM.
+ Controls hings such as Java heap size.
  By default, Java takes care of assigning the right amount of memory for
  the Docker container.
  Useful values (multiple values separated by a space)

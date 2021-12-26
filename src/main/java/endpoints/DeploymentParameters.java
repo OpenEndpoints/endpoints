@@ -61,7 +61,7 @@ public class DeploymentParameters {
     }
     
     public boolean isSingleApplicationMode() {
-        return servicePortalEnvironmentDisplayName == null;
+        return FixedPathApplicationFactory.isFixedPathPresent();
     }
 
     @SneakyThrows(MalformedURLException.class)
