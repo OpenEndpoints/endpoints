@@ -1,11 +1,9 @@
 package endpoints;
 
-import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.databasesandlife.util.jdbc.DbTransaction.CannotConnectToDatabaseException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.config.ApplicationFactory;
-import endpoints.config.ApplicationName;
 import endpoints.config.FixedPathApplicationFactory;
 import endpoints.config.PublishedApplicationFactory;
 import lombok.SneakyThrows;
@@ -17,10 +15,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.ZoneId;
-import java.util.HashMap;
 import java.util.Optional;
-
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 
 /**
  * Represents those parameters which can change from one deployment to another. 
@@ -42,6 +37,7 @@ public class DeploymentParameters {
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
     public final @CheckForNull ZoneId singleApplicationModeTimezoneId;
+    public final @CheckForNull Integer requestLogExpiryDays;
     
     protected @CheckForNull ApplicationFactory applications = null;
     
@@ -84,6 +80,8 @@ public class DeploymentParameters {
             getOptionalParameter("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME").orElse(null);
         singleApplicationModeTimezoneId = 
             getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
+        requestLogExpiryDays = 
+            getOptionalParameter("ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS").map(Integer::parseInt).orElse(null);
 
         LoggerFactory.getLogger(getClass()).info("Endpoints server application is in " + 
             (isSingleApplicationMode() 

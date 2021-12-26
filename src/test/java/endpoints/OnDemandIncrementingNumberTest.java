@@ -5,6 +5,7 @@ import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
+import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import junit.framework.TestCase;
 
@@ -21,17 +22,21 @@ import static java.time.temporal.ChronoUnit.HOURS;
 public class OnDemandIncrementingNumberTest extends TestCase {
     
     protected void insertRequestLog(@Nonnull DbTransaction tx, @Nonnull ApplicationName app, @Nonnull Instant when) {
+        var ids = new RequestLogIdsRecord();
+        ids.setRequestId(RequestId.newRandom());
+        ids.setApplication(app);
+        ids.setEndpoint(new NodeName("endpoint"));
+        ids.setEnvironment(PublishEnvironment.live);
+        ids.setOnDemandPerpetualIncrementingNumber(1);
+        ids.setOnDemandYearIncrementingNumber(10);
+        ids.setOnDemandMonthIncrementingNumber(100);
+        tx.insert(ids);
+
         var r = new RequestLogRecord();
-        r.setApplication(app);
-        r.setEndpoint(new NodeName("endpoint"));
+        r.setRequestId(ids.getRequestId());
         r.setDatetime(when);
         r.setStatusCode(200);
         r.setUserAgent("user agent");
-        r.setEnvironment(PublishEnvironment.live);
-        r.setOnDemandPerpetualIncrementingNumber(1);
-        r.setOnDemandYearIncrementingNumber(10);
-        r.setOnDemandMonthIncrementingNumber(100);
-        r.setRequestId(RequestId.newRandom());
         tx.insert(r);
     }
     

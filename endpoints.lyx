@@ -4268,6 +4268,31 @@ ENDPOINTS_XSLT_DEBUG_LOG
 \begin_layout Description
 
 \family typewriter
+ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS
+\family default
+ If this is set, then delete old 
+\begin_inset Quotes eld
+\end_inset
+
+request log
+\begin_inset Quotes erd
+\end_inset
+
+ entries after this number of days.
+ If not set, 
+\begin_inset Quotes eld
+\end_inset
+
+request log
+\begin_inset Quotes erd
+\end_inset
+
+ entries are not deleted.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 JAVA_OPTIONS
 \family default
  things such as Java heap size.
@@ -4923,6 +4948,50 @@ https://www.browserling.com/tools/bcrypt
 \end_inset
 
  are known to work.
+\end_layout
+
+\begin_layout Subsection
+Request Log Tables
+\end_layout
+
+\begin_layout Standard
+Each request is logged.
+ An entry is created in the following two tables:
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+request_log_ids
+\family default
+ Stores information such as 
+\begin_inset Quotes eld
+\end_inset
+
+random IDs
+\begin_inset Quotes erd
+\end_inset
+
+, which must be unique, and thus should not be deleted.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+request_log
+\family default
+ Stores information such as when the request occurred and potentially the
+ input and output of the request (in debug mode), which is data that should
+ be deleted after a set period of time.
+\end_layout
+
+\begin_layout Standard
+The reason for the two tables is that there is the requirement to delete
+ old request log entries.
+ However certain items, such as which random numbers have already been used,
+ must not be deleted.
+ So the former table stores data which cannot be deleted and the latter
+ table stores items which should be deleted.
 \end_layout
 
 \begin_layout Subsection

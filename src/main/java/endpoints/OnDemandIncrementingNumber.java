@@ -27,11 +27,11 @@ public class OnDemandIncrementingNumber {
     
     public enum OnDemandIncrementingNumberType {
         perpetual {
-            public @Override @Nonnull Field<Integer> getRequestLogField() { return REQUEST_LOG.ON_DEMAND_PERPETUAL_INCREMENTING_NUMBER; }
+            public @Override @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_PERPETUAL_INCREMENTING_NUMBER; }
             public @Override @Nonnull Condition getRequestLogCondition(Instant now, ZoneId timezone) { return trueCondition(); }
         },
         year {
-            public @Override @Nonnull Field<Integer> getRequestLogField() { return REQUEST_LOG.ON_DEMAND_YEAR_INCREMENTING_NUMBER; }
+            public @Override @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_YEAR_INCREMENTING_NUMBER; }
             public @Override @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) { 
                 var nowLocal = now.atZone(timezone).toLocalDateTime();
                 var startLocal = LocalDateTime.of(nowLocal.getYear(), Month.JANUARY, 1, 0, 0);
@@ -40,7 +40,7 @@ public class OnDemandIncrementingNumber {
             }
         },
         month {
-            public @Override @Nonnull Field<Integer> getRequestLogField() { return REQUEST_LOG.ON_DEMAND_MONTH_INCREMENTING_NUMBER; }
+            public @Override @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_MONTH_INCREMENTING_NUMBER; }
             public @Override @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) {
                 var nowLocal = now.atZone(timezone).toLocalDateTime();
                 var startLocal = LocalDateTime.of(nowLocal.getYear(), nowLocal.getMonth(), 1, 0, 0);
@@ -49,7 +49,7 @@ public class OnDemandIncrementingNumber {
             }
         };
 
-        public abstract @Nonnull Field<Integer> getRequestLogField();
+        public abstract @Nonnull Field<Integer> getRequestLogIdsField();
         public abstract @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone);
     }
 
@@ -85,10 +85,11 @@ public class OnDemandIncrementingNumber {
                     "Neither 'application_config' row is present, nor is environment variable set");
 
                 var max = tx.jooq()
-                    .select(max(type.getRequestLogField()))
-                    .from(REQUEST_LOG)
-                    .where(REQUEST_LOG.APPLICATION.eq(application))
-                    .and(REQUEST_LOG.ENVIRONMENT.eq(environment))
+                    .select(max(type.getRequestLogIdsField()))
+                    .from(REQUEST_LOG_IDS)
+                    .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
+                    .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
+                    .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
                     .and(type.getRequestLogCondition(now, timezone))
                     .fetchOne().value1();
 

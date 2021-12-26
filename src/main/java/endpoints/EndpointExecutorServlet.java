@@ -84,6 +84,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
     @Override public void init() throws ServletException {
         super.init();
         new ShortLinkToEndpointExpiryJob().start();
+        new ExpireRequestLogDailyJob().start();
     }
 
     @Override

@@ -18,6 +18,8 @@ import java.net.URL;
 
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
+import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
+import static org.jooq.impl.DSL.select;
 
 public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
 
@@ -63,7 +65,10 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
                 .update(REQUEST_LOG)
                 .set(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, (Element) null)
                 .set(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, (Element) null)
-                .where(REQUEST_LOG.APPLICATION.eq(applicationName))
+                .where(REQUEST_LOG.REQUEST_ID.in(
+                    select(REQUEST_LOG_IDS.REQUEST_ID)
+                    .from(REQUEST_LOG_IDS)
+                    .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))))
                 .execute();
             
             success("Debug entries successfully removed from all requests for application '" + applicationName.name + "'");
