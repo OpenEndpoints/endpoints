@@ -3996,14 +3996,6 @@ The database is still needed, for example for the request log.
 \end_layout
 
 \begin_layout Standard
-The environment variable 
-\family typewriter
-ENDPOINTS_GIT_REPOSITORY_DEFAULT_PATTERN
-\family default
- must not be set.
-\end_layout
-
-\begin_layout Standard
 A Dockerfile such as the following can be used to create a Docker image
  running a single application:
 \end_layout
