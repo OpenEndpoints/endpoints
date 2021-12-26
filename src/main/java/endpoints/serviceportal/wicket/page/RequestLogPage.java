@@ -1,6 +1,7 @@
 package endpoints.serviceportal.wicket.page;
 
 import com.databasesandlife.util.DomParser;
+import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.wicket.CachingFutureModel;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
@@ -81,7 +82,10 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     protected class ResultsModel extends CachingFutureModel<ArrayList<RequestLogEntry>> {
         @SuppressWarnings("SimplifyStreamApiCallChains")
         @Override protected @Nonnull ArrayList<RequestLogEntry> populate() {
-            try (var tx = DeploymentParameters.get().newDbTransaction()) {
+            try (
+                var tx = DeploymentParameters.get().newDbTransaction();
+                var ignored = new Timer("Fetch RequestLog")
+            ) {
                 var fields = new ArrayList<Field<?>>();
                 fields.add(field(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT.isNotNull()));
                 fields.add(field(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT.isNotNull()));
