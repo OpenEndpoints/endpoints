@@ -447,15 +447,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <repositories>
-        <repository>
-            <id>clojars</id>
-            <url>http://clojars.org/repo/</url>
-        </repository>
-        <repository>
-            <id>tmatesoft</id>
-            <url>https://maven.tmatesoft.com/content/repositories/releases/</url>
-        </repository>
-    </repositories>
 </project>
