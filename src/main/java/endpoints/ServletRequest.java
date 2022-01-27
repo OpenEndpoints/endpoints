@@ -45,7 +45,7 @@ public class ServletRequest implements Request {
     }
 
     @Override public @Nonnull List<Cookie> getCookies() {
-        return asList(req.getCookies());
+        return Optional.ofNullable(req.getCookies()).map(Arrays::asList).orElse(List.of());
     }
 
     @Override public @Nonnull String getUserAgent() {
