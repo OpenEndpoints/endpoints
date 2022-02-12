@@ -88,8 +88,8 @@ public class EndpointExecutorTest extends TestCase {
                             @Override public void accept(BufferedHttpResponseDocumentGenerationDestination x) { this.x=x; }
                         };
                         new EndpointExecutor().scheduleTasksAndSuccess(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
-                            new ApplicationConfig(false, false), context, endpoint, Map.of(), 
-                            0, new RandomRequestId(12), consumer);
+                            new ApplicationConfig(false, false), context, endpoint, 0, Map.of(),
+                            new RandomRequestId(12), consumer);
                         
                         threads.execute();
                         
