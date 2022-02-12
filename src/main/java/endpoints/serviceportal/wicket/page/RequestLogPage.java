@@ -98,9 +98,9 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     
     @AllArgsConstructor
     protected class RequestLogEntry implements Serializable {
-        public RequestLogIdsRecord ids;
+        public @Nonnull RequestLogIdsRecord ids;
         /** Doesn't have the XML fields populated (they might be huge, don't store them in the session) */
-        public RequestLogRecord record;
+        public @Nonnull RequestLogRecord record;
         public @Nonnull ParameterTransformationXml parameterTransformationInput, parameterTransformationOutput;
     }
 

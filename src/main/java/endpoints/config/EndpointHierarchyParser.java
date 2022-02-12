@@ -286,7 +286,7 @@ public class EndpointHierarchyParser extends DomParser {
     }
 
     protected static void assertNoCircularReferencesStartingFrom(
-        Map<NodeName, Set<NodeName>> references, List<NodeName> soFar, NodeName current
+        @Nonnull Map<NodeName, Set<NodeName>> references, @Nonnull List<NodeName> soFar, @Nonnull NodeName current
     ) throws ConfigurationException {
         if (soFar.contains(current)) {
             soFar.add(current);
