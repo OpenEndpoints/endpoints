@@ -41,7 +41,7 @@ public class PostgresXmlDomElementBindingTest extends TestCase {
             toInsert.setParameterTransformationOutput(null);
             tx.insert(toInsert);
 
-            var found = tx.jooq().selectFrom(REQUEST_LOG).where(REQUEST_LOG.USER_AGENT.eq(userAgent)).fetchOne();
+            var found = tx.jooq().selectFrom(REQUEST_LOG).where(REQUEST_LOG.USER_AGENT.eq(userAgent)).fetchSingle();
             assertEquals("input", found.getParameterTransformationInput().getNodeName());
             assertNull(found.getParameterTransformationOutput());
         }

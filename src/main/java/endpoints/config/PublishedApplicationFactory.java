@@ -145,7 +145,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             .select(APPLICATION_CONFIG.LOCKED, APPLICATION_CONFIG.DEBUG_ALLOWED)
             .from(APPLICATION_CONFIG)
             .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName))
-            .fetchOne();
+            .fetchSingle();
         return new ApplicationConfig(appConfig.value1(), appConfig.value2());
     }
 

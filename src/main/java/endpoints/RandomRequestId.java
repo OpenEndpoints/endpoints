@@ -34,7 +34,7 @@ public class RandomRequestId implements Serializable {
                 .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))
                 .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
                 .and(REQUEST_LOG_IDS.RANDOM_ID_PER_APPLICATION.eq(candidate))
-                .fetchOne().value1();
+                .fetchSingle().value1();
             if (existingCount == 0) return candidate;
         }
 

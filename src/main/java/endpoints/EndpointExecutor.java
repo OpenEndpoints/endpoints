@@ -131,7 +131,7 @@ public class EndpointExecutor {
             .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
             .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
             .and(REQUEST_LOG_IDS.ENDPOINT.eq(endpoint))
-            .fetchOne().value1();
+            .fetchSingle().value1();
 
         if (max == null) return 1;
         else return max+1;

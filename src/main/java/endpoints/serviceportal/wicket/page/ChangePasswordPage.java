@@ -49,7 +49,7 @@ public class ChangePasswordPage extends AbstractLoggedInApplicationPage {
                     .select(SERVICE_PORTAL_LOGIN.PASSWORD_BCRYPT)
                     .from(SERVICE_PORTAL_LOGIN)
                     .where(SERVICE_PORTAL_LOGIN.USERNAME.eq(session.getLoggedInUserDataOrThrow().username))
-                    .fetchOne().value1();
+                    .fetchSingle().value1();
                 if ( ! oldPassword.is(oldPasswordField)) {
                     session.error("Old password wrong");
                     return false;

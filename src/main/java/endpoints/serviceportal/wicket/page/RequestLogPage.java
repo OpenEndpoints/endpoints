@@ -143,7 +143,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 return tx.jooq().selectCount()
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
-                    .where(getCondition()).fetchOne().value1();
+                    .where(getCondition()).fetchSingle().value1();
             }
         }
     }
@@ -175,7 +175,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
                     .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))
-                    .and(REQUEST_LOG_IDS.REQUEST_ID.eq(id)).fetchOne().value1();
+                    .and(REQUEST_LOG_IDS.REQUEST_ID.eq(id)).fetchSingle().value1();
                 return DomParser.formatXmlPretty(element);
             }
         }

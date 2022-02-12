@@ -91,7 +91,7 @@ public class OnDemandIncrementingNumber {
                     .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
                     .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
                     .and(type.getRequestLogCondition(now, timezone))
-                    .fetchOne().value1();
+                    .fetchSingle().value1();
 
                 if (max == null) value = 1;
                 else value = max + 1;
