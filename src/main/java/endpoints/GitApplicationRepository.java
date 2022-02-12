@@ -163,7 +163,9 @@ public class GitApplicationRepository {
      */
     public void checkoutAtomicallyIfNecessary(@Nonnull GitRevision revision, @Nonnull File destination) 
     throws RepositoryCommandFailedException {
-        if ( ! destination.exists()) checkoutAtomically(revision, destination);
+        synchronized (destination.getAbsolutePath().intern()) { // No point checking out the same thing twice
+            if ( ! destination.exists()) checkoutAtomically(revision, destination);
+        }
     }
 
     @SneakyThrows(IOException.class)
