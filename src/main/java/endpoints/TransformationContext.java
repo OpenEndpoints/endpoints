@@ -38,6 +38,7 @@ public class TransformationContext {
     public final @Nonnull RequestId requestId;
     public final @Nonnull Request request;
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
+    public final @Nonnull Map<String, String> requestLogExpressionCaptures;
     public boolean alreadyDeliveredResponse = false;
 
     public static class TransformerExecutor implements Runnable {

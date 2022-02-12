@@ -2259,6 +2259,52 @@ link
 \end_layout
 
 \begin_layout Subsubsection
+Capturing Expressions for the Request Log
+\end_layout
+
+\begin_layout Standard
+A syntax like the following may be used to save text strings to the request
+ log, which are then visible in the Service Portal web interface and also
+ in the 
+\family typewriter
+<request-log>
+\family default
+ data source command.
+\end_layout
+
+\begin_layout LyX-Code
+<task class="endpoints.task.RequestLogExpressionCaptureTask" 
+\end_layout
+
+\begin_layout LyX-Code
+   key=
+\begin_inset Quotes qrd
+\end_inset
+
+my-name
+\begin_inset Quotes qrd
+\end_inset
+
+ value=
+\begin_inset Quotes qrd
+\end_inset
+
+the ${foo} is ${bar}" />
+\end_layout
+
+\begin_layout Standard
+The 
+\family typewriter
+key
+\family default
+ may not contain parameters or intermediate variables, whereas the 
+\family typewriter
+value
+\family default
+ may contain parameters and intermediate variables.
+\end_layout
+
+\begin_layout Subsubsection
 Custom Task
 \end_layout
 

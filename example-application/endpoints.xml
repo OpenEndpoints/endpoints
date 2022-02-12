@@ -79,6 +79,7 @@
           <after task-id="t"/>
           <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
         </task>
+        <task class="endpoints.task.RequestLogExpressionCaptureTask" key="inv" value="invoice# is '${invoice-number}'" />
         <success if="${email-address}" equals="y,email-address">
           <input-intermediate-value name="swagger-version"/>
           <forward-to-endpoint endpoint-name="json2">
@@ -91,6 +92,7 @@
       </endpoint>
       
       <endpoint name="json2">
+        <task class="endpoints.task.RequestLogExpressionCaptureTask" key="foo" value="bar" />
         <success>
           <forward-to-endpoint endpoint-name="json3"/>
         </success>

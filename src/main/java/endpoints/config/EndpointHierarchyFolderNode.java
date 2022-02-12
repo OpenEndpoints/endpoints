@@ -3,17 +3,17 @@ package endpoints.config;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EndpointHierarchyFolderNode extends EndpointHierarchyNode {
     
     public @Nonnull EndpointHierarchyNode[] children;
 
     @Override
-    public @Nonnull Set<NodeName> getEndpointNames() {
-        var result = new HashSet<NodeName>();
-        for (var c : children) result.addAll(c.getEndpointNames());
+    public @Nonnull Map<NodeName, Endpoint> getEndpointForName() {
+        var result = new HashMap<NodeName, Endpoint>();
+        for (var c : children) result.putAll(c.getEndpointForName());
         return result;
     }
 

@@ -24,7 +24,7 @@ public class EndpointNamesModel extends CachingFutureModel<ArrayList<NodeName>> 
     @Override protected ArrayList<NodeName> populate() {
         try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer(getClass().getSimpleName()+".load")) {
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment.get());
-            var names = application.getEndpoints().getEndpointNames();
+            var names = application.getEndpoints().getEndpointForName().keySet();
             return new ArrayList<>(new TreeSet<>(names));
         }
         catch (ApplicationFactory.ApplicationNotFoundException e) {

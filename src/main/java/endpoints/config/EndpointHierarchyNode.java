@@ -6,7 +6,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @SuppressWarnings("serial")
 public abstract class EndpointHierarchyNode {
@@ -43,7 +42,7 @@ public abstract class EndpointHierarchyNode {
         return "||";
     }
     
-    public abstract @Nonnull Set<NodeName> getEndpointNames();
+    public abstract @Nonnull Map<NodeName, Endpoint> getEndpointForName();
     public abstract @Nonnull Endpoint findEndpointOrThrow(@Nonnull NodeName name) throws NodeNotFoundException;
     
     public abstract void assertTemplatesValid() throws DocumentTemplateInvalidException;

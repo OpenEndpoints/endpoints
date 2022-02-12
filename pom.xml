@@ -401,7 +401,7 @@
                                         <forcedType>
                                             <userType>endpoints.RequestId</userType>
                                             <converter>endpoints.jooq.RequestIdConverter</converter>
-                                            <expression>REQUEST_ID</expression>
+                                            <expression>.*REQUEST_ID</expression>
                                         </forcedType>
                                         <forcedType>
                                             <userType>endpoints.RandomRequestId</userType>

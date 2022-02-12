@@ -18,8 +18,8 @@ public class EndpointHierarchyParserTest extends TestCase {
     protected @Nonnull Endpoint newEndpoint(@Nonnull String name, @CheckForNull String forwardTo) throws Exception {
         Endpoint result = new Endpoint();
         result.name = new NodeName(name);
-        result.success = List.of(forwardTo == null ? new EmptyResponseConfiguration(DomParser.from("<unit-test/>")) 
-            : new ForwardToEndpointResponseConfiguration(DomParser.from("<unit-test/>"), new NodeName(forwardTo)));
+        result.success = List.of(forwardTo == null ? EmptyResponseConfiguration.newForTesting() 
+            : ForwardToEndpointResponseConfiguration.newForTesting(new NodeName(forwardTo)));
         return result;
     }
 

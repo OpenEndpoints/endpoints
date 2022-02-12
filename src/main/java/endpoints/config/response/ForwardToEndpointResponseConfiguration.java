@@ -1,9 +1,12 @@
 package endpoints.config.response;
 
+import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import com.google.common.annotations.VisibleForTesting;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.config.NodeName;
 import endpoints.config.ParameterName;
+import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -39,11 +42,13 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
         catch (ConfigurationException e) { throw new ConfigurationException("<forward-to-endpoint>", e); }
     }
 
-    // For unit test
-    public ForwardToEndpointResponseConfiguration(@Nonnull Element config, @Nonnull NodeName endpoint) throws ConfigurationException {
-        super(config);
-        this.endpoint = endpoint;
-        this.inputParameterPatterns = null;
+    @VisibleForTesting
+    @SneakyThrows(ConfigurationException.class)
+    public static ForwardToEndpointResponseConfiguration newForTesting(@Nonnull NodeName endpoint) {
+        var forwardToEndpointElement = DomParser.from("<unit-test/>");
+        forwardToEndpointElement.setAttribute("endpoint-name", endpoint.name);
+        
+        return new ForwardToEndpointResponseConfiguration(DomParser.from("<unit-test/>"), forwardToEndpointElement);
     }
 
     @Override public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {

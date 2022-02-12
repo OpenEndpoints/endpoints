@@ -21,6 +21,7 @@ import endpoints.datasource.ParametersCommand;
 import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
+import endpoints.task.RequestLogExpressionCaptureTask;
 import endpoints.task.Task;
 import endpoints.task.Task.TaskExecutionFailedException;
 import endpoints.task.TaskId;
@@ -204,7 +205,7 @@ public class EndpointExecutor {
 
         // Schedule execution of e.g. <xml-from-application>
         var context = new TransformationContext(environment, applicationName, application, tx, threads, requestParameters,
-            ParameterNotFoundPolicy.emptyString, requestId, req, autoInc);
+            ParameterNotFoundPolicy.emptyString, requestId, req, autoInc, new HashMap<>());
         var dataSourceResults = new ArrayList<DataSourceCommandFetcher>();
         for (var c : parameterTransformation.dataSourceCommands)
             dataSourceResults.add(c.scheduleExecution(context, Set.of()));
@@ -499,7 +500,7 @@ public class EndpointExecutor {
                 attemptSuccess(environment, applicationName, application, appConfig,
                     application.getEndpoints().findEndpointOrThrow(((ForwardToEndpointResponseConfiguration) config).endpoint),
                     context.tx, context.threads, false, new ParameterTransformationLogger(), requestAutoInc, autoInc,
-                    random, null, context.requestId, request, responseConsumer);
+                    context.requestLogExpressionCaptures, random, null, context.requestId, request, responseConsumer);
             }
             else super.runUnconditionally();
         }
@@ -511,6 +512,7 @@ public class EndpointExecutor {
         @Nonnull Instant now, @Nonnull RequestId requestId, 
         @Nonnull Request req, @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
+        @Nonnull Map<String, String> requestLogExpressionCaptures,
         @Nonnull BufferedHttpResponseDocumentGenerationDestination response,
         @Nonnull Consumer<RequestLogIdsRecord> alterRequestLogIds, @Nonnull Consumer<RequestLogRecord> alterRequestLog
     ) {
@@ -534,6 +536,8 @@ public class EndpointExecutor {
         r.setParameterTransformationOutput(parameterTransformationLogger.output);
         alterRequestLog.accept(r);
         tx.insert(r);
+        
+        RequestLogExpressionCaptureTask.writeToDb(tx, requestId, requestLogExpressionCaptures);
     }
     
     protected @Nonnull Response scheduleTasksAndSuccess(
@@ -608,7 +612,7 @@ public class EndpointExecutor {
         @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
         boolean debugRequested, @Nonnull ParameterTransformationLogger parameterTransformationLogger,
         long requestAutoInc, @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
-        @Nonnull RandomRequestId random,
+        @Nonnull Map<String, String> requestLogExpressionCaptures, @Nonnull RandomRequestId random,
         @CheckForNull String hashToCheck, @Nonnull RequestId requestId, @Nonnull Request req,
         @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
     ) throws EndpointExecutionFailedException, RequestInvalidException, TransformationFailedException {
@@ -620,7 +624,7 @@ public class EndpointExecutor {
                     
                     try (var ignored3 = new Timer("Execute <task>s and generate response")) {
                         var context = new TransformationContext(environment, applicationName, application, tx, threads, parameters,
-                            ParameterNotFoundPolicy.error, requestId, req, autoInc);
+                            ParameterNotFoundPolicy.error, requestId, req, autoInc, requestLogExpressionCaptures);
                         scheduleTasksAndSuccess(environment, applicationName, appConfig,
                             context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
                     }
@@ -664,6 +668,7 @@ public class EndpointExecutor {
 
                 var requestAutoInc = getNextAutoIncrement(tx.db, applicationName, environment, endpoint.name);
                 var autoInc = newLazyNumbers(applicationName, environment, now);
+                var requestLogExpressionCaptures = new HashMap<String, String>();
                 var random = RandomRequestId.generate(tx.db, applicationName, environment);
 
                 var successResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
@@ -673,7 +678,7 @@ public class EndpointExecutor {
                 
                 attemptSuccess(environment, applicationName, application, appConfig, 
                     endpoint, tx, threads, debugRequested, parameterTransformationLogger, requestAutoInc, autoInc, 
-                    random, hashToCheck, requestId, req, successResponse);
+                    requestLogExpressionCaptures, random, hashToCheck, requestId, req, successResponse);
 
                 try { threads.execute(); }
                 catch (RuntimeException e) {
@@ -687,7 +692,7 @@ public class EndpointExecutor {
                 }
 
                 insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, req,
-                    parameterTransformationLogger, autoInc, successResponse.destination, r -> {
+                    parameterTransformationLogger, autoInc, requestLogExpressionCaptures, successResponse.destination, r -> {
                         r.setIncrementalIdPerEndpoint(requestAutoInc);
                         r.setRandomIdPerApplication(random);
                     }, r -> {});
@@ -715,9 +720,8 @@ public class EndpointExecutor {
                     var threads = new ThreadPool();
                     threads.setThreadNamePrefix(getClass().getName() + " <error>");
                     var autoInc = newLazyNumbers(applicationName, environment, now);
-                    var context = new TransformationContext(environment, applicationName,
-                        application, tx, threads, errorExpansionValues,
-                        ParameterNotFoundPolicy.error, requestId, req, autoInc);
+                    var context = new TransformationContext(environment, applicationName, application, tx, 
+                        threads, errorExpansionValues, ParameterNotFoundPolicy.error, requestId, req, autoInc, new HashMap<>());
                     threads.addTask(new Response(context, endpoint.error, false, errorResponse));
                     
                     try { threads.execute(); }
@@ -728,7 +732,8 @@ public class EndpointExecutor {
                     }
 
                     insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, req,
-                        parameterTransformationLogger, autoInc, errorResponse.destination, r -> {}, r -> {
+                        parameterTransformationLogger, autoInc, context.requestLogExpressionCaptures, 
+                        errorResponse.destination, r -> {}, r -> {
                             r.setExceptionMessage(e.getMessage());
                             r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
                                 ? (((HttpRequestFailedException) e).url) : null);

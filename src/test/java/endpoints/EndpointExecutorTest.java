@@ -75,13 +75,13 @@ public class EndpointExecutorTest extends TestCase {
                             () -> output.append("b")));
                         endpoint.success = List.of(
                             RedirectResponseConfiguration.newForTesting("if='${param}' equals='special'", "https://foo.com/"),
-                            new EmptyResponseConfiguration(DomParser.from("<foo/>"))
+                            EmptyResponseConfiguration.newForTesting()
                         );
                         
                         var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
                             Application.newForTesting(Map.of()), tx, threads,
                             Map.of(new ParameterName("param"), param), error, RequestId.newRandom(), 
-                            Request.newForTesting(), Map.of());
+                            Request.newForTesting(), Map.of(), Map.of());
                         
                         var consumer = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                             BufferedHttpResponseDocumentGenerationDestination x;

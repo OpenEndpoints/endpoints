@@ -1,14 +1,13 @@
 package endpoints.config;
 
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import endpoints.config.response.ForwardToEndpointResponseConfiguration;
 import endpoints.config.response.ResponseConfiguration;
 import endpoints.task.Task;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 // Endpoint is not serializable on purpose; because it references compiled XSLT templates
 // If you need to serialize an Endpoint, reference a NodeName instead and find it from the application when needed
@@ -22,8 +21,8 @@ public class Endpoint extends EndpointHierarchyNode {
     public final @Nonnull List<Task> tasks = new ArrayList<>();
 
     @Override
-    public @Nonnull Set<NodeName> getEndpointNames() {
-        return Set.of(name);
+    public @Nonnull Map<NodeName, Endpoint> getEndpointForName() {
+        return Map.of(name, this);    
     }
 
     @Override

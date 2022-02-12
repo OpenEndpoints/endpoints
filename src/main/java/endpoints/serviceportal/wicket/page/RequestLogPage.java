@@ -9,6 +9,7 @@ import endpoints.PublishEnvironment;
 import endpoints.RequestId;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
+import endpoints.generated.jooq.tables.records.RequestLogExpressionCaptureRecord;
 import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.serviceportal.DateRangeOption;
@@ -43,12 +44,13 @@ import java.util.*;
 
 import static endpoints.PublishEnvironment.live;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
+import static endpoints.generated.jooq.Tables.REQUEST_LOG_EXPRESSION_CAPTURE;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.*;
 import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
 import static org.apache.wicket.util.time.Duration.seconds;
 import static org.jooq.impl.DSL.*;
@@ -77,7 +79,12 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
             .or(REQUEST_LOG.HTTP_REQUEST_FAILED_STATUS_CODE.cast(String.class).containsIgnoreCase(filter))
             .or(REQUEST_LOG.XSLT_PARAMETER_ERROR_MESSAGE.cast(String.class).containsIgnoreCase(filter))
             .or(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT.cast(String.class).containsIgnoreCase(filter))
-            .or(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT.cast(String.class).containsIgnoreCase(filter));
+            .or(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT.cast(String.class).containsIgnoreCase(filter))
+            .or(exists(select()
+                .from(REQUEST_LOG_EXPRESSION_CAPTURE)
+                .where(REQUEST_LOG_EXPRESSION_CAPTURE.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
+                .and(REQUEST_LOG_EXPRESSION_CAPTURE.VALUE.containsIgnoreCase(filter))
+            ));
     }
     
     protected @Nonnull Condition getCondition() {
@@ -102,6 +109,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
         /** Doesn't have the XML fields populated (they might be huge, don't store them in the session) */
         public @Nonnull RequestLogRecord record;
         public @Nonnull ParameterTransformationXml parameterTransformationInput, parameterTransformationOutput;
+        public @Nonnull List<RequestLogExpressionCaptureRecord> expressionCaptures;
     }
 
     protected class ResultsModel extends CachingFutureModel<ArrayList<RequestLogEntry>> {
@@ -123,16 +131,28 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT);
                 fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT);
 
-                return tx.jooq().select(fields)
+                var requestLogRecords = tx.jooq()
+                    .select(fields)
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
                     .where(getCondition())
                     .orderBy(REQUEST_LOG.DATETIME.desc())
                     .limit(500)
-                    .fetch(r -> new RequestLogEntry(r.into(REQUEST_LOG_IDS), r.into(REQUEST_LOG),
+                    .fetch();
+
+                var captures = tx.jooq()
+                    .selectFrom(REQUEST_LOG_EXPRESSION_CAPTURE)
+                    .where(REQUEST_LOG_EXPRESSION_CAPTURE.REQUEST_ID.in(requestLogRecords.getValues(REQUEST_LOG_IDS.REQUEST_ID)))
+                    .orderBy(lower(REQUEST_LOG_EXPRESSION_CAPTURE.KEY))
+                    .fetch().stream()
+                    .collect(groupingBy(r -> r.getRequestId(), toList()));
+
+                return requestLogRecords.stream()
+                    .map(r -> new RequestLogEntry(r.into(REQUEST_LOG_IDS), r.into(REQUEST_LOG),
                         new ParameterTransformationXml(r.get(0, Boolean.class), r.get(1, Boolean.class)),
-                        new ParameterTransformationXml(r.get(2, Boolean.class), r.get(3, Boolean.class))))
-                    .stream().collect(toCollection(ArrayList::new));
+                        new ParameterTransformationXml(r.get(2, Boolean.class), r.get(3, Boolean.class)),
+                        captures.getOrDefault(r.into(REQUEST_LOG_IDS).getRequestId(), List.of())))
+                    .collect(toCollection(ArrayList::new));
             }
         }
     }
@@ -260,6 +280,15 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     detailsHighlightLabels.add((SubstringHighlightLabel) 
                         new SubstringHighlightLabel("xsltParameterErrorMessage", filterText, rec.getXsltParameterErrorMessage())
                         .setVisible(rec.getXsltParameterErrorMessage() != null));
+                    
+                    var captures = new WebMarkupContainer("expressionCaptures");
+                    captures.add(new ListView<>("row", entry.expressionCaptures) {
+                        @Override protected void populateItem(ListItem<RequestLogExpressionCaptureRecord> item) {
+                            item.add(new Label("key", item.getModelObject().getKey()));
+                            item.add(new SubstringHighlightLabel("value", filterText, item.getModelObject().getValue()));
+                        }
+                    });
+                    captures.setVisible( ! entry.expressionCaptures.isEmpty());
 
                     var details = new WebMarkupContainer("details");
                     details.add(AttributeAppender.append("style", () -> expandedRows.contains(id) ? "" : "display:none;"));
@@ -279,6 +308,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     details.add(new WebMarkupContainer("outputXmlNotAvailable")
                         .setVisible( ! entry.parameterTransformationOutput.xmlIsAvailable));
                     for (var label : detailsHighlightLabels) details.add(label);
+                    details.add(captures);
                     item.add(details);
 
                     var expansionFilterTextMatches = detailsHighlightLabels.stream().anyMatch(label -> label.matches())

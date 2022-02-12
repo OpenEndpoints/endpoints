@@ -205,6 +205,17 @@
                                                     <td wicket:id="xsltParameterErrorMessage">Param 'foo' not found</td>
                                                 </tr>
                                             </wicket:enclosure>
+                                            <tr wicket:id="expressionCaptures">
+                                                <td>Expression Captures:</td>
+                                                <td>
+                                                    <table class="uk-table uk-table-justify uk-text-small uk-table-divider uk-width-1-2">
+                                                        <tr wicket:id="row">
+                                                            <td wicket:id="key">foo</td>
+                                                            <td wicket:id="value">THIS IS THE VALUE OF FOO</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
                                             <wicket:enclosure child="downloadInputXml">
                                                 <tr>
                                                     <td>Parameter Transformation (Debug):</td>

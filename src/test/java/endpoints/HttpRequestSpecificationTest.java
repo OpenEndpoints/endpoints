@@ -94,7 +94,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             try (var tx = new ApplicationTransaction(application)) {
                 var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
                     application, tx, new ThreadPool(), params,
-                    ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), Map.of());
+                    ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), Map.of(), Map.of());
                 var resultContainer = new Object() {
                     public Element element;
                 };

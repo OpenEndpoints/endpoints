@@ -7,6 +7,7 @@ import com.offerready.xslt.DocumentGenerator.StyleVisionXslt;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.config.response.*;
 import endpoints.datasource.DataSourceCommand;
+import endpoints.task.RequestLogExpressionCaptureTask;
 import endpoints.task.Task;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
@@ -331,6 +332,10 @@ public class EndpointHierarchyParser extends DomParser {
             
             assertUniqueEndpointNames(new HashSet<>(), result);
             assertEndpointForwardsExitAndNoCircularReferences(result);
+            
+            var endpointForName = result.getEndpointForName();
+            for (var e : endpointForName.values()) 
+                RequestLogExpressionCaptureTask.assertUniqueCaptureKeys(endpointForName, Map.of(), e);
             
             return result;
         }
