@@ -26,8 +26,6 @@ public abstract class DailyJob {
     }
     
     public void start() {
-        LoggerFactory.getLogger(getClass()).info("Scheduling " + getClass().getSimpleName()
-            + " daily at " + scheduleUtc.format(DateTimeFormatter.ofPattern("HH:mm")) + " UTC");
         var thread = new Thread(this::runThread, getClass().getSimpleName());
         thread.start();
     }
@@ -36,6 +34,9 @@ public abstract class DailyJob {
     
     @SuppressWarnings("InfiniteLoopStatement") 
     protected void runThread() {
+        LoggerFactory.getLogger(getClass()).info("Scheduling " + getClass().getSimpleName()
+            + " daily at " + scheduleUtc.format(DateTimeFormatter.ofPattern("HH:mm")) + " UTC");
+        
         while (true) {
             var currentTimeUtc = LocalTime.now(UTC);
             var wait = Duration.between(currentTimeUtc, scheduleUtc);
