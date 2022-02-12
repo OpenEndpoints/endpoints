@@ -148,7 +148,10 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
         }
         catch (RequestInvalidException e) {
-            LoggerFactory.getLogger(getClass()).error("Request invalid", e);
+            // Assuming it's just an error with some text for the user, don't fill up our logs with stack backtraces
+            if (e.getCause() == null) LoggerFactory.getLogger(getClass()).error(e.getClass().getSimpleName()+": "+e.getMessage());
+            else LoggerFactory.getLogger(getClass()).error("Request invalid", e);
+            
             resp.sendError(400, "Request invalid: " + e.getMessage());
         }
         catch (Exception e) { 
