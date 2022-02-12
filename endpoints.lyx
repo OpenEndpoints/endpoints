@@ -4333,6 +4333,35 @@ JAVA_OPTIONS
  information which might be useful to attackers.
 \end_layout
 
+\begin_layout Description
+
+\family typewriter
+-XX:ActiveProcessorCount=2
+\family default
+ To force the number of threads to use in parallel operations.
+ 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://www.databasesandlife.com/java-docker-aws-ecs-multicore/
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \end_deeper
 \begin_layout Subsection
 Memory
