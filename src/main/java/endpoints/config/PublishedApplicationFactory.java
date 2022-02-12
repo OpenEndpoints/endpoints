@@ -40,6 +40,9 @@ public class PublishedApplicationFactory extends ApplicationFactory {
     protected @Nonnull File applicationCheckoutContainerDir;
     protected final @Nonnull Map<ApplicationDefn, CachedApplication> cache = new HashMap<>();
     
+    /**
+     * Creates the factory and schedules the loading of all known applications on the passed thread pool.
+     */
     @SuppressFBWarnings("SA_LOCAL_SELF_ASSIGNMENT")
     public PublishedApplicationFactory(
         @Nonnull DbTransaction tx, @Nonnull XsltCompilationThreads threads, @Nonnull File applicationCheckoutContainerDir
@@ -56,12 +59,11 @@ public class PublishedApplicationFactory extends ApplicationFactory {
         for (var r : rows) {
             var name = r.value1();
             var revision = r.value3();
-            threads.addTask(() -> {
-                try {
-                    var repo = repos.get(name);
-                    var directory = getApplicationDirectory(name, revision);
-                    repo.checkoutAtomicallyIfNecessary(revision, directory);
+            var repo = repos.get(name);
+            var directory = getApplicationDirectory(name, revision);
 
+            var loadAndCacheApplication = (Runnable) () -> {
+                try {
                     var cachedApp = new CachedApplication();
                     cachedApp.revision = revision;
                     cachedApp.application = loadApplication(threads, directory);
@@ -72,6 +74,16 @@ public class PublishedApplicationFactory extends ApplicationFactory {
                 }
                 catch (Exception e) {
                     LoggerFactory.getLogger(getClass()).error("Cannot load application '"+name.name+"' (will skip)", e);
+                }
+            };
+
+            threads.addTaskOffPool(() -> {
+                try { 
+                    repo.checkoutAtomicallyIfNecessary(revision, directory);
+                    threads.addTask(loadAndCacheApplication);      // Only load the application if the checkout was successful
+                }
+                catch (Exception e) {
+                    LoggerFactory.getLogger(getClass()).error("Cannot checkout application '"+name.name+"' from Git (will skip)", e);
                 }
             });
         }
