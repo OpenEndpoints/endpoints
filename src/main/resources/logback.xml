@@ -5,6 +5,7 @@
         </encoder>
     </appender>
 
+    <logger name="org.jooq.impl.AbstractQueryPart$SerializationDeprecation" level="OFF"/>
     <root level="info">
         <appender-ref ref="STDOUT" />
     </root>
