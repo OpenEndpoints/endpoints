@@ -31,7 +31,7 @@ public class EndpointExecutorTest extends TestCase {
         catch (InterruptedException ignored) { }
     }
 
-    public void testScheduleTasksAndSuccess() throws Exception {
+    public void testScheduleTasksAndSuccess() {
         
         class MyTask extends Task {
             

@@ -245,11 +245,11 @@ public class EmailTask extends Task {
     }
     
     @Override
-    @SneakyThrows({MessagingException.class, IOException.class, TaskExecutionFailedException.class})
+    @SneakyThrows({MessagingException.class, IOException.class})
     public void executeThenScheduleSynchronizationPoint(
         @Nonnull TransformationContext context,
         @Nonnull SynchronizationPoint workComplete
-    ) {
+    ) throws TaskExecutionFailedException {
         var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
 
         var mainPart = new MimeMultipart("mixed");

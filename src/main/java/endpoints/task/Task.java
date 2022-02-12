@@ -70,11 +70,15 @@ public abstract class Task extends EndpointExecutionParticipant {
     
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
     
-    /** Note: All intermediate values have been calculated by the time this method is called. */
+    /**
+     * @implSpec
+     *      This method is run within the thread pool.
+     *      All intermediate values have been calculated by the time this method is called. 
+     */
     protected abstract void executeThenScheduleSynchronizationPoint(
         @Nonnull TransformationContext context,
         @Nonnull SynchronizationPoint workComplete
-    );
+    ) throws TaskExecutionFailedException;
     
     /**
      * @return this will be scheduled in the thread pool once the execution is complete and intermediate values are available. 
@@ -86,11 +90,14 @@ public abstract class Task extends EndpointExecutionParticipant {
         var workComplete = new SynchronizationPoint();
         
         context.threads.addTaskWithDependencies(dependencies, () -> {
-            var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
-            if (condition.evaluate(stringParams))
-                executeThenScheduleSynchronizationPoint(context, workComplete);
-            else
-                context.threads.addTask(workComplete);
+            try {
+                var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+                if (condition.evaluate(stringParams))
+                    executeThenScheduleSynchronizationPoint(context, workComplete);
+                else
+                    context.threads.addTask(workComplete);
+            }
+            catch (TaskExecutionFailedException e) { throw new RuntimeException(e); }
         });
 
         return workComplete;
