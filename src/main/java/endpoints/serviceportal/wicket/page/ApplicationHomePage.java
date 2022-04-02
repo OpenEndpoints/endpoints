@@ -34,7 +34,7 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
             var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/");
             var applicationRepo = GitApplicationRepository.fetch(tx, applicationName);
 
-            app = tx.jooq().fetchOne(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
+            app = tx.jooq().fetchSingle(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
 
             add(new ServicePortalFeedbackPanel("feedback"));
             add(new Label("applicationName", applicationName.name));

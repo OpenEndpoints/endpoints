@@ -192,7 +192,7 @@ public class EndpointExecutor {
         // Add <input-from-application>
         var inputFromApplicationElement = inputParametersDocument.createElement("input-from-application");
         inputParametersDocument.getDocumentElement().appendChild(inputFromApplicationElement);
-        @CheckForNull var databaseConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
+        var databaseConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
             .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne();
         appendTextElement(inputFromApplicationElement, "application", applicationName.name);
         appendTextElement(inputFromApplicationElement, "application-display-name", 

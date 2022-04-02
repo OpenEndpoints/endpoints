@@ -67,8 +67,7 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
             if (application == null) {
                 authType = AuthType.authPublic;
             } else {
-                @CheckForNull var record = tx.jooq().fetchOne(APPLICATION_CONFIG, 
-                    APPLICATION_CONFIG.APPLICATION_NAME.eq(application));
+                var record = tx.jooq().fetchOne(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(application));
                 if (record == null) {
                     getSession().error("Application '" + application.name + "' not found");
                     throw new RestartResponseException(AdminApplicationListPage.class);
