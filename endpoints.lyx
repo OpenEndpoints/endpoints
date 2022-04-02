@@ -508,38 +508,46 @@ Parameters
 \end_layout
 
 \begin_layout Standard
-A request contains any number of GET or POST parameters.
-\end_layout
-
-\begin_layout Standard
-The values supplied by the user for these parameters are used in various
- places.
- For example, if you are fetching XML from a URL, parts of the whole of
- the URL may be the value of a parameter.
- See below for the various configuration elements where parameter replacement
- occurs.
-\end_layout
-
-\begin_layout Standard
-The syntax for this is 
+One of the first things to happen during the processing of an endpoints
+ request is to determine the values of parameters.
+ Parameters are read-only strings, for example the parameter 
 \family typewriter
-${param}
+foo
+\family default
+ may have the value 
+\family typewriter
+bar
 \family default
 .
- The braces are, in contrast to many other systems, mandatory.
 \end_layout
 
 \begin_layout Standard
-Parameter names are case-sensitive.
-\end_layout
+The parameters are sent in the HTTP request to Endpoints.
+ See section 
+\begin_inset CommandInset ref
+LatexCommand vref
+reference "sec:Usage"
+plural "false"
+caps "false"
+noprefix "false"
 
-\begin_layout Standard
-Which parameters the user may supply must be defined in the 
+\end_inset
+
+ for which types of requests can be send to Endpoints, and how the parameters
+ are determined for each of those types of requests.
+ For example in the case of a GET request, the parameters are simply the
+ 
 \family typewriter
-endpoints.xml
+a=b&c=d
 \family default
- file; any parameter sent to the server which is not defined there is an
- error.
+ parameters sent along with the request.
+\end_layout
+
+\begin_layout Standard
+So that it isn't possible to create an Endpoints configuration which has
+ a misspelt parameter name, the set of available parameters must be specified.
+ This is analogous to requiring variables to be declared in programming
+ languages such as Java.
 \end_layout
 
 \begin_layout Standard
@@ -576,6 +584,19 @@ To use a default value, if the user hasn't supplied anything, and thereby
 <parameter name="foo" default-value="a-value"/>
 \family default
 .
+\end_layout
+
+\begin_layout Standard
+The syntax for this is 
+\family typewriter
+${param}
+\family default
+.
+ The braces are, in contrast to many other systems, mandatory.
+\end_layout
+
+\begin_layout Standard
+Parameter names are case-sensitive.
 \end_layout
 
 \begin_layout Standard
@@ -632,7 +653,7 @@ ${request-id}
  Each request gets its own unique UUID.
 \end_layout
 
-\begin_layout Subsection
+\begin_layout Subsubsection
 Parameter Transformation
 \end_layout
 
