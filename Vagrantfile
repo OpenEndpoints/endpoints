@@ -25,15 +25,7 @@ Vagrant.configure(2) do |config|
     echo --- General OS installation
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qy    # grub upgrade warnings mess with the terminal
-    apt-get -qy install vim ntp unattended-upgrades less
-
-    echo --- Install Java 11 \(OpenJDK\)
-    wget -q https://download.java.net/java/GA/jdk11/9/GPL/openjdk-11.0.2_linux-x64_bin.tar.gz -O /tmp/openjdk-11.tar.gz
-    mkdir /usr/lib/jvm
-    tar xfvz /tmp/openjdk-11.tar.gz --directory /usr/lib/jvm
-    rm -f /tmp/openjdk-11.tar.gz
-    for bin in /usr/lib/jvm/jdk-11.0.2/bin/*; do update-alternatives --install /usr/bin/$(basename $bin) $(basename $bin) $bin 100; done
-    for bin in /usr/lib/jvm/jdk-11.0.2/bin/*; do update-alternatives --set $(basename $bin) $bin; done
+    apt-get -qy install vim ntp unattended-upgrades less openjdk-11-jdk
 
     echo -- PostgreSQL
     apt-get -qy install postgresql-10
