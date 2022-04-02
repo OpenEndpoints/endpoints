@@ -43,7 +43,7 @@ public abstract class DailyJob {
             if (wait.isNegative()) wait = wait.plusDays(1);
             if (wait.isNegative()) throw new RuntimeException("Unreachable");
             LoggerFactory.getLogger(getClass()).info(String.format(
-                "Waiting %.1f hours hours until next %s", (double) wait.getSeconds() / 60 / 60, getClass().getSimpleName()));
+                "Waiting %.1f hours until next %s", (double) wait.getSeconds() / 60 / 60, getClass().getSimpleName()));
             
             try { Thread.sleep(wait.toMillis()); }
             catch (InterruptedException ignored) { }
