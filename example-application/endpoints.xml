@@ -18,13 +18,8 @@
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
         <parameter name="dont-send" default-value="false"/>
         <task class="endpoints.task.HttpRequestTask">
-          <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
-          <output-intermediate-value name="swagger-host" jsonpath="$.host" regex="[a-z.]+"/>
-        </task>
-        <task class="endpoints.task.HttpRequestTask">
-          <input-intermediate-value name="swagger-host"/>
-          <url>https://${swagger-host}/v2/api-docs</url>
-          <output-intermediate-value name="swagger-version" jsonpath="$.swagger"/>
+          <url>https://sandbox.digitalhub.washtec.com/v3/api-docs</url>
+          <output-intermediate-value name="swagger-version" jsonpath="$.openapi"/>
         </task>
         <task class="endpoints.task.EmailTask" if="${dont-send}" notequals="true">
           <input-intermediate-value name="swagger-version"/>
@@ -73,12 +68,12 @@
           </xml-from-url>
         </parameter-transformation>
         <task class="endpoints.task.HttpRequestTask" id="t">
-          <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
-          <output-intermediate-value name="swagger-version" jsonpath="$.swagger" regex="[\d.]+"/>
+          <url>https://sandbox.digitalhub.washtec.com/v3/api-docs</url>
+          <output-intermediate-value name="swagger-version" jsonpath="$.openapi" regex="[\d.]+"/>
         </task>
         <task class="endpoints.task.HttpRequestTask">
           <after task-id="t"/>
-          <url>https://sandbox.digitalhub.washtec.com/v2/api-docs</url>
+          <url>https://sandbox.digitalhub.washtec.com/v3/api-docs</url>
         </task>
         <task class="endpoints.task.RequestLogExpressionCaptureTask" key="inv" value="invoice# is '${invoice-number}'" />
         <success if="${email-address}" equals="y,email-address">
