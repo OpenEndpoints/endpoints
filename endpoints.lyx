@@ -597,6 +597,10 @@ ${param}
 
 \begin_layout Standard
 Parameter names are case-sensitive.
+ Parameter names may consist of letters, digits, hyphen, underscore and
+ dot.
+ In contrast to variables in programming languages, there is no rule against
+ creating a parameter whose name beings with (or consists entirely of) digits.
 \end_layout
 
 \begin_layout Standard

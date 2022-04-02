@@ -12,6 +12,7 @@
       <!-- other params -->
       <parameter name="withouthyphen" default-value="abc"/>
       <parameter name="catalogue" default-value="example-catalogue"/>
+      <parameter name="param.with.dots" default-value="dots"/>
   
       <endpoint name="send-email">
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
@@ -30,7 +31,7 @@
           <from>endpoints@example.com</from>
           <to>${email-address}</to>
           <to>${email-address}</to>
-          <subject>Email from Endpoints to: ${email-address} (Swagger Version ${swagger-version})</subject>
+          <subject>Email from Endpoints to: ${email-address} (Dots are ${param.with.dots})</subject>
           <body-transformation name="produce-text"/>
           <body-transformation name="produce-html-email-body"/>
           <attachment-static filename="static-subdirectory/spheres.png"/>

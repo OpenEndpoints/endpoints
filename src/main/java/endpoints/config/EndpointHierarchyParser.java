@@ -33,9 +33,12 @@ public class EndpointHierarchyParser extends DomParser {
 
         var p = new Parameter();
         p.defaultValueOrNull = getOptionalAttribute(element, "default-value");
+        
+        var name = new ParameterName(getMandatoryAttribute(element, "name"));
+        name.assertNameValid();
 
         var result = new HashMap<ParameterName, Parameter>();
-        result.put(new ParameterName(getMandatoryAttribute(element, "name")), p);
+        result.put(name, p);
         return result;
     }
     
