@@ -26,14 +26,6 @@ import static java.util.stream.Collectors.toList;
 
 public class EndpointHierarchyParser extends DomParser {
     
-    public static Map<ParameterName, String> parseParameterMap(Element container, String elementName, String keyAttribute)
-        throws ConfigurationException {
-        Map<ParameterName, String> result = new HashMap<>();
-        for (Element e : getSubElements(container, elementName))
-            result.put(new ParameterName(getMandatoryAttribute(e, keyAttribute)), e.getTextContent());
-        return result;
-    }
-
     /** @return map with one entry (similar to a "pair", but more convenient) */
     protected static @Nonnull Map<ParameterName, Parameter> parseParameter(@Nonnull Element element)
     throws ConfigurationException {

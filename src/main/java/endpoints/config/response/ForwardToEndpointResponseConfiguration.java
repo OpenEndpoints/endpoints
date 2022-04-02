@@ -11,12 +11,13 @@ import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static endpoints.config.EndpointHierarchyParser.parseParameterMap;
+import static com.databasesandlife.util.DomParser.getSubElements;
 
 /** Execute another endpoint and return its result */
 public class ForwardToEndpointResponseConfiguration extends ResponseConfiguration {
@@ -25,6 +26,14 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
     
     /** Null means that all parameters are forwarded */
     @CheckForNull public Map<ParameterName, String> inputParameterPatterns;
+
+    protected Map<ParameterName, String> parseParameterMap(Element container, String elementName, String keyAttribute)
+    throws ConfigurationException {
+        var result = new HashMap<ParameterName, String>();
+        for (Element e : getSubElements(container, elementName))
+            result.put(new ParameterName(getMandatoryAttribute(e, keyAttribute)), e.getTextContent());
+        return result;
+    }
 
     public ForwardToEndpointResponseConfiguration(@Nonnull Element config, @Nonnull Element forwardToEndpointElement) 
     throws ConfigurationException {
