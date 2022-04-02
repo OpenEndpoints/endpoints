@@ -299,7 +299,7 @@ public class HttpRequestSpecification {
         var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
         var baseUrl = replacePlainTextParameters(urlPattern, stringParams); // without ?x=y parameters
         var precursorTasks = new ArrayList<Runnable>();
-        try (var ignored = new Timer("Prepare HTTP request to '" + baseUrl + "'")) {
+        try {
             var getParameters = new HashMap<String, String>();
             for (var e : getParameterPatterns.entrySet())
                 getParameters.put(e.getKey(), replacePlainTextParameters(e.getValue(), stringParams));

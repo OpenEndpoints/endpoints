@@ -622,12 +622,10 @@ public class EndpointExecutor {
                 try {
                     if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
                     
-                    try (var ignored3 = new Timer("Execute <task>s and generate response")) {
-                        var context = new TransformationContext(environment, applicationName, application, tx, threads, parameters,
-                            ParameterNotFoundPolicy.error, requestId, req, autoInc, requestLogExpressionCaptures);
-                        scheduleTasksAndSuccess(environment, applicationName, appConfig,
-                            context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
-                    }
+                    var context = new TransformationContext(environment, applicationName, application, tx, threads, parameters,
+                        ParameterNotFoundPolicy.error, requestId, req, autoInc, requestLogExpressionCaptures);
+                    scheduleTasksAndSuccess(environment, applicationName, appConfig,
+                        context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
                 }
                 catch (RequestInvalidException e) { throw new RuntimeException(e); }
             }
@@ -652,7 +650,7 @@ public class EndpointExecutor {
                  var ignored2 = new Timer("<success> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                 
                 var threads = new ThreadPool();
-                threads.setThreadNamePrefix(getClass().getName() + " <success>");
+                threads.setThreadNamePrefix("<success>");
                 
                 var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);
                 
@@ -718,7 +716,7 @@ public class EndpointExecutor {
                             ? ((ParameterTransformationHadErrorException) e).error : "");
 
                     var threads = new ThreadPool();
-                    threads.setThreadNamePrefix(getClass().getName() + " <error>");
+                    threads.setThreadNamePrefix("<error>");
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(environment, applicationName, application, tx, 
                         threads, errorExpansionValues, ParameterNotFoundPolicy.error, requestId, req, autoInc, new HashMap<>());
