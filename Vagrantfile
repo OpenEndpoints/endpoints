@@ -104,7 +104,6 @@ Vagrant.configure(2) do |config|
         ('example-application', 'Example Application', 'invalid'),
         ('from-git',            'From Git',            '/var/endpoints/application-git-repositories/from-git')")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO application_publish VALUES ('example-application', 'symlink', 'live')")
-    (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO service_portal_login VALUES ('admin', '\$2a\$10\$VOBc53Fu0louc.K4AGLUJuiTdbPimluy4feYeShLIrOrQy//U.UpO', true)")
     (cd /tmp && sudo -u postgres psql endpoints -c "INSERT INTO service_portal_login_application VALUES ('admin', 'example-application'), ('admin', 'from-git')")
 
     echo '--- Create Git repository, to publish from'
