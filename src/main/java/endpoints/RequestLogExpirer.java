@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
+import static endpoints.generated.jooq.Tables.REQUEST_LOG_EXPRESSION_CAPTURE;
 import static java.time.temporal.ChronoUnit.DAYS;
+import static org.jooq.impl.DSL.select;
 
 public class RequestLogExpirer extends DailyJob {
     
@@ -17,6 +19,14 @@ public class RequestLogExpirer extends DailyJob {
         }
         
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
+            tx.jooq()
+                .deleteFrom(REQUEST_LOG_EXPRESSION_CAPTURE)
+                .where(REQUEST_LOG_EXPRESSION_CAPTURE.REQUEST_ID.in(
+                    select(REQUEST_LOG.REQUEST_ID)
+                    .from(REQUEST_LOG)
+                    .where(REQUEST_LOG.DATETIME.lt(Instant.now().minus(days, DAYS)))
+                ))
+                .execute();
             tx.jooq()
                 .deleteFrom(REQUEST_LOG)
                 .where(REQUEST_LOG.DATETIME.lt(Instant.now().minus(days, DAYS)))
