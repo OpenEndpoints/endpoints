@@ -10,6 +10,8 @@ import javax.annotation.Nonnull;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+import static java.util.regex.Matcher.quoteReplacement;
+
 public class SubstringHighlightLabel extends WebComponent {
     
     @CheckForNull String value, highlight;
@@ -34,7 +36,7 @@ public class SubstringHighlightLabel extends WebComponent {
         if (highlight != null) {
             var m = Pattern.compile(Pattern.quote(highlight), Pattern.CASE_INSENSITIVE).matcher(html);
             var result = new StringBuffer();
-            while (m.find()) m.appendReplacement(result, start + m.group() + end);
+            while (m.find()) m.appendReplacement(result, quoteReplacement(start + m.group() + end));
             m.appendTail(result);
             html = result;
         }

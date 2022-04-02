@@ -19,6 +19,7 @@ import java.util.stream.StreamSupport;
 
 import static com.databasesandlife.util.DomParser.newDocumentBuilder;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.regex.Matcher.quoteReplacement;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -33,7 +34,7 @@ public class JsonToXmlConverter {
         while (matcher.find()) {
             var c = matcher.group();
             assert c.length() == 1;
-            matcher.appendReplacement(result, String.format("_%04x_", (int) c.toCharArray()[0]));
+            matcher.appendReplacement(result, quoteReplacement(String.format("_%04x_", (int) c.toCharArray()[0])));
         }
         matcher.appendTail(result);
         return result.toString();
