@@ -7,7 +7,7 @@ import java.time.Instant;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
 import static java.time.temporal.ChronoUnit.DAYS;
 
-public class ExpireRequestLogDailyJob extends DailyJob {
+public class RequestLogExpirer extends DailyJob {
     
     @Override protected void performJob() {
         var days = DeploymentParameters.get().requestLogExpiryDays;

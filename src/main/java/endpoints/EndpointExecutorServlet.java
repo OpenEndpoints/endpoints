@@ -1,14 +1,12 @@
 package endpoints;
 
 import com.databasesandlife.util.Timer;
-import com.databasesandlife.util.servlet.IpAddressDeterminer;
-import endpoints.EndpointExecutor.EndpointExecutionFailedException;
 import endpoints.EndpointExecutor.RequestInvalidException;
 import endpoints.PublishEnvironment.PublishEnvironmentNotFoundException;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
-import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpiryJob;
+import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpirer;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -22,14 +20,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 @SuppressWarnings("serial")
@@ -83,8 +76,8 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
 
     @Override public void init() throws ServletException {
         super.init();
-        new ShortLinkToEndpointExpiryJob().start();
-        new ExpireRequestLogDailyJob().start();
+        new ShortLinkToEndpointExpirer().start();
+        new RequestLogExpirer().start();
     }
 
     @Override
