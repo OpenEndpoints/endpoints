@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
+import javax.xml.transform.TransformerException;
 import java.util.Collections;
 import java.util.Set;
 
@@ -39,7 +40,7 @@ public class Transformer {
     ) throws TransformationFailedException {
         return source.scheduleExecution(context, visibleIntermediateValues, document -> {
             try { generator.transform(dest, document, true, null, null); }
-            catch (DocumentTemplateInvalidException e) { throw new RuntimeException(e); }
+            catch (DocumentTemplateInvalidException | TransformerException e) { throw new RuntimeException(e); }
         });
     }
     
