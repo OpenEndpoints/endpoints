@@ -11,15 +11,14 @@ import endpoints.config.ParameterName;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.SneakyThrows;
+import org.apache.wicket.request.resource.ByteArrayResource;
 import org.slf4j.LoggerFactory;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
-import org.apache.wicket.request.Response;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.resource.BaseDataResource;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -61,7 +60,7 @@ public class EndpointPanel extends Panel {
         }).setEscapeModelStrings(false));
         
         // Download button
-        var resource = new BaseDataResource<byte[]>(null) {
+        var resource = new ByteArrayResource(null) {
             @Override protected void configureResponse(ResourceResponse response, Attributes attributes) {
                 super.configureResponse(response, attributes);
                 response.setContentType(contentType);
@@ -69,8 +68,6 @@ public class EndpointPanel extends Panel {
 
             @Override protected String getFilename() { return downloadFileName; }
             @Override protected byte[] getData(Attributes attributes) { return body; }
-            @Override protected void writeData(Response response, byte[] data) { response.write(data); }
-            @Override protected Long getLength(byte[] data) { return (long) data.length; }
         };
         add(new ResourceLink<Void>("download", resource) {
             @Override public boolean isVisible() {

@@ -139,6 +139,16 @@
         </task>
       </endpoint>
 
+      <endpoint name="download-pdf">
+        <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
+        <success>
+          <response-transformation download-filename="invoice-${invoice-number}.pdf" name="produce-pdf"/>
+        </success>
+        <error>
+          <response-transformation name="produce-error"/>
+        </error>
+      </endpoint>
+
       <endpoint name="from-static">
         <success>
           <response-from-static filename="static-subdirectory/spheres.png" download-filename="spheres2.png"/>

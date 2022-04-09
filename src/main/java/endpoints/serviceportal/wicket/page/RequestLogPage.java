@@ -20,6 +20,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.request.resource.CharSequenceResource;
 import org.slf4j.LoggerFactory;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
@@ -30,8 +31,6 @@ import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.request.Response;
-import org.apache.wicket.request.resource.BaseDataResource;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.w3c.dom.Element;
@@ -46,6 +45,7 @@ import static endpoints.PublishEnvironment.live;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG_EXPRESSION_CAPTURE;
 import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -168,7 +168,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
         }
     }
     
-    protected class XmlDownloadResource extends BaseDataResource<String> {
+    protected class XmlDownloadResource extends CharSequenceResource {
         protected final @Nonnull RequestId id;
         protected final @Nonnull Field<Element> requestLogField;
 
@@ -176,6 +176,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
             super("application/xml; charset=utf-8", null, filename);
             this.id = id;
             this.requestLogField = requestLogField;
+            setCharset(UTF_8);
         }
 
         // By default these are cached, which is bad as they have e.g. link8 and if a new request turns up
@@ -184,9 +185,6 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
             super.configureResponse(response, attributes);
             response.disableCaching();
         }
-
-        @Override protected Long getLength(String data) { return null; }
-        @Override protected void writeData(Response response, String data) { response.write(data); }
 
         @Override protected @Nonnull String getData(Attributes x) {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
