@@ -19,20 +19,23 @@ import endpoints.serviceportal.wicket.panel.SubstringHighlightLabel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.request.resource.CharSequenceResource;
-import org.slf4j.LoggerFactory;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LambdaModel;
+import org.apache.wicket.request.resource.CharSequenceResource;
 import org.jooq.Condition;
 import org.jooq.Field;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -42,19 +45,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static endpoints.PublishEnvironment.live;
-import static endpoints.generated.jooq.Tables.REQUEST_LOG;
-import static endpoints.generated.jooq.Tables.REQUEST_LOG_EXPRESSION_CAPTURE;
-import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
+import static endpoints.generated.jooq.Tables.*;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.LocalDate.now;
 import static java.time.ZoneOffset.UTC;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.*;
+import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
 import static org.apache.wicket.util.time.Duration.seconds;
 import static org.jooq.impl.DSL.*;
-import static org.jooq.impl.DSL.coalesce;
 
 public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
@@ -62,9 +64,41 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     protected @Getter @Setter @Nonnull PublishEnvironment filterEnvironment = live;
     protected @Getter @Setter @Nonnull DateRangeOption dateRange = DateRangeOption.getValues(now(UTC)).get(0);
     protected @Getter @Setter @CheckForNull NodeName filterEndpoint = null;
-    protected @Getter @Setter @CheckForNull Integer filterStatusCode = null;
+    protected @Getter @Setter @CheckForNull ErrorType filterErrorType = null;
     protected @Getter @Setter @CheckForNull String filterText = null;
     protected final @Nonnull Set<RequestId> expandedRows = new HashSet<>();
+    
+    protected enum ErrorType {
+        success { 
+            public @Nonnull Condition getRequestLogCondition() { 
+                return REQUEST_LOG.STATUS_CODE.eq(SC_OK); 
+            }
+        },
+        parameterTransformationError {
+            public @Nonnull Condition getRequestLogCondition() { 
+                return REQUEST_LOG.XSLT_PARAMETER_ERROR_MESSAGE.isNotNull(); 
+            }
+        },
+        httpRequestFailed {
+            public @Nonnull Condition getRequestLogCondition() { 
+                return REQUEST_LOG.HTTP_REQUEST_FAILED_STATUS_CODE.isNotNull(); 
+            }
+        },
+        internalError {
+            public @Nonnull Condition getRequestLogCondition() {
+                return REQUEST_LOG.STATUS_CODE.eq(SC_INTERNAL_SERVER_ERROR);
+            }
+        },
+        other {
+            public @Nonnull Condition getRequestLogCondition() {
+                var otherTypes = Arrays.stream(ErrorType.values()).filter(x -> x != this);
+                return not(or(otherTypes.map(type -> type.getRequestLogCondition()).collect(toList())));
+            }
+        };
+        
+        /** @return condition assuming REQUEST_LOG and REQUEST_LOG_IDS are available */
+        public abstract @Nonnull Condition getRequestLogCondition();
+    }
     
     protected static @Nonnull Condition getTextFilter(@Nonnull String filter) {
         return falseCondition()
@@ -94,7 +128,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
             .and(REQUEST_LOG.DATETIME.lt(Optional.ofNullable(dateRange.getEndDateUtc(now(UTC))).orElse(now(UTC))
                 .plus(1, DAYS).atStartOfDay(UTC).toInstant()))
             .and(filterEndpoint == null ? trueCondition() : REQUEST_LOG_IDS.ENDPOINT.eq(filterEndpoint))
-            .and(filterStatusCode == null ? trueCondition() : REQUEST_LOG.STATUS_CODE.eq(filterStatusCode))
+            .and(filterErrorType == null ? trueCondition() : filterErrorType.getRequestLogCondition()) 
             .and(filterText == null ? trueCondition() : getTextFilter(filterText));
     }
     
@@ -204,15 +238,6 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var endpointsNamesModel = new EndpointNamesModel(this::getFilterEnvironment);
-            var statusCodes = tx.jooq().selectDistinct(REQUEST_LOG.STATUS_CODE)
-                .from(REQUEST_LOG_IDS)
-                .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
-                .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))
-                .and(REQUEST_LOG.DATETIME.ge(DateRangeOption.getValues(now(UTC)).stream()
-                    .map(d -> d.getStartDateUtc(now(UTC)))
-                    .min(Comparator.naturalOrder())
-                    .map(d -> d.atStartOfDay().toInstant(UTC)).orElse(null)))
-                .orderBy(REQUEST_LOG.STATUS_CODE).fetch(REQUEST_LOG.STATUS_CODE);
             var resultsModel = new ResultsModel();
             var resultsCountModel = new ResultsCountModel();
 
@@ -231,8 +256,8 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 () -> DateRangeOption.getValues(now(UTC)), new LambdaDisplayValueChoiceRenderer<>(r -> r.getDisplayName())));
             form.add(new DropDownChoice<>("endpoint", LambdaModel.of(this::getFilterEndpoint, this::setFilterEndpoint),
                 endpointsNamesModel, new LambdaDisplayValueChoiceRenderer<>(e -> e.name)).setNullValid(true));
-            form.add(new DropDownChoice<>("statusCode", LambdaModel.of(this::getFilterStatusCode, this::setFilterStatusCode),
-                statusCodes).setNullValid(true));
+            form.add(new DropDownChoice<>("errorType", LambdaModel.of(this::getFilterErrorType, this::setFilterErrorType),
+                asList(ErrorType.values()), new EnumChoiceRenderer<>(this)).setNullValid(true));
             form.add(new TextField<>("text", LambdaModel.of(this::getFilterText, this::setFilterText)));
             
             var resultsTable = new WebMarkupContainer("results");
