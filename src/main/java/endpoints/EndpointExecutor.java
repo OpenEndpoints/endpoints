@@ -68,6 +68,7 @@ import static endpoints.generated.jooq.Tables.*;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
+import static javax.servlet.http.HttpServletResponse.*;
 import static org.jooq.impl.DSL.max;
 
 public class EndpointExecutor {
@@ -91,6 +92,10 @@ public class EndpointExecutor {
     public static class InvalidRequestException extends Exception {
         public InvalidRequestException(String msg) { super(msg); }
         public InvalidRequestException(String prefix, Throwable e) { super(prefixExceptionMessage(prefix, e), e); }
+    }
+
+    public static class IncorrectHashException extends Exception {
+        public IncorrectHashException(String msg) { super(msg); }
     }
 
     protected static class ParameterTransformationHadErrorException extends Exception {
@@ -364,15 +369,15 @@ public class EndpointExecutor {
     protected void assertHashCorrect(
         @Nonnull Application application, @Nonnull PublishEnvironment environment, @Nonnull Endpoint endpoint,
         @Nonnull Map<ParameterName, String> parameters, @Nonnull String suppliedHash
-    ) throws InvalidRequestException {
+    ) throws IncorrectHashException {
         var expectedHashes = stream(application.getSecretKeys())
             .map(secretKey -> endpoint.parametersForHash.calculateHash(secretKey, environment, endpoint.name, parameters))
             .collect(Collectors.toSet());
         if (DeploymentParameters.get().checkHash && ! expectedHashes.contains(suppliedHash.toLowerCase())) {
             if (DeploymentParameters.get().displayExpectedHash)
-                throw new InvalidRequestException("Expected hash '"+expectedHashes.iterator().next()
+                throw new IncorrectHashException("Expected hash '"+expectedHashes.iterator().next()
                     +"' (won't be displayed on live system)");
-            else throw new InvalidRequestException("Hash wrong");
+            else throw new IncorrectHashException("Hash wrong");
         }
     }
     
@@ -380,13 +385,12 @@ public class EndpointExecutor {
     protected class Response implements Runnable {
         protected final @Nonnull TransformationContext context;
         protected final @Nonnull ResponseConfiguration config;
-        protected final boolean success;
+        protected final int contentStatusCode;
         protected final @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer;
         
         @SneakyThrows({IOException.class, InvalidRequestException.class, TransformationFailedException.class})
         public void runUnconditionally() {
             var destination = new BufferedHttpResponseDocumentGenerationDestination();
-            int contentStatusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
             if (config instanceof EmptyResponseConfiguration) {
@@ -460,11 +464,11 @@ public class EndpointExecutor {
         public ResponseIncludingForward(
             @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
             @Nonnull Application application, @Nonnull TransformationContext context,
-            @Nonnull ResponseConfiguration config, boolean success, @Nonnull ApplicationConfig appConfig, long requestAutoInc,
+            @Nonnull ResponseConfiguration config, int statusCode, @Nonnull ApplicationConfig appConfig, long requestAutoInc,
             @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, @Nonnull RandomRequestId random,
             @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
         ) {
-            super(context, config, success, responseConsumer);
+            super(context, config, statusCode, responseConsumer);
             this.environment = environment;
             this.applicationName = applicationName;
             this.application = application;
@@ -599,7 +603,7 @@ public class EndpointExecutor {
                 dependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
 
             var thisResponse = new ResponseIncludingForward(environment, applicationName, context.application,
-                context, success, true, appConfig, requestAutoInc, autoInc, random, responseConsumer);
+                context, success, SC_OK, appConfig, requestAutoInc, autoInc, random, responseConsumer);
             context.threads.addTaskWithDependencies(dependencies, thisResponse);
             
             previousResponse = thisResponse;
@@ -630,7 +634,7 @@ public class EndpointExecutor {
                     scheduleTasksAndSuccess(environment, applicationName, appConfig,
                         context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
                 }
-                catch (InvalidRequestException e) { throw new RuntimeException(e); }
+                catch (IncorrectHashException e) { throw new RuntimeException(e); }
             }
         );
     }
@@ -684,6 +688,7 @@ public class EndpointExecutor {
                 try { threads.execute(); }
                 catch (RuntimeException e) {
                     unwrapException(e, InvalidRequestException.class);
+                    unwrapException(e, IncorrectHashException.class);
                     unwrapException(e, TransformationFailedException.class);
                     unwrapException(e, EndpointExecutionFailedException.class);
                     unwrapException(e, HttpRequestFailedException.class);
@@ -705,6 +710,12 @@ public class EndpointExecutor {
                 try (var tx = new ApplicationTransaction(application);
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     LoggerFactory.getLogger(getClass()).warn("Delivering error", e);
+                    
+                    int statusCode = 
+                        e instanceof IncorrectHashException ? SC_UNAUTHORIZED :
+                        e instanceof InvalidRequestException 
+                            || e instanceof ParameterTransformationHadErrorException ? SC_BAD_REQUEST :
+                        SC_INTERNAL_SERVER_ERROR;
 
                     var errorResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                         public BufferedHttpResponseDocumentGenerationDestination destination;
@@ -723,7 +734,7 @@ public class EndpointExecutor {
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(environment, applicationName, application, tx, 
                         threads, errorExpansionValues, ParameterNotFoundPolicy.error, requestId, req, autoInc, new HashMap<>());
-                    threads.addTask(new Response(context, endpoint.error, false, errorResponse));
+                    threads.addTask(new Response(context, endpoint.error, statusCode, errorResponse));
                     
                     try { threads.execute(); }
                     catch (RuntimeException e2) {
