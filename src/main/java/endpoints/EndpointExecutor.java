@@ -56,6 +56,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
@@ -319,21 +320,23 @@ public class EndpointExecutor {
             catch (RequestInvalidException e) { throw new RuntimeException(e); }
         };
 
+        var inputParameters = req.getParameters().entrySet().stream().collect(toMap(
+            e -> e.getKey(),
+            e -> e.getValue().stream().collect(joining(endpoint.getParameterMultipleValueSeparator()))
+        ));
+        var parameterElements = ParametersCommand.createParametersElements(inputParameters, Map.of(), req.getUploadedFiles());
+        
         var contentType = req.getContentTypeIfPost();
         if (contentType == null 
                 || contentType.equals("application/x-www-form-urlencoded") 
                 || contentType.equals("multipart/form-data")) {
-            var inputParameters = req.getParameters().entrySet().stream().collect(toMap(
-                e -> e.getKey(),
-                e -> e.getValue().stream().collect(joining(endpoint.getParameterMultipleValueSeparator()))
-            ));
             if (endpoint.parameterTransformation == null) {
                 return threads.addTask(() -> validateThenConsumeParameters.accept(inputParameters));
             } else {
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
                     endpoint.parameterTransformation, requestAutoInc, random, inputParameters, validateThenConsumeParameters,
-                    ParametersCommand.createParametersElements(inputParameters, Map.of(), req.getUploadedFiles()));
+                    parameterElements);
             }
         }
         else if (contentType.contains("xml") || contentType.contains("json")) {
@@ -349,8 +352,8 @@ public class EndpointExecutor {
                 else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                    endpoint.parameterTransformation, requestAutoInc, random, Map.of(),
-                    validateThenConsumeParameters, requestDocument);
+                    endpoint.parameterTransformation, requestAutoInc, random, Map.of(), validateThenConsumeParameters, 
+                    Stream.concat(Stream.of(parameterElements), Stream.of(requestDocument)).toArray(Element[]::new));
             }
             catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }
         }
