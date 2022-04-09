@@ -24,6 +24,7 @@ import java.util.Locale;
 import java.util.regex.Pattern;
 
 import static java.util.stream.Collectors.toMap;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @SuppressWarnings("serial")
 public class EndpointExecutorServlet extends AbstractEndpointsServlet {
@@ -116,17 +117,17 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
                 tx.commit();
             }
             catch (PublishEnvironmentNotFoundException e) { 
-                resp.sendError(400, "Environment '"+envName+"' not found"); 
+                resp.sendError(SC_NOT_FOUND, "Environment '"+envName+"' not found"); 
                 return; 
             }
             catch (ApplicationNotFoundException e) {
                 var envLog = (envName == null || envName.equals(PublishEnvironment.getDefault().name()))
                     ? "" : " on "+envName+" environment";
-                resp.sendError(400, "Application '"+applicationName.name+"' not found"+envLog);
+                resp.sendError(SC_NOT_FOUND, "Application '"+applicationName.name+"' not found"+envLog);
                 return;
             }
             catch (NodeNotFoundException e) { 
-                resp.sendError(400, "Endpoint '" + endpointName.name +"' not found in this application");
+                resp.sendError(SC_NOT_FOUND, "Endpoint '" + endpointName.name +"' not found in this application");
                 return; 
             }
 
