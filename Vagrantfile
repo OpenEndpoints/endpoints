@@ -126,12 +126,6 @@ Vagrant.configure(2) do |config|
     apt-get update
     apt-get install -qy docker-ce
 
-    echo --- Install AWS tools
-    apt-get -qy install unzip
-    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-    unzip awscliv2.zip
-    ./aws/install
-
     echo --- Install HTTP listener to test certain requests
     docker run -p 8081:80 -d --name=http-server --restart unless-stopped -t mendhak/http-https-echo
   }
