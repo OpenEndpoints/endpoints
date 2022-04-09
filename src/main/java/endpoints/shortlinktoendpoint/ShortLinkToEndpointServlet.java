@@ -13,7 +13,6 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -65,7 +64,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
                     return params.entrySet().stream().collect(toMap(r -> r.getKey(), r -> List.of(r.getValue())));
                 }
                 @Override public @Nonnull List<UploadedFile> getUploadedFiles() { return List.of(); }
-                @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
+                @Override public @Nonnull byte[] getRequestBody() { throw new IllegalStateException(); }
             };
             
             new EndpointExecutor().execute(shortLink.getEnvironment(), shortLink.getApplication(), application, endpoint,

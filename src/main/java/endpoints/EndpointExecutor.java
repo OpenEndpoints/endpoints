@@ -38,7 +38,6 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
@@ -46,6 +45,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -351,9 +351,11 @@ public class EndpointExecutor {
                     "with Content-Type '" + req.getContentTypeIfPost() + "'");
                 final @Nonnull Element requestDocument;
                 if (contentType.contains("xml"))
-                    requestDocument = encloseElement("xml", DomParser.from(req.getInputStream()));
+                    requestDocument = encloseElement("xml", 
+                        DomParser.from(new ByteArrayInputStream(req.getRequestBody())));
                 else if (contentType.contains("json")) 
-                    requestDocument = encloseElement("json", convertJsonToXml(contentType, req.getInputStream()));
+                    requestDocument = encloseElement("json", 
+                        convertJsonToXml(contentType, new ByteArrayInputStream(req.getRequestBody())));
                 else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
@@ -493,7 +495,7 @@ public class EndpointExecutor {
                     @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                     @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { 
                         return context.request.getUploadedFiles(); }
-                    @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
+                    @Override public @Nonnull byte[] getRequestBody() { throw new IllegalStateException(); }
                     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                         var patterns = ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns;
                         return patterns == null
@@ -541,6 +543,8 @@ public class EndpointExecutor {
         r.setUserAgent(req.getUserAgent());
         r.setParameterTransformationInput(parameterTransformationLogger.input);
         r.setParameterTransformationOutput(parameterTransformationLogger.output);
+        r.setRequestContentType(req.getContentTypeIfPost());
+        r.setRequestBody(req.getRequestBody());
         alterRequestLog.accept(r);
         tx.insert(r);
         

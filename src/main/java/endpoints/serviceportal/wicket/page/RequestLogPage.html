@@ -225,17 +225,24 @@
                                                     </table>
                                                 </td>
                                             </tr>
-                                            <wicket:enclosure child="downloadInputXml">
-                                                <tr>
-                                                    <td>Parameter Transformation (Debug):</td>
-                                                    <td>
-                                                        <a wicket:id="downloadInputXml" href="#">Download Input XML</a>
-                                                        |
-                                                        <a wicket:id="downloadOutputXml" href="#">Download Output XML</a>
-                                                        <span wicket:id="outputXmlNotAvailable">(Output Not Available)</span>
-                                                    </td>
-                                                </tr>
-                                            </wicket:enclosure>
+                                            <tr>
+                                                <td>Request Body:</td>
+                                                <td>
+                                                    <a wicket:id="downloadRequestBody" href="#">Download Request Body</a>
+                                                    <span wicket:enclosure=""> (Content-Type:
+                                                        <span wicket:id="requestContentType">text/html</span>)</span>
+                                                    <span wicket:id="noRequestContentType">(Request body not available)</span>
+                                                </td>
+                                            </tr>
+                                            <tr wicket:enclosure="downloadInputXml">
+                                                <td>Parameter Transformation (Debug):</td>
+                                                <td>
+                                                    <a wicket:id="downloadInputXml" href="#">Download Input XML</a>
+                                                    |
+                                                    <a wicket:id="downloadOutputXml" href="#">Download Output XML</a>
+                                                    <span wicket:id="outputXmlNotAvailable">(Output Not Available)</span>
+                                                </td>
+                                            </tr>
                                         </table>
                                     </td>
                                 </tr>

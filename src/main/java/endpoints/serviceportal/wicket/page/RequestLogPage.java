@@ -32,7 +32,7 @@ import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.LambdaModel;
-import org.apache.wicket.request.resource.CharSequenceResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
 import org.jooq.Condition;
 import org.jooq.Field;
 import org.slf4j.LoggerFactory;
@@ -162,6 +162,9 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     .cast(String.class).containsIgnoreCase(filterText)), false));
                 fields.addAll(asList(REQUEST_LOG.fields()));
                 fields.addAll(asList(REQUEST_LOG_IDS.fields()));
+                
+                // Don't fetch fields which are large. Only download them as needed when the user clicks the download button.
+                fields.remove(REQUEST_LOG.REQUEST_BODY);
                 fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT);
                 fields.remove(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT);
 
@@ -202,15 +205,17 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
         }
     }
     
-    protected class XmlDownloadResource extends CharSequenceResource {
+    protected class DownloadResource<T> extends ByteArrayResource {
         protected final @Nonnull RequestId id;
-        protected final @Nonnull Field<Element> requestLogField;
+        protected final @Nonnull Field<T> requestLogField;
 
-        public XmlDownloadResource(@Nonnull RequestId id, @Nonnull Field<Element> requestLogField, @Nonnull String filename) {
-            super("application/xml; charset=utf-8", null, filename);
+        public DownloadResource(
+            @Nonnull RequestId id, @Nonnull Field<T> requestLogField,
+            @Nonnull String contentType, @Nonnull String filename
+        ) {
+            super(contentType, null, filename);
             this.id = id;
             this.requestLogField = requestLogField;
-            setCharset(UTF_8);
         }
 
         // By default these are cached, which is bad as they have e.g. link8 and if a new request turns up
@@ -220,16 +225,36 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
             response.disableCaching();
         }
 
-        @Override protected @Nonnull String getData(Attributes x) {
+        protected T fetch() {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
                 LoggerFactory.getLogger(getClass()).info("Downloading " + requestLogField + " for request_log_id " + id.getId() + "...");
-                var element = tx.jooq().select(requestLogField)
+                return tx.jooq().select(requestLogField)
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
                     .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))
                     .and(REQUEST_LOG_IDS.REQUEST_ID.eq(id)).fetchSingle().value1();
-                return DomParser.formatXmlPretty(element);
             }
+        }
+    }
+
+    protected class BinaryDownloadResource extends DownloadResource<byte[]> {
+        public BinaryDownloadResource(
+            @Nonnull RequestId id, @Nonnull Field<byte[]> requestLogField, @Nonnull String contentType, @Nonnull String filename
+        ) {
+            super(id, requestLogField, contentType, filename);
+        }
+
+        @Override protected @Nonnull byte[] getData(Attributes x) { return fetch(); }
+    }
+
+    protected class XmlDownloadResource extends DownloadResource<Element> {
+        public XmlDownloadResource(@Nonnull RequestId id, @Nonnull Field<Element> requestLogField, @Nonnull String filename) {
+            super(id, requestLogField, "application/xml; charset=utf-8", filename);
+        }
+
+        @Override protected @Nonnull byte[] getData(Attributes x) {
+            var element = fetch();
+            return DomParser.formatXmlPretty(element).getBytes(UTF_8);
         }
     }
     
@@ -318,12 +343,19 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                     details.setOutputMarkupId(true);
                     details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
                         .format(rec.getDatetime().atZone(UTC))));
-                    details.add(new ResourceLink<Element>("downloadInputXml",
+                    details.add(new ResourceLink<>("downloadRequestBody",
+                        new BinaryDownloadResource(id, REQUEST_LOG.REQUEST_BODY, rec.getRequestContentType(),
+                            "request-body-"+id.id))
+                        .setVisible(rec.getRequestContentType() != null));
+                    details.add(new Label("requestContentType", rec.getRequestContentType())
+                        .setVisible(rec.getRequestContentType() != null));
+                    details.add(new WebMarkupContainer("noRequestContentType").setVisible(rec.getRequestContentType() == null));
+                    details.add(new ResourceLink<>("downloadInputXml",
                         new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input-"+id.id+".xml"))
                         .add(AttributeAppender.append("class",
                             entry.parameterTransformationInput.matchesTextFilter ? "filter-highlight" : ""))
                         .setVisible(entry.parameterTransformationInput.xmlIsAvailable));
-                    details.add(new ResourceLink<Element>("downloadOutputXml",
+                    details.add(new ResourceLink<>("downloadOutputXml",
                         new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output-"+id.id+".xml"))
                         .add(AttributeAppender.append("class", 
                             entry.parameterTransformationOutput.matchesTextFilter ? "filter-highlight" : ""))

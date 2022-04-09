@@ -23,7 +23,6 @@ import org.apache.wicket.request.cycle.RequestCycle;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.http.Cookie;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
@@ -101,7 +100,7 @@ public class EndpointPanel extends Panel {
                 @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }
                 @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return uploadedFiles; }
-                @Override public @Nonnull InputStream getInputStream() { throw new IllegalStateException(); }
+                @Override public @Nonnull byte[] getRequestBody() { throw new IllegalStateException(); }
             };
             new EndpointExecutor().execute(environment, applicationName,
                 DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment), endpoint,

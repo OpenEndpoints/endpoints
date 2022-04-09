@@ -3,8 +3,9 @@ package endpoints;
 import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
 import endpoints.config.ParameterName;
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -12,21 +13,27 @@ import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.*;
 
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
  * Represents a HTTP request in the form of a {@link Request} which can be processed by {@link EndpointExecutor}.
  */
-@RequiredArgsConstructor
 public class ServletRequest implements Request {
     
     protected final @Nonnull HttpServletRequest req;
+    protected @Getter final @Nonnull byte[] requestBody;
+
+    public ServletRequest(@Nonnull HttpServletRequest req) throws EndpointExecutionFailedException {
+        this.req = req;
+        
+        // We have to support the body being read multiple times, firstly for processing, and secondly for the request log
+        try { requestBody = IOUtils.toByteArray(req.getInputStream()); }
+        catch (IOException e) { throw new EndpointExecutionFailedException(400, "I/O problem reading request", e); }
+    }
 
     @Override public @CheckForNull InetAddress getClientIpAddress() {
         return new IpAddressDeterminer().getRequestIpAddress(req);
@@ -72,10 +79,5 @@ public class ServletRequest implements Request {
         return Optional.ofNullable(req.getContentType()).orElse("").startsWith("multipart/form-data")
             ? req.getParts().stream().filter(p -> p.getContentType() != null).map(EndpointExecutorServlet.ServletUploadedFile::new).collect(toList())
             : List.of();
-    }
-    
-    @Override public @Nonnull InputStream getInputStream() throws EndpointExecutionFailedException {
-        try { return req.getInputStream(); }
-        catch (IOException e) { throw new EndpointExecutionFailedException(400, "I/O problem reading request", e); }
     }
 }
