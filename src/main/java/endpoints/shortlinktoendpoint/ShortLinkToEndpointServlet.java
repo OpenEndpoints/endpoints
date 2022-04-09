@@ -1,9 +1,8 @@
 package endpoints.shortlinktoendpoint;
 
 import com.databasesandlife.util.Timer;
-import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import endpoints.*;
-import endpoints.EndpointExecutor.RequestInvalidException;
+import endpoints.EndpointExecutor.InvalidRequestException;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.ParameterName;
@@ -15,10 +14,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT;
@@ -39,7 +36,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
         try (var tx = DeploymentParameters.get().newDbTransaction();
              var ignored = new Timer(getClass().getSimpleName() + " " + path)) {
             var m = Pattern.compile("/shortlink/(\\w+)").matcher(path);
-            if ( ! m.matches()) throw new RequestInvalidException("URL '" + path + "' malformed");
+            if ( ! m.matches()) throw new InvalidRequestException("URL '" + path + "' malformed");
 
             var code = new ShortLinkToEndpointCode(m.group(1));
             var shortLink = tx.jooq()
@@ -84,7 +81,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
         catch (NodeNotFoundException e) {
             resp.sendError(400, "Endpoint specified in this short link not found in the application");
         }
-        catch (RequestInvalidException e) {
+        catch (InvalidRequestException e) {
             LoggerFactory.getLogger(getClass()).error("Request invalid", e);
             resp.sendError(400, "Request invalid: " + e.getMessage());
         }

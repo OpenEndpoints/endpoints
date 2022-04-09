@@ -88,9 +88,9 @@ public class EndpointExecutor {
         }
     }
 
-    public static class RequestInvalidException extends Exception {
-        public RequestInvalidException(String msg) { super(msg); }
-        public RequestInvalidException(String prefix, Throwable e) { super(prefixExceptionMessage(prefix, e), e); }
+    public static class InvalidRequestException extends Exception {
+        public InvalidRequestException(String msg) { super(msg); }
+        public InvalidRequestException(String prefix, Throwable e) { super(prefixExceptionMessage(prefix, e), e); }
     }
 
     protected static class ParameterTransformationHadErrorException extends Exception {
@@ -250,7 +250,7 @@ public class EndpointExecutor {
                 for (var parameterElement : getSubElements(outputParametersRoot, "parameter")) {
                     var paramName = new ParameterName(getMandatoryAttribute(parameterElement, "name"));
                     if ( ! endpointsParameters.contains(paramName))
-                        throw new RequestInvalidException("Parameter transformation XSLT " +
+                        throw new InvalidRequestException("Parameter transformation XSLT " +
                             "produced <parameter name='"+paramName.name+"'../> but this parameter " +
                             "isn't declared in 'endpoints.xml'");
                     result.put(paramName, getMandatoryAttribute(parameterElement, "value"));
@@ -258,16 +258,16 @@ public class EndpointExecutor {
 
                 consumeParameters.accept(result);
             }
-            catch (ConfigurationException e) { throw new RuntimeException(new RequestInvalidException(
+            catch (ConfigurationException e) { throw new RuntimeException(new InvalidRequestException(
                 "While processing result of parameter transformation", e)); }
             catch (DocumentTemplateInvalidException | TransformerException |
-                ParameterTransformationHadErrorException | RequestInvalidException e) { throw new RuntimeException(e); }
+                ParameterTransformationHadErrorException | InvalidRequestException e) { throw new RuntimeException(e); }
         });
     }
     
     @SneakyThrows(IOException.class)
     protected @Nonnull Node[] convertJsonToXml(@Nonnull String contentType, @Nonnull InputStream jsonInputStream) 
-    throws RequestInvalidException {
+    throws InvalidRequestException {
         try {
             var rootNode = new JsonToXmlConverter().convert(contentType, jsonInputStream, "json-request");
             var nodeList = rootNode.getChildNodes();
@@ -281,7 +281,7 @@ public class EndpointExecutor {
 
             return result;
         }
-        catch (JSONException e) { throw new RequestInvalidException("Cannot parse JSON from POST request", e); }
+        catch (JSONException e) { throw new InvalidRequestException("Cannot parse JSON from POST request", e); }
     }
     
     /** Places all the children into a new container element */
@@ -301,7 +301,7 @@ public class EndpointExecutor {
         @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         long requestAutoInc, @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
         @Nonnull RandomRequestId random, @Nonnull Consumer<Map<ParameterName, String>> consumeParameters
-    ) throws RequestInvalidException, TransformationFailedException, EndpointExecutionFailedException {
+    ) throws InvalidRequestException, TransformationFailedException, EndpointExecutionFailedException {
         Consumer<Map<ParameterName, String>> validateThenConsumeParameters = (transformedParameters) -> {
             try {
                 // Apply <parameter> definition from endpoints.xml
@@ -312,12 +312,12 @@ public class EndpointExecutor {
     
                     if (transformedParameters.containsKey(param)) checkedParameters.put(param, transformedParameters.get(param));
                     else if (defn.defaultValueOrNull != null) checkedParameters.put(param, defn.defaultValueOrNull);
-                    else throw new RequestInvalidException("Endpoint '" + endpoint.name.name + "': " +
+                    else throw new InvalidRequestException("Endpoint '" + endpoint.name.name + "': " +
                         "Parameter '"+param.name+"' did not have a supplied value, nor a default");
                 }
                 consumeParameters.accept(checkedParameters);
             }
-            catch (RequestInvalidException e) { throw new RuntimeException(e); }
+            catch (InvalidRequestException e) { throw new RuntimeException(e); }
         };
 
         var inputParameters = req.getParameters().entrySet().stream().collect(toMap(
@@ -341,7 +341,7 @@ public class EndpointExecutor {
         }
         else if (contentType.contains("xml") || contentType.contains("json")) {
             try {
-                if (endpoint.parameterTransformation == null) throw new RequestInvalidException("Endpoint does not have " +
+                if (endpoint.parameterTransformation == null) throw new InvalidRequestException("Endpoint does not have " +
                     "<parameter-transformation> defined, therefore cannot accept XML or JSON request " +
                     "with Content-Type '" + req.getContentTypeIfPost() + "'");
                 final @Nonnull Element requestDocument;
@@ -355,24 +355,24 @@ public class EndpointExecutor {
                     endpoint.parameterTransformation, requestAutoInc, random, Map.of(), validateThenConsumeParameters, 
                     Stream.concat(Stream.of(parameterElements), Stream.of(requestDocument)).toArray(Element[]::new));
             }
-            catch (ConfigurationException e) { throw new RequestInvalidException("Request is not valid XML", e); }
+            catch (ConfigurationException e) { throw new InvalidRequestException("Request is not valid XML", e); }
         }
-        else throw new RequestInvalidException("Unexpected Content Type '" + req.getContentTypeIfPost()
+        else throw new InvalidRequestException("Unexpected Content Type '" + req.getContentTypeIfPost()
             + "': Must either be a GET request, or a POST request from a <form>, or POST request with XML or JSON body");
     }
 
     protected void assertHashCorrect(
         @Nonnull Application application, @Nonnull PublishEnvironment environment, @Nonnull Endpoint endpoint,
         @Nonnull Map<ParameterName, String> parameters, @Nonnull String suppliedHash
-    ) throws RequestInvalidException {
+    ) throws InvalidRequestException {
         var expectedHashes = stream(application.getSecretKeys())
             .map(secretKey -> endpoint.parametersForHash.calculateHash(secretKey, environment, endpoint.name, parameters))
             .collect(Collectors.toSet());
         if (DeploymentParameters.get().checkHash && ! expectedHashes.contains(suppliedHash.toLowerCase())) {
             if (DeploymentParameters.get().displayExpectedHash)
-                throw new RequestInvalidException("Expected hash '"+expectedHashes.iterator().next()
+                throw new InvalidRequestException("Expected hash '"+expectedHashes.iterator().next()
                     +"' (won't be displayed on live system)");
-            else throw new RequestInvalidException("Hash wrong");
+            else throw new InvalidRequestException("Hash wrong");
         }
     }
     
@@ -383,7 +383,7 @@ public class EndpointExecutor {
         protected final boolean success;
         protected final @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer;
         
-        @SneakyThrows({IOException.class, RequestInvalidException.class, TransformationFailedException.class})
+        @SneakyThrows({IOException.class, InvalidRequestException.class, TransformationFailedException.class})
         public void runUnconditionally() {
             var destination = new BufferedHttpResponseDocumentGenerationDestination();
             int contentStatusCode = success ? HttpServletResponse.SC_OK : HttpServletResponse.SC_BAD_REQUEST;
@@ -418,7 +418,7 @@ public class EndpointExecutor {
             else if (config instanceof RedirectResponseConfiguration) {
                 var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
                 if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
-                    throw new RequestInvalidException("Redirect URL '"+url+"' is not in whitelist");
+                    throw new InvalidRequestException("Redirect URL '"+url+"' is not in whitelist");
                 destination.setRedirectUrl(new URL(url));
             }
             else if (config instanceof TransformationResponseConfiguration) {
@@ -474,7 +474,7 @@ public class EndpointExecutor {
             this.random = random;
         }
 
-        @SneakyThrows({RequestInvalidException.class, TransformationFailedException.class, NodeNotFoundException.class,
+        @SneakyThrows({InvalidRequestException.class, TransformationFailedException.class, NodeNotFoundException.class,
             EndpointExecutionFailedException.class})
         @Override public void runUnconditionally() {
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
@@ -618,7 +618,7 @@ public class EndpointExecutor {
         @Nonnull Map<String, String> requestLogExpressionCaptures, @Nonnull RandomRequestId random,
         @CheckForNull String hashToCheck, @Nonnull RequestId requestId, @Nonnull Request req,
         @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
-    ) throws EndpointExecutionFailedException, RequestInvalidException, TransformationFailedException {
+    ) throws EndpointExecutionFailedException, InvalidRequestException, TransformationFailedException {
         getParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
             appConfig.debugAllowed, debugRequested, parameterTransformationLogger,
             requestAutoInc, autoInc, random, parameters -> {
@@ -630,7 +630,7 @@ public class EndpointExecutor {
                     scheduleTasksAndSuccess(environment, applicationName, appConfig,
                         context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
                 }
-                catch (RequestInvalidException e) { throw new RuntimeException(e); }
+                catch (InvalidRequestException e) { throw new RuntimeException(e); }
             }
         );
     }
@@ -657,7 +657,7 @@ public class EndpointExecutor {
                 
                 var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);
                 
-                if (appConfig.locked) throw new RequestInvalidException("Application is locked");
+                if (appConfig.locked) throw new InvalidRequestException("Application is locked");
 
                 try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name 
                         + "', environment '" + environment.name() + "'")) {
@@ -683,7 +683,7 @@ public class EndpointExecutor {
 
                 try { threads.execute(); }
                 catch (RuntimeException e) {
-                    unwrapException(e, RequestInvalidException.class);
+                    unwrapException(e, InvalidRequestException.class);
                     unwrapException(e, TransformationFailedException.class);
                     unwrapException(e, EndpointExecutionFailedException.class);
                     unwrapException(e, HttpRequestFailedException.class);
@@ -727,7 +727,7 @@ public class EndpointExecutor {
                     
                     try { threads.execute(); }
                     catch (RuntimeException e2) {
-                        unwrapException(e2, RequestInvalidException.class);
+                        unwrapException(e2, InvalidRequestException.class);
                         unwrapException(e2, TransformationFailedException.class);
                         throw e2;
                     }
@@ -747,7 +747,7 @@ public class EndpointExecutor {
                     tx.commit();
                     responder.respond(errorResponse.destination);
                 }
-                catch (RequestInvalidException | TransformationFailedException ee) {
+                catch (InvalidRequestException | TransformationFailedException ee) {
                     throw new EndpointExecutionFailedException(500, "Error occurred; but <error> has an error: "+ee, ee);
                 }
             }

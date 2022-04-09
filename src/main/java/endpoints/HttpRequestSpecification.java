@@ -15,7 +15,7 @@ import com.offerready.xslt.DocumentGenerator.StyleVisionXslt;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.EndpointExecutor.RequestInvalidException;
+import endpoints.EndpointExecutor.InvalidRequestException;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.datasource.TransformationFailedException;
@@ -125,7 +125,7 @@ public class HttpRequestSpecification {
         @Nonnull List<? extends UploadedFile> fileUploads, @Nonnull Document doc 
     ) {
         return DomVariableExpander.expand(doc, x -> new IdentityForwardingSaxHandler(x) {
-            @SneakyThrows({ConfigurationException.class, RequestInvalidException.class})
+            @SneakyThrows({ConfigurationException.class, InvalidRequestException.class})
             @Override public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
                 var uploadFieldName = atts.getValue("upload-field-name");
                 if (uploadFieldName != null) {
@@ -136,9 +136,9 @@ public class HttpRequestSpecification {
                     var fileList = fileUploads.stream()
                         .filter(f -> f.getFieldName().equalsIgnoreCase(uploadFieldName))
                         .collect(toList());
-                    if (fileList.size() > 1) throw new RequestInvalidException(
+                    if (fileList.size() > 1) throw new InvalidRequestException(
                         "More than one <input type='file' name='" + uploadFieldName + "'> found in request");
-                    if (fileList.size() < 1) throw new RequestInvalidException(
+                    if (fileList.size() < 1) throw new InvalidRequestException(
                         "<input type='file' name='" + uploadFieldName + "'> not found in request");
                     var file = fileList.iterator().next();
 

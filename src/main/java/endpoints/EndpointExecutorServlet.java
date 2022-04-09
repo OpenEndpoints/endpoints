@@ -1,7 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.Timer;
-import endpoints.EndpointExecutor.RequestInvalidException;
+import endpoints.EndpointExecutor.InvalidRequestException;
 import endpoints.PublishEnvironment.PublishEnvironmentNotFoundException;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
@@ -102,7 +102,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
         try (var ignored = new Timer(getClass().getSimpleName())) {
             var path = req.getRequestURI().substring(req.getContextPath().length());
             var m = Pattern.compile("/([\\w-]+)/([\\w-]+)").matcher(path);
-            if ( ! m.matches()) throw new RequestInvalidException("Cannot understand URL '"+path+"', should be /<application>/<endpoint>");
+            if ( ! m.matches()) throw new InvalidRequestException("Cannot understand URL '"+path+"', should be /<application>/<endpoint>");
             @CheckForNull var envName = req.getParameter("environment");
             var applicationName = new ApplicationName(m.group(1));
             var endpointName = new NodeName(m.group(2));
@@ -141,7 +141,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
                 Boolean.parseBoolean(req.getParameter("debug")),
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
         }
-        catch (RequestInvalidException e) {
+        catch (InvalidRequestException e) {
             // Assuming it's just an error with some text for the user, don't fill up our logs with stack backtraces
             if (e.getCause() == null) LoggerFactory.getLogger(getClass()).error(e.getClass().getSimpleName()+": "+e.getMessage());
             else LoggerFactory.getLogger(getClass()).error("Request invalid", e);
