@@ -63,8 +63,10 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
             
             tx.jooq()
                 .update(REQUEST_LOG)
-                .set(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, (Element) null)
-                .set(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, (Element) null)
+                .setNull(REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT)
+                .setNull(REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT)
+                .setNull(REQUEST_LOG.REQUEST_CONTENT_TYPE)
+                .setNull(REQUEST_LOG.REQUEST_BODY)
                 .where(REQUEST_LOG.REQUEST_ID.in(
                     select(REQUEST_LOG_IDS.REQUEST_ID)
                     .from(REQUEST_LOG_IDS)

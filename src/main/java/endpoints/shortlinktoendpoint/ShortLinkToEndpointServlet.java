@@ -59,12 +59,11 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
             var endpoint = application.getEndpoints().findEndpointOrThrow(shortLink.getEndpoint());
 
             var request = new ServletRequest(req) {
-                @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                     return params.entrySet().stream().collect(toMap(r -> r.getKey(), r -> List.of(r.getValue())));
                 }
+                @Override public RequestBody getRequestBodyIfPost() { return null; }
                 @Override public @Nonnull List<UploadedFile> getUploadedFiles() { return List.of(); }
-                @Override public @Nonnull byte[] getRequestBody() { throw new IllegalStateException(); }
             };
             
             new EndpointExecutor().execute(shortLink.getEnvironment(), shortLink.getApplication(), application, endpoint,

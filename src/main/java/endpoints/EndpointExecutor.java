@@ -331,7 +331,7 @@ public class EndpointExecutor {
         ));
         var parameterElements = ParametersCommand.createParametersElements(inputParameters, Map.of(), req.getUploadedFiles());
         
-        var contentType = req.getContentTypeIfPost();
+        var contentType = Optional.ofNullable(req.getRequestBodyIfPost()).map(r -> r.contentType).orElse(null);
         if (contentType == null 
                 || contentType.equals("application/x-www-form-urlencoded") 
                 || contentType.equals("multipart/form-data")) {
@@ -348,14 +348,14 @@ public class EndpointExecutor {
             try {
                 if (endpoint.parameterTransformation == null) throw new InvalidRequestException("Endpoint does not have " +
                     "<parameter-transformation> defined, therefore cannot accept XML or JSON request " +
-                    "with Content-Type '" + req.getContentTypeIfPost() + "'");
+                    "with Content-Type '" + contentType + "'");
                 final @Nonnull Element requestDocument;
                 if (contentType.contains("xml"))
                     requestDocument = encloseElement("xml", 
-                        DomParser.from(new ByteArrayInputStream(req.getRequestBody())));
+                        DomParser.from(new ByteArrayInputStream(req.getRequestBodyIfPost().body)));
                 else if (contentType.contains("json")) 
                     requestDocument = encloseElement("json", 
-                        convertJsonToXml(contentType, new ByteArrayInputStream(req.getRequestBody())));
+                        convertJsonToXml(contentType, new ByteArrayInputStream(req.getRequestBodyIfPost().body)));
                 else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
@@ -364,8 +364,8 @@ public class EndpointExecutor {
             }
             catch (ConfigurationException e) { throw new InvalidRequestException("Request is not valid XML", e); }
         }
-        else throw new InvalidRequestException("Unexpected Content Type '" + req.getContentTypeIfPost()
-            + "': Must either be a GET request, or a POST request from a <form>, or POST request with XML or JSON body");
+        else throw new InvalidRequestException("Unexpected Content Type '" + contentType + "': " +
+            "Must either be a GET request, or a POST request from a <form>, or POST request with XML or JSON body");
     }
 
     protected void assertHashCorrect(
@@ -492,10 +492,9 @@ public class EndpointExecutor {
                         return context.request.getLowercaseHttpHeadersWithoutCookies(); } 
                     @Override public @Nonnull List<Cookie> getCookies() { return context.request.getCookies(); }
                     @Override public @Nonnull String getUserAgent() { return context.request.getUserAgent(); }
-                    @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                     @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { 
                         return context.request.getUploadedFiles(); }
-                    @Override public @Nonnull byte[] getRequestBody() { throw new IllegalStateException(); }
+                    @Override public RequestBody getRequestBodyIfPost() { return null; }
                     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                         var patterns = ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns;
                         return patterns == null
@@ -518,8 +517,8 @@ public class EndpointExecutor {
     protected void insertRequestLog(
         @Nonnull DbTransaction tx,
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpointName,
-        @Nonnull Instant now, @Nonnull RequestId requestId, 
-        @Nonnull Request req, @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
+        @Nonnull Instant now, @Nonnull RequestId requestId, @Nonnull Request req, boolean debugAllowed, boolean debugRequested,
+        @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull Map<String, String> requestLogExpressionCaptures,
         @Nonnull BufferedHttpResponseDocumentGenerationDestination response,
@@ -543,8 +542,10 @@ public class EndpointExecutor {
         r.setUserAgent(req.getUserAgent());
         r.setParameterTransformationInput(parameterTransformationLogger.input);
         r.setParameterTransformationOutput(parameterTransformationLogger.output);
-        r.setRequestContentType(req.getContentTypeIfPost());
-        r.setRequestBody(req.getRequestBody());
+        r.setRequestContentType(Optional.ofNullable(req.getRequestBodyIfPost())
+            .filter(x -> debugAllowed && debugRequested).map(b -> b.contentType).orElse(null));
+        r.setRequestBody(Optional.ofNullable(req.getRequestBodyIfPost())
+            .filter(x -> debugAllowed && debugRequested).map(b -> b.body).orElse(null));
         alterRequestLog.accept(r);
         tx.insert(r);
         
@@ -644,6 +645,7 @@ public class EndpointExecutor {
     }
 
     /**
+     * The application etc. are assumed to exist.
      * @param hashToCheck null if not to check hash (e.g. service portal is calling this, so no hash check)
      */
     public void execute(
@@ -701,7 +703,8 @@ public class EndpointExecutor {
                     throw e;
                 }
 
-                insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, req,
+                insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
+                    req, appConfig.debugAllowed, debugRequested, 
                     parameterTransformationLogger, autoInc, requestLogExpressionCaptures, successResponse.destination, r -> {
                         r.setIncrementalIdPerEndpoint(requestAutoInc);
                         r.setRandomIdPerApplication(random);
@@ -714,6 +717,8 @@ public class EndpointExecutor {
                 try (var tx = new ApplicationTransaction(application);
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
                     LoggerFactory.getLogger(getClass()).warn("Delivering error", e);
+
+                    var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);
                     
                     int statusCode = 
                         e instanceof IncorrectHashException ? SC_UNAUTHORIZED :
@@ -747,7 +752,8 @@ public class EndpointExecutor {
                         throw e2;
                     }
 
-                    insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, req,
+                    insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
+                        req, appConfig.debugAllowed, debugRequested, 
                         parameterTransformationLogger, autoInc, context.requestLogExpressionCaptures, 
                         errorResponse.destination, r -> {}, r -> {
                             r.setExceptionMessage(e.getMessage());

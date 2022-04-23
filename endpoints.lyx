@@ -5119,6 +5119,43 @@ request_log
  be deleted after a set period of time.
 \end_layout
 
+\begin_deeper
+\begin_layout Standard
+The columns 
+\family typewriter
+request_content_type
+\family default
+ and 
+\family typewriter
+request_body
+\family default
+ are set if the request was a POST/PUT etc.
+\begin_inset space \space{}
+\end_inset
+
+(i.e.
+\begin_inset space \space{}
+\end_inset
+
+with a request body), and if the request goes through the 
+\begin_inset Quotes eld
+\end_inset
+
+debug
+\begin_inset Quotes erd
+\end_inset
+
+ flow (i.e.
+\begin_inset space \space{}
+\end_inset
+
+ application has debug allowed, and the request has its debug param set).
+ If the request is a GET request, there is no request body, nor content
+ type for that request body etc.
+ These columns are either both set or neither are set.
+\end_layout
+
+\end_deeper
 \begin_layout Standard
 The reason for the two tables is that there is the requirement to delete
  old request log entries.

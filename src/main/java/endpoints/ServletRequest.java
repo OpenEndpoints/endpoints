@@ -25,7 +25,7 @@ import static java.util.stream.Collectors.toMap;
 public class ServletRequest implements Request {
     
     protected final @Nonnull HttpServletRequest req;
-    protected @Getter final @Nonnull byte[] requestBody;
+    protected final @Nonnull byte[] requestBody;
 
     public ServletRequest(@Nonnull HttpServletRequest req) throws EndpointExecutionFailedException {
         this.req = req;
@@ -59,10 +59,11 @@ public class ServletRequest implements Request {
         return Optional.ofNullable(req.getHeader("User-Agent")).orElse("");
     }
     
-    @Override public @CheckForNull String getContentTypeIfPost() {
-        return Optional.ofNullable(req.getContentType())
-            .map(x -> x.replaceAll(";.*$", ""))
-            .orElse(null);
+    @Override public @CheckForNull RequestBody getRequestBodyIfPost() {
+        if (req.getContentType() == null) return null;
+        
+        var contentType = req.getContentType().replaceAll(";.*$", "");
+        return new RequestBody(contentType, requestBody);
     }
     
     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {

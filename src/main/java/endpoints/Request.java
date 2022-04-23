@@ -1,6 +1,7 @@
 package endpoints;
 
 import endpoints.config.ParameterName;
+import lombok.Value;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -17,6 +18,12 @@ import java.util.Map;
  */
 public interface Request {
     
+    @Value
+    public static class RequestBody {
+        public @Nonnull String contentType;
+        public @Nonnull byte[] body;
+    }
+    
     @CheckForNull InetAddress getClientIpAddress();
     
     /** @return Keys are lowercase (as HTTP headers are case-insensitive) */
@@ -27,14 +34,12 @@ public interface Request {
     /** Can return empty string */
     @Nonnull String getUserAgent();
 
-    /** @return null if not POST */
-    @CheckForNull String getContentTypeIfPost();
-    
     @Nonnull Map<ParameterName, List<String>> getParameters();
     
-    @Nonnull List<? extends UploadedFile> getUploadedFiles();
+    /** @return null if not POST */
+    @CheckForNull RequestBody getRequestBodyIfPost();
     
-    @Nonnull byte[] getRequestBody();
+    @Nonnull List<? extends UploadedFile> getUploadedFiles();
     
     public static @Nonnull Request newForTesting() {
         return new Request() {
@@ -42,10 +47,9 @@ public interface Request {
             @Override public Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() { return Map.of(); }
             @Override public List<Cookie> getCookies() { return List.of(); }
             @Override public String getUserAgent() { return ""; }
-            @Override public String getContentTypeIfPost() { return null; } 
             @Override public Map<ParameterName, List<String>> getParameters() { return Map.of(); }
+            @Override public RequestBody getRequestBodyIfPost() { return null; }
             @Override public List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
-            @Override public byte[] getRequestBody() { throw new IllegalStateException(); }
         };
     }
 }

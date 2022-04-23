@@ -97,10 +97,9 @@ public class EndpointPanel extends Panel {
                 @Override public @Nonnull Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() { return Map.of(); } 
                 @Override public @Nonnull List<Cookie> getCookies() { return List.of(); }
                 @Override public @Nonnull String getUserAgent() { return "Service Portal"; }
-                @Override public @CheckForNull String getContentTypeIfPost() { return null; }
                 @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return params; }
+                @Override public @CheckForNull RequestBody getRequestBodyIfPost() { return null; }
                 @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return uploadedFiles; }
-                @Override public @Nonnull byte[] getRequestBody() { throw new IllegalStateException(); }
             };
             new EndpointExecutor().execute(environment, applicationName,
                 DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment), endpoint,

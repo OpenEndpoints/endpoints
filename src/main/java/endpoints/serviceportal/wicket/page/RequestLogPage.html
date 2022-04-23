@@ -178,15 +178,6 @@
                                                 <td wicket:id="requestId">15 November 2018, 15:28:26.697, UTC</td>
                                             </tr>
                                             <tr>
-                                                <td>Request Body:</td>
-                                                <td>
-                                                    <a wicket:id="downloadRequestBody" href="#">Download Request Body</a>
-                                                    <span wicket:enclosure=""> (Content-Type:
-                                                        <span wicket:id="requestContentType">text/html</span>)</span>
-                                                    <span wicket:id="noRequestContentType">(Request body not available)</span>
-                                                </td>
-                                            </tr>
-                                            <tr>
                                                 <td>User Agent:</td>
                                                 <td wicket:id="userAgent">Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36</td>
                                             </tr>
@@ -225,22 +216,18 @@
                                                     </table>
                                                 </td>
                                             </tr>
-                                            <tr>
-                                                <td>Request Body:</td>
+                                            <tr wicket:enclosure="downloadInputXml">
+                                                <td>Debug:</td>
                                                 <td>
                                                     <a wicket:id="downloadRequestBody" href="#">Download Request Body</a>
                                                     <span wicket:enclosure=""> (Content-Type:
                                                         <span wicket:id="requestContentType">text/html</span>)</span>
                                                     <span wicket:id="noRequestContentType">(Request body not available)</span>
-                                                </td>
-                                            </tr>
-                                            <tr wicket:enclosure="downloadInputXml">
-                                                <td>Parameter Transformation (Debug):</td>
-                                                <td>
-                                                    <a wicket:id="downloadInputXml" href="#">Download Input XML</a>
+                                                    <br/>
+                                                    <a wicket:id="downloadInputXml" href="#">Download Parameter Transformation Input XML</a>
                                                     |
-                                                    <a wicket:id="downloadOutputXml" href="#">Download Output XML</a>
-                                                    <span wicket:id="outputXmlNotAvailable">(Output Not Available)</span>
+                                                    <a wicket:id="downloadOutputXml" href="#">Download Parameter Transformation Output XML</a>
+                                                    <span wicket:id="outputXmlNotAvailable">(Parameter Transformation Output Not Available)</span>
                                                 </td>
                                             </tr>
                                         </table>
