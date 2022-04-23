@@ -71,7 +71,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     protected enum ErrorType {
         success { 
             public @Nonnull Condition getRequestLogCondition() { 
-                return REQUEST_LOG.STATUS_CODE.eq(SC_OK); 
+                return REQUEST_LOG.STATUS_CODE.between(200, 399); 
             }
         },
         parameterTransformationError {
