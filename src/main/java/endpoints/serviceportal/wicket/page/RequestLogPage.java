@@ -70,8 +70,10 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     
     protected enum ErrorType {
         success { 
-            public @Nonnull Condition getRequestLogCondition() { 
-                return REQUEST_LOG.STATUS_CODE.between(200, 399); 
+            public @Nonnull Condition getRequestLogCondition() {
+                var otherTypes = Arrays.stream(ErrorType.values()).filter(x -> x != this && x != other);
+                return not(or(otherTypes.map(type -> type.getRequestLogCondition()).collect(toList())))
+                    .and(REQUEST_LOG.STATUS_CODE.between(200, 399)); 
             }
         },
         parameterTransformationError {
@@ -89,6 +91,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 return REQUEST_LOG.STATUS_CODE.eq(SC_INTERNAL_SERVER_ERROR);
             }
         },
+        /** For example hash wrong */
         other {
             public @Nonnull Condition getRequestLogCondition() {
                 var otherTypes = Arrays.stream(ErrorType.values()).filter(x -> x != this);
