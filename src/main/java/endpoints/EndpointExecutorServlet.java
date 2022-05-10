@@ -103,7 +103,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
             var path = req.getRequestURI().substring(req.getContextPath().length());
             var m = Pattern.compile("/([\\w-]+)/([\\w-]+)").matcher(path);
             if ( ! m.matches()) throw new InvalidRequestException("Cannot understand URL '"+path+"', should be /<application>/<endpoint>");
-            @CheckForNull var envName = req.getParameter("environment");
+            @CheckForNull var environmentName = req.getParameter("environment");
             var applicationName = new ApplicationName(m.group(1));
             var endpointName = new NodeName(m.group(2));
         
@@ -111,18 +111,18 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
             final Application application;
             final Endpoint endpoint;
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                environment = PublishEnvironment.parseOrDefault(envName);
+                environment = PublishEnvironment.parseOrDefault(environmentName);
                 application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
                 endpoint = application.getEndpoints().findEndpointOrThrow(endpointName);
                 tx.commit();
             }
             catch (PublishEnvironmentNotFoundException e) { 
-                resp.sendError(SC_NOT_FOUND, "Environment '"+envName+"' not found"); 
+                resp.sendError(SC_NOT_FOUND, "Environment '"+environmentName+"' not found"); 
                 return; 
             }
             catch (ApplicationNotFoundException e) {
-                var envLog = (envName == null || envName.equals(PublishEnvironment.getDefault().name()))
-                    ? "" : " on "+envName+" environment";
+                var envLog = (environmentName == null || environmentName.equals(PublishEnvironment.getDefault().name()))
+                    ? "" : " on "+environmentName+" environment";
                 resp.sendError(SC_NOT_FOUND, "Application '"+applicationName.name+"' not found"+envLog);
                 return;
             }
