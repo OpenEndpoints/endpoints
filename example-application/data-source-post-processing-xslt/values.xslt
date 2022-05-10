@@ -43,6 +43,16 @@
                                 select="reCaptchaV3:check('foo', 'bar')" 
                                 xmlns:reCaptchaV3="java:com.offerready.xslt.xsltfunction.ReCaptchaV3Client"/>
                     </reCaptcha>
+                    <url-encode>
+                        <xsl:value-of
+                                select="url:encode('foo bar', 'UTF-8')"
+                                xmlns:url="java:java.net.URLEncoder"/>
+                    </url-encode>
+                    <url-decode>
+                        <xsl:value-of
+                                select="url:decode('foo+bar', 'UTF-8')"
+                                xmlns:url="java:java.net.URLDecoder"/>
+                    </url-decode>
                 </from-java-functions-during-xslt>
             </post-process>
         </data-source-post-processing-output>
