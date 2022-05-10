@@ -80,15 +80,16 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
 
     @SneakyThrows(MalformedURLException.class)
     protected String getGeneratedUrl() {
-        var params = new HashMap<String, String>();
-        for (var e : parameters.entrySet()) params.put(e.getKey().getName(), e.getValue());
-        params.put("hash", generatedHash);
+        var urlGetParams = new HashMap<String, String>();
+        for (var e : parameters.entrySet()) urlGetParams.put(e.getKey().getName(), e.getValue());
+        urlGetParams.put("hash", generatedHash);
+        if (environment != PublishEnvironment.getDefault()) urlGetParams.put("environment", environment.name());
 
         assert endpoint != null : "Generated URL is only visible if generatedHash successful which requires endpoint != null";
         
         var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
         var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/" + endpoint.name);
-        return applicationUrl + "?" + WebEncodingUtils.encodeGetParameters(params);
+        return applicationUrl + "?" + WebEncodingUtils.encodeGetParameters(urlGetParams);
     }
 
     public void calculateHash() {
