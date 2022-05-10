@@ -38,7 +38,7 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
     protected @Nonnull @Getter @Setter PublishEnvironment environment = PublishEnvironment.live;
     protected @CheckForNull @Getter @Setter NodeName endpoint = null;
     protected @Nonnull final Map<ParameterName, String> parameters = new HashMap<>();
-    protected @CheckForNull @Getter String generatedHash = null;
+    protected @CheckForNull @Getter String generatedHash = null, generatedUrl = null;
 
     public CalculateHashPage() {
         super(NavigationItem.CalculateHashPage, null);
@@ -55,8 +55,11 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
             asList(PublishEnvironment.values()), new EnumChoiceRenderer<>(this)));
         form.add(new DropDownChoice<>("endpoint", LambdaModel.of(this::getEndpoint, this::setEndpoint),
             endpointsNameModel, new LambdaDisplayValueChoiceRenderer<>(e -> e.name)));
-        form.add(new Button("refresh") { @Override public void onSubmit() { endpointsNameModel.refresh(); parametersModel.refresh(); }});
-        form.add(new Button("calculate") { @Override public void onSubmit() { calculateHash(); }});
+        form.add(new Button("refresh") { @Override public void onSubmit() { 
+            endpointsNameModel.refresh(); parametersModel.refresh();
+            generatedHash = generatedUrl = null;
+        }});
+        form.add(new Button("calculate") { @Override public void onSubmit() { computeOutput(); }});
 
         form.add(new ListView<ParameterName>("row", parametersModel) {
             @Override protected void populateItem(@Nonnull ListItem<ParameterName> item) {
@@ -69,7 +72,7 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
         
         var result = new WebMarkupContainer("result") {
             @Override public boolean isVisible() {
-                return generatedHash != null;
+                return generatedHash != null && generatedUrl != null;
             }
         };
         add(result);
@@ -79,30 +82,24 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
     }
 
     @SneakyThrows(MalformedURLException.class)
-    protected String getGeneratedUrl() {
-        var urlGetParams = new HashMap<String, String>();
-        for (var e : parameters.entrySet()) urlGetParams.put(e.getKey().getName(), e.getValue());
-        urlGetParams.put("hash", generatedHash);
-        if (environment != PublishEnvironment.getDefault()) urlGetParams.put("environment", environment.name());
-
-        assert endpoint != null : "Generated URL is only visible if generatedHash successful which requires endpoint != null";
-        
-        var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
-        var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/" + endpoint.name);
-        return applicationUrl + "?" + WebEncodingUtils.encodeGetParameters(urlGetParams);
-    }
-
-    public void calculateHash() {
+    public void computeOutput() {
         generatedHash = null; // So that in case there's an error, an old hash is not displayed
         
         if (endpoint == null) { error("Please select an endpoint"); return; }
 
-        try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer("calculateHash")) {
+        try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer("computeOutput")) {
             var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
             var endpointDefn = application.getEndpoints().findEndpointOrThrow(endpoint);
             var hashDefn = endpointDefn.parametersForHash;
             generatedHash = hashDefn.calculateHash(application.getSecretKeys()[0], environment, endpoint, parameters);
+
+            var urlGetParams = new HashMap<String, String>();
+            for (var e : parameters.entrySet()) urlGetParams.put(e.getKey().getName(), e.getValue());
+            urlGetParams.put("hash", generatedHash);
+            if (environment != PublishEnvironment.getDefault()) urlGetParams.put("environment", environment.name());
+            var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/" + endpoint.name);
+            generatedUrl = applicationUrl + "?" + WebEncodingUtils.encodeGetParameters(urlGetParams);
         }
         catch (ApplicationNotFoundException e) { error("Select a valid environment"); }
         catch (NodeNotFoundException e) { error("Select a valid endpoint"); }
