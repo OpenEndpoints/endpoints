@@ -9,11 +9,13 @@ import com.offerready.xslt.DocumentGenerator;
 import com.offerready.xslt.DocumentOutputDefinitionParser;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import com.offerready.xslt.config.SecurityParser;
+import endpoints.GitRevision;
 import endpoints.PublishEnvironment;
 import endpoints.datasource.DataSource;
 import lombok.AllArgsConstructor;
 import org.w3c.dom.Element;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.HashMap;
@@ -74,7 +76,9 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     }
     
     /** @throws ConfigurationException This loads an application from disk, which might be invalid */
-    public static @Nonnull Application loadApplication(@Nonnull XsltCompilationThreads threads, @Nonnull File directory) 
+    public static @Nonnull Application loadApplication(
+        @Nonnull XsltCompilationThreads threads, @CheckForNull GitRevision revision, @Nonnull File directory
+    ) 
     throws ConfigurationException {
         try (var ignored = new Timer("loadApplication '"+directory+"'")) {
             var httpXsltDirectory = new File(directory, "http-xslt");
@@ -108,6 +112,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
                 throw new ConfigurationException("Legacy 'smtp.xml' exists, rename to 'email-sending-configuration.xml'");
 
             var result = new Application();
+            result.revision = revision;
             result.transformers = transformers;
             result.endpoints = EndpointHierarchyParser.parse(threads, transformers, directory, httpXsltDirectory,
                 xmlFromApplicationDirectory, new File(directory, "static"), new File(directory, "parameter-xslt"),

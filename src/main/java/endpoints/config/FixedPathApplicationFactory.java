@@ -23,7 +23,7 @@ public class FixedPathApplicationFactory extends ApplicationFactory {
     @SuppressFBWarnings("DMI_HARDCODED_ABSOLUTE_FILENAME")
     public FixedPathApplicationFactory(@Nonnull XsltCompilationThreads threads) {
         try {
-            application = loadApplication(threads, path);
+            application = loadApplication(threads, null, path);
         }
         catch (ConfigurationException e) {
             throw new RuntimeException("Application at fixed location is invalid: " + e.getMessage(), e);

@@ -204,6 +204,8 @@ public class EndpointExecutor {
         appendTextElement(inputFromApplicationElement, "application-display-name", 
             databaseConfig == null ? null : databaseConfig.getDisplayName());
         if (debugAllowed) inputFromApplicationElement.appendChild(inputParametersDocument.createElement("debug-allowed"));
+        if (application.getRevision() != null) 
+            appendTextElement(inputFromApplicationElement, "git-revision", application.getRevision().sha256Hex);
         appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
         appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(requestAutoInc));
         appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.getId()));

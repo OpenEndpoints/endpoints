@@ -32,13 +32,8 @@ public class PublishedApplicationFactory extends ApplicationFactory {
         @Nonnull PublishEnvironment env;
     }
 
-    protected static class CachedApplication {
-        @Nonnull GitRevision revision;
-        @Nonnull Application application;
-    }
-    
     protected @Nonnull File applicationCheckoutContainerDir;
-    protected final @Nonnull Map<ApplicationDefn, CachedApplication> cache = new HashMap<>();
+    protected final @Nonnull Map<ApplicationDefn, Application> cache = new HashMap<>();
     
     /**
      * Creates the factory and schedules the loading of all known applications on the passed thread pool.
@@ -64,12 +59,10 @@ public class PublishedApplicationFactory extends ApplicationFactory {
 
             var loadAndCacheApplication = (Runnable) () -> {
                 try {
-                    var cachedApp = new CachedApplication();
-                    cachedApp.revision = revision;
-                    cachedApp.application = loadApplication(threads, directory);
+                    var application = loadApplication(threads, revision, directory);
 
                     synchronized (PublishedApplicationFactory.this) {
-                        cache.put(new ApplicationDefn(name, r.value2()), cachedApp);
+                        cache.put(new ApplicationDefn(name, r.value2()), application);
                     }
                 }
                 catch (Exception e) {
@@ -115,8 +108,8 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             var revision = fetchPublishedRevisionFromDb(tx, name, environment);
 
             // Do we already have this revision loaded?
-            CachedApplication cachedApp = cache.get(new ApplicationDefn(name, environment));
-            if (cachedApp != null && cachedApp.revision.equals(revision)) return cachedApp.application;
+            var cachedApp = cache.get(new ApplicationDefn(name, environment));
+            if (cachedApp != null && revision.equals(cachedApp.revision)) return cachedApp;
 
             // Checkout the application to disk if necessary (e.g. AWS instance restarted, new blank disk)
             var directory = getApplicationDirectory(name, revision);
@@ -126,13 +119,11 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             // Load the application and put into our cache
             LoggerFactory.getLogger(getClass()).info("Application '" + name.name + "' has changed or was never loaded: will reload...");
             var threads = new XsltCompilationThreads();
-            cachedApp = new CachedApplication();
-            cachedApp.revision = revision;
-            cachedApp.application = loadApplication(threads, directory);
+            cachedApp = loadApplication(threads, revision, directory);
             cache.put(new ApplicationDefn(name, environment), cachedApp);
             threads.execute();
 
-            return cachedApp.application;
+            return cachedApp;
         }
         catch (RepositoryCommandFailedException | ConfigurationException e) {
             throw new RuntimeException(prefixExceptionMessage(

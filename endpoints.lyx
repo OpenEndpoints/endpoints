@@ -839,6 +839,11 @@ status open
 \end_layout
 
 \begin_layout LyX-Code
+    <git-revision>892381b8126f808252cf00ad959b38eb8df6f818</git-revision>
+ <!-- or missing -->
+\end_layout
+
+\begin_layout LyX-Code
     <debug-allowed/>   <!-- or missing -->
 \end_layout
 
@@ -900,15 +905,27 @@ Parameter Transformation Input
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
  
 \end_layout
 
+\begin_deeper
+\begin_layout Standard
+The Git Revision is only included if the application has been published
+ via the Service Portal.
+ If the application is deployed via the 
+\begin_inset Quotes eld
+\end_inset
+
+fixed application
+\begin_inset Quotes erd
+\end_inset
+
+ method then the Git Revision tag is omitted.
+\end_layout
+
+\end_deeper
 \begin_layout Enumerate
 This document is transformed via the XSLT.
 \end_layout

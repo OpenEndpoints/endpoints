@@ -1,6 +1,7 @@
 package endpoints.config;
 
 import com.databasesandlife.util.EmailTransaction.EmailSendingConfiguration;
+import endpoints.GitRevision;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointMenuFolder;
 import lombok.Getter;
 
@@ -15,6 +16,12 @@ import java.util.Map;
  * but this class is deliberately designed to allow creation from other sources in the future as well.
  */
 public class Application {
+
+    /**
+     * If this application was checked out from a Git, this is the revision.
+     * If it came from some other source e.g. fixed application, this is null.
+     */
+    protected @Getter @CheckForNull GitRevision revision;
     
     protected @Getter @Nonnull Map<String, Transformer> transformers;
     protected @Getter @Nonnull EndpointHierarchyFolderNode endpoints;
