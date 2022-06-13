@@ -41,7 +41,7 @@ public class AdminDeleteApplicationPage extends AbstractLoggedInAdminPage {
                 .where(REQUEST_LOG.REQUEST_ID.in(
                     select(REQUEST_LOG_IDS.REQUEST_ID).from(REQUEST_LOG_IDS).where(REQUEST_LOG_IDS.APPLICATION.eq(name)))).execute();
             tx.jooq().deleteFrom(REQUEST_LOG_EXPRESSION_CAPTURE)
-                .where(REQUEST_LOG.REQUEST_ID.in(
+                .where(REQUEST_LOG_EXPRESSION_CAPTURE.REQUEST_ID.in(
                     select(REQUEST_LOG_IDS.REQUEST_ID).from(REQUEST_LOG_IDS).where(REQUEST_LOG_IDS.APPLICATION.eq(name)))).execute();
             tx.jooq().deleteFrom(REQUEST_LOG_IDS)
                 .where(REQUEST_LOG_IDS.APPLICATION.eq(name)).execute();
