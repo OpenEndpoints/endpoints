@@ -1,8 +1,0 @@
-#  Summary
-
-* [Introduction](README.md)
-    * [Building APIs for Content Transformation](gitbook/introduction/building_apis_for_content_transformation.md)
-    * [On Demand Generated Content](gitbook/introduction/on-demand-generated-content.md)
-    * [Data-Driven Document Generation](gitbook/introduction/data_driven_content_generation.md)
-    * [Output Generated Content](gitbook/introduction/output_generated_content.md)
-    * [Best of Breed - XML and JSON](gitbook/introduction/xml_vs_json.md)
