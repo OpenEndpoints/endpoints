@@ -1,3 +1,4 @@
+# Output Generated Content
 ## Return Generated Content With Request Response
 In the simplest case, a generated content is returned directly as a response object of the endpoint. The request (with or without payload) is processed, a content is generated, and this content is returned directly.
 

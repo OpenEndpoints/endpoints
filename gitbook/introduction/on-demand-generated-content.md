@@ -1,4 +1,5 @@
-## Like "Gatsby" for On-Demand Generated Content.
+# On Demand Generated Content
+## Works Like "Gatsby" - But For On-Demand Content.
 
 From a technical point of view, OpenEndpoints does something very similar to a static website generator. It fetches data from independent data sources and applies templates to convert it into content.
 

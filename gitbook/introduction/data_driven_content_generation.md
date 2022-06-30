@@ -1,3 +1,4 @@
+# Data Driven Content Generation
 ## "Placeholder Document Template" vs "Data Driven Content Template"
 Typical solutions for **automated document generation** use templates in which the content itself actually is part of the template, while external content is merged with such template by inserting it into placeholders.
 

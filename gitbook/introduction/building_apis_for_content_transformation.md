@@ -1,4 +1,4 @@
-## Building APIs for Content Transformation
+# Building APIs for Content Transformation
 
 The core feature of OpenEndpoints is **loading and combining structured data from different data sources** and creating something new from this data, which can then be delivered via the respective endpoint.
 

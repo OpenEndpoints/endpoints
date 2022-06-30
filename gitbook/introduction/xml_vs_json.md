@@ -1,4 +1,4 @@
-## Best of Breed - JSON and XML
+# Best of Breed - XML and JSON
 There are sometimes debates whether XML is an outdated technology that has long since been replaced by JSON, for example. We don't see it that way! We think that there is no contradiction in using both technologies - because both have different strengths and weaknesses.
 
 OpenEndpoints is perfect for a "best of breed" of both technologies.
