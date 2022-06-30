@@ -14,6 +14,7 @@ OpenEndpoints solves this problem. The content transformation, which uses the fu
 - JSON as a data-source will be automatically converted into XML so that XSLT can be used with the integrated XSLT processor.
 - Any XML output can be automatically converted to JSON.
 - XSLT of course also can output JSON.
+
 ![input json - processing xml - output json](https://cdn.openendpoints.io/images/gitbook/introduction-json-xml-json.svg)
 
 ## Why XSLT and not something else?
@@ -21,8 +22,3 @@ OpenEndpoints solves this problem. The content transformation, which uses the fu
 Because there is no adequate alternative to it.
 
 We believe there is no need to reinvent the wheel: XSLT is a very widespread, stable and mature standard that is also used in many commercial projects. There is no equivalent alternative, especially when it comes to generate paged media.
-
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbMTE2OTY2MTgxNCwtMjEyNjYwNDc4OSwtNT
-I0NzE2Mzc3LC02ODM1NDc2NDZdfQ==
--->

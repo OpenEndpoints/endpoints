@@ -4,7 +4,7 @@ The core feature of OpenEndpoints is **loading and combining structured data fro
 
 A wide variety of data sources are supported, the content of which can be transformed on-the-fly to everything supported by XSLT and XSL-FO. This includes XML, PDF, HTML, JSON, SVG, RTF, and any kind of text.
 
-![data loaded from multiple sources and converted into multiple formats](https://cdn.openendpoints.io/images/gitbook/introduction-content-transformation-api.svg)
+![](https://cdn.openendpoints.io/images/gitbook/introduction-content-transformation-api.svg)
 
 ## Easy Deployment
 
@@ -13,7 +13,3 @@ OpenEndpoints can be installed quickly and easily with a Docker container. With 
 ## API First
 
 OpenEndpoints has - with the exception of a small admin tool ("Service Portal") - no GUI. The use of OpenEndpoints expects, for example, independent web applications or simple web forms to send a request to a REST API created by OpenEndpoints.
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbMTUxNDg4MjkyNCwtMTI2ODIzMjUxOCwxND
-AwMjY4MzQ5LDMyNDA3NjgwOV19
--->

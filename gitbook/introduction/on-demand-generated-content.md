@@ -10,9 +10,4 @@ But rather than creating pre-fabricated content (“static website”), OpenEndp
 
 Static content will continue to be created via systems like Gatsby, for example. But those sub-areas that require a dynamic feed can be inserted with OpenEndpoints. In both cases, the content can come from the same headless CMS, for example.
 
-![on demand generated content sourced by any cms or cloud service](https://cdn.openendpoints.io/images/gitbook/introduction-on-demand-generated-content.svg)
-
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbLTI0Nzc3ODEyMSw3MDAzNTc0MDYsOTA0Mz
-cyMDk2XX0=
--->
+![](https://cdn.openendpoints.io/images/gitbook/introduction-on-demand-generated-content.svg)

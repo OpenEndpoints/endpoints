@@ -16,8 +16,3 @@ Created content can be part of this payload, provided that this content is base6
 
 ## Create A Shortlink
 OpenEndpoints can translate a complete request into a short link. For example, your web form will send a reply email to your customer with a download link that will generate a specific document for your customer. In fact, the short link points to a different endpoint, preserving all the parameters from the original call. There are no limits to your creativity.
-
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbMjA4MzgzNzY3NSwtMzUxMzA0NSwtMTg5OD
-kyNjMyOSwyMjY2MjE4NCwzOTEwMTA3MjBdfQ==
--->

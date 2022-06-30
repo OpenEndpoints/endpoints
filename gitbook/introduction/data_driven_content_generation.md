@@ -28,12 +28,4 @@ On our website https://openendpoints.io we promote the idea of importing content
 
 As a consequence, XSLT templates from different projects can be applied to all data using the same schema. Thus, we create a community for the creation and exchange of "smart" content-driven templates.
 
-We refer to these universal smart templates as **SchemaBites** on https//:openendpoints.io.  In fact, these are not proprietary templates, but rather standard XSLT templates applied to standardized schemas. 
-
-
-
-<!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE5NTMwOTA1NDQsMTQ0MjE4MDk4NSw1Nz
-c3MTU2NDgsLTEyOTA1MzE0NzYsLTUwNDYwNjMyOCwyMDk1NTU2
-MzU3LDE5MDYwNjczNl19
--->
+We refer to these universal smart templates as **SchemaBites** on https//:openendpoints.io.  In fact, these are not proprietary templates, but rather standard XSLT templates applied to standardized schemas.
