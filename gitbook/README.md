@@ -1,26 +1,20 @@
-# Docker Container
+### Description
 
-OpenEndpoints is software written in Java. The code is open source and licensed under Apache License with Commons Clause - see [https://openendpoints.io/license](https://openendpoints.io/license).
+This software takes XML from multiple sources (e.g. URLs, files, or any Java class you write which can produce XML). You configure what sources you want, and the software combines the XML from those sources into one XML file in memory. The XML is then optionally transformed using XSLT. The resulting document is then optionally converted into PDF, XLS or JSON. The resulting file is then either downloaded to the browser, or a sent as an email, or you can write a Java class which performs any action on the file, or any combination of the above.
 
-For the deployment we recommend using [Docker](https://www.docker.com/). A public Docker container is available at:
+### Documentation on Gitbook
 
-```docker
-public.ecr.aws/x1t6d0t7/endpoints-he
-```
+A documentation of our software is available here: https://openendpoints.gitbook.io/
 
-## Using Saxon-PE
+We would like to thank GITBOOK for providing us with their great product for free.
 
-By default the public Docker container will install the free XSLT processor Saxon-HE. This is sufficient for most purposes.
+Further documentation is available in the LyX doc `endpoints.lyx`. Download LyX for free for Windows/Mac/Linux in order to read and contribute to this file.
 
-In order to deploy OpenEndpoints with the commercial version Saxon-PE you are required to buy a license for Saxon-PE (Professional Edition) and create a Docker container using that edition. The license isn't expensive and it's absolutely worth the money.
+### Authors
 
-Here are the steps you need to take:
+This software was originally written by [Adrian Smith](https://www.databasesandlife.com/) and commissioned by [Offer-Ready IT-Services & Consulting GmbH](http://www.offer-ready.com/). At the time of writing, Offer-Ready IT-Services & Consulting GmbH still maintain the project.
 
-1. Purchase a Saxon-PE license at [https://www.saxonica.com/shop/shop.html](https://www.saxonica.com/shop/shop.html). You will get two files: the JAR file containing the Saxon-PE code, and also a Saxon-PE license file.
-2. Install Java 11 and Maven on your computer if you have not already done so.
-3. Check out the OpenEndpoints Git repo to your computer if you have not already done so.
-4. Execute the following command to install the Saxon-PE JAR that you have purchased into your local Maven repository on your computer: `mvn install:install-file -Dfile=<path to your Saxon-PE file> -DgroupId=net.sf.saxon -DartifactId=Saxon-PE -Dversion=9.7.0.18 -Dpackaging=jar` replacing your path to your downloaded file as appropriate. Keep the -Dversion the same, no matter what version you've actually downloaded.
-5. Copy the Saxon-PE license file to your Git checkout, placing it in the path `saxon-pe/saxon-license.lic`.
-6. Execute the following command to build OpenEndpoints with Saxon-PE: `mvn -DSaxon=PE clean package`
-7. Build the Docker image using a command like `docker build -t endpoints-pe .`
-8. Push the Docker image to your Docker repository. Note that the terms of the Saxon-PE license do not allow you to make this Docker image public in any way.
+### Contributing
+
+Contributions are welcome. Please open an issue describing what you wish to achieve. We will be able to help you with advice, before you invest the time of development. When you've developed your patch, please submit a pull request using github.
+
