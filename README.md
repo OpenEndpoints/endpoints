@@ -12,7 +12,7 @@ Further documentation is available in the LyX doc `endpoints.lyx`. Download LyX 
 
 ### Authors
 
-This software was originally written by [Adrian Smith](https://www.databasesandlife.com/) and commissioned by [Offer-Ready IT-Services & Consulting GmbH](http://www.offer-ready.com/). At the time of writing, Offer-Ready IT-Services & Consulting GmbH still maintain the project.
+This software was originally written by [Adrian Smith](https://www.databasesandlife.com/) and commissioned by [Offer-Ready IT-Services & Consulting GmbH](https://www.offerready.com/). At the time of writing, Offer-Ready IT-Services & Consulting GmbH still maintain the project.
 
 ### Contributing
 
