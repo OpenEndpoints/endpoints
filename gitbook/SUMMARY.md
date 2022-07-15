@@ -1,5 +1,8 @@
-### Installation
-* [Docker Container](installation/docker-container/README.md)
+# Table of contents
+
+## Installation
+
+* [Docker Container](README.md)
   * [Database](installation/docker-container/database.md)
   * [Deployment Modes](installation/docker-container/deployment-modes.md)
   * [Docker Environment Variables](installation/docker-container/docker-environment-variables.md)
@@ -9,7 +12,9 @@
   * [Add New Application](installation/first-steps-after-installation/add-new-application.md)
   * [Publish Application](installation/first-steps-after-installation/publish-application.md)
   * [Use Application](installation/first-steps-after-installation/use-application.md)
-### Usage
+
+## Usage
+
 * [Send Request To Endpoint](usage/send-request-to-endpoint.md)
 * [Request From Web Form](usage/request-from-web-form.md)
 * [Web Form Controls Having Multiple Values](usage/web-form-controls-having-multiple-values.md)
@@ -18,7 +23,9 @@
 * [Authentication](usage/authentication.md)
 * [Environments](usage/environments.md)
 * [Debug Mode](usage/debug-mode.md)
-### Configuration
+
+## Configuration
+
 * [Application Directory Structure](configuration/application-directory-structure/README.md)
   * [endpoints.xml](configuration/application-directory-structure/endpoints.xml.md)
   * [security.xml](configuration/application-directory-structure/security.xml.md)
