@@ -1,8 +1,10 @@
 # Table of contents
 
+* [Introduction](README.md)
+
 ## Installation
 
-* [Docker Container](README.md)
+* [Docker Container](installation/docker-container/README.md)
   * [Database](installation/docker-container/database.md)
   * [Deployment Modes](installation/docker-container/deployment-modes.md)
   * [Docker Environment Variables](installation/docker-container/docker-environment-variables.md)
