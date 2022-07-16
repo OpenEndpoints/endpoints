@@ -18,8 +18,8 @@
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
         <parameter name="dont-send" default-value="false"/>
         <task class="endpoints.task.HttpRequestTask">
-          <url>https://sandbox.digitalhub.washtec.com/v3/api-docs</url>
-          <output-intermediate-value name="swagger-version" jsonpath="$.openapi"/>
+          <url>http://rackerlabs.github.io/wadl2swagger/openstack/swagger/dbaas.json</url>
+          <output-intermediate-value name="swagger-version" jsonpath="$.swagger"/>
         </task>
         <task class="endpoints.task.EmailTask" if="${dont-send}" notequals="true">
           <input-intermediate-value name="swagger-version"/>
@@ -67,13 +67,9 @@
             <get-parameter name="unknown-param">${lkdfjkjjjfgkjerlkcoi}</get-parameter>
           </xml-from-url>
         </parameter-transformation>
-        <task class="endpoints.task.HttpRequestTask" id="t">
-          <url>https://sandbox.digitalhub.washtec.com/v3/api-docs</url>
-          <output-intermediate-value name="swagger-version" jsonpath="$.openapi" regex="[\d.]+"/>
-        </task>
         <task class="endpoints.task.HttpRequestTask">
-          <after task-id="t"/>
-          <url>https://sandbox.digitalhub.washtec.com/v3/api-docs</url>
+          <url>http://rackerlabs.github.io/wadl2swagger/openstack/swagger/dbaas.json</url>
+          <output-intermediate-value name="swagger-version" jsonpath="$.swagger"/>
         </task>
         <task class="endpoints.task.RequestLogExpressionCaptureTask" key="inv" value="invoice# is '${invoice-number}'" />
         <success if="${email-address}" equals="y,email-address">
