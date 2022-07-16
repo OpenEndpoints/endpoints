@@ -3063,8 +3063,14 @@ ${foo}
 <request-log>
 \family default
  This outputs all request log entries for the current application.
- Request log entries are deleted after a certain period of time, and thus
- request log entries which have not been deleted are returned.
+ Only entries for the current environment are returned (e.g.
+\begin_inset space \space{}
+\end_inset
+
+if the incoming request is for the preview environment, only request log
+ entries from the preview environment are returned.) Request log entries
+ are deleted after a certain period of time, and thus request log entries
+ which have not been deleted are returned.
  See the 
 \family typewriter
 RequestLogCommand

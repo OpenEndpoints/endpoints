@@ -24,8 +24,7 @@ import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static endpoints.generated.jooq.Tables.*;
 import static java.time.ZoneOffset.UTC;
 import static java.util.stream.Collectors.groupingBy;
-import static org.jooq.impl.DSL.lower;
-import static org.jooq.impl.DSL.select;
+import static org.jooq.impl.DSL.*;
 
 public class RequestLogCommand extends DataSourceCommand {
 
@@ -97,22 +96,23 @@ public class RequestLogCommand extends DataSourceCommand {
                     var doc = DomParser.newDocumentBuilder().newDocument();
 
                     var root = doc.createElement("request-log");
+                    
+                    var requestLogCondition = trueCondition()
+                        .and(REQUEST_LOG_IDS.APPLICATION.eq(context.applicationName))
+                        .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(context.environment));
 
                     var requestLogRows = context.tx.db.jooq()
                         .select()
                         .from(REQUEST_LOG_IDS)
                         .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
-                        .where(REQUEST_LOG_IDS.APPLICATION.eq(context.applicationName))
+                        .where(requestLogCondition)
                         .orderBy(REQUEST_LOG.DATETIME.asc())
                         .fetch();
 
                     var expressionCaptures = context.tx.db.jooq()
                         .selectFrom(REQUEST_LOG_EXPRESSION_CAPTURE)
                         .where(REQUEST_LOG_EXPRESSION_CAPTURE.REQUEST_ID.in(
-                            select(REQUEST_LOG_IDS.REQUEST_ID)
-                                .from(REQUEST_LOG_IDS)
-                                .where(REQUEST_LOG_IDS.APPLICATION.eq(context.applicationName))
-                        ))
+                            select(REQUEST_LOG_IDS.REQUEST_ID).from(REQUEST_LOG_IDS).where(requestLogCondition)))
                         .orderBy(lower(REQUEST_LOG_EXPRESSION_CAPTURE.KEY))
                         .fetch().stream().collect(groupingBy(r -> r.getRequestId()));
                     
