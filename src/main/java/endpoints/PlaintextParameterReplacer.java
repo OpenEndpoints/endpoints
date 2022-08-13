@@ -29,16 +29,21 @@ public class PlaintextParameterReplacer {
                     " but it is not available; " + availableParameters);
             }
     }
+    
+    public static @Nonnull Set<String> getKeys(
+        @Nonnull Set<ParameterName> params, @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
+        var stringKeys = new HashSet<String>();
+        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
+        stringKeys.addAll(TransformationContext.getSystemParameterNames());
+        return stringKeys;
+    }
 
     public static void assertParametersSuffice(
         @Nonnull Set<ParameterName> params, @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
         @CheckForNull CharSequence template, @Nonnull String msg
     ) throws ConfigurationException {
-        var stringKeys = new HashSet<String>();
-        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(TransformationContext.getSystemParameterNames());
-
-        assertParametersSuffice(stringKeys, template, msg);
+        assertParametersSuffice(getKeys(params, visibleIntermediateValues), template, msg);
     }
 }

@@ -247,10 +247,7 @@ public class HttpRequestSpecification {
         @Nonnull Set<ParameterName> params,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException {
-        var stringKeys = new HashSet<String>();
-        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(TransformationContext.getSystemParameterNames());
+        var stringKeys = PlaintextParameterReplacer.getKeys(params, visibleIntermediateValues);
         var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
 
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, urlPattern, "<url> element");

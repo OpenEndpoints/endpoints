@@ -6,6 +6,7 @@ import com.databasesandlife.util.DomVariableExpander.VariableSyntax;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -37,11 +38,8 @@ public class LiteralXmlCommand extends DataSourceCommand {
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException {
         super.assertParametersSuffice(params, visibleIntermediateValues);
-
-        var stringKeys = new HashSet<String>();
-        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(TransformationContext.getSystemParameterNames());
+        
+        var stringKeys = PlaintextParameterReplacer.getKeys(params, visibleIntermediateValues);
         var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
         
         try { DomVariableExpander.expand(VariableSyntax.dollarThenBraces, emptyParams, source); }

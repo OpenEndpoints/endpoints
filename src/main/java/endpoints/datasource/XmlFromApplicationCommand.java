@@ -55,11 +55,7 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     ) throws ConfigurationException {
         super.assertParametersSuffice(params, visibleIntermediateValues);
 
-        var stringKeys = new HashSet<String>();
-        stringKeys.addAll(params.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(visibleIntermediateValues.stream().map(k -> k.name).collect(Collectors.toSet()));
-        stringKeys.addAll(TransformationContext.getSystemParameterNames());
-
+        var stringKeys = PlaintextParameterReplacer.getKeys(params, visibleIntermediateValues);
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, filenamePattern, "'file' attribute");
         
         checkContents: if ( ! filenamePattern.contains("$")) {
