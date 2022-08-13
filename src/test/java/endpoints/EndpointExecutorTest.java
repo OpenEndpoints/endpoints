@@ -4,7 +4,7 @@ import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.ThreadPool;
 import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
+import com.offerready.xslt.destination.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationConfig;

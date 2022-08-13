@@ -1,7 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.ThreadPool;
-import com.offerready.xslt.BufferedDocumentGenerationDestination;
+import com.offerready.xslt.destination.BufferedDocumentGenerationDestination;
 import endpoints.config.*;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;

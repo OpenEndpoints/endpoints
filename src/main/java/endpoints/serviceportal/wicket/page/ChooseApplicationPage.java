@@ -1,16 +1,13 @@
 package endpoints.serviceportal.wicket.page;
 
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import endpoints.serviceportal.wicket.ServicePortalSession.LoggedInApplicationData;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.ServicePortalSession;
-import endpoints.serviceportal.ServicePortalUsername;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.http.client.RedirectException;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;

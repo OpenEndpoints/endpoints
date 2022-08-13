@@ -6,7 +6,7 @@ import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
-import com.offerready.xslt.BufferedHttpResponseDocumentGenerationDestination;
+import com.offerready.xslt.destination.BufferedHttpResponseDocumentGenerationDestination;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;

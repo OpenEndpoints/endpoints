@@ -4,6 +4,7 @@ import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.*;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import com.offerready.xslt.destination.DocumentGenerationDestination;
 import endpoints.TransformationContext;
 import endpoints.datasource.DataSource;
 import endpoints.datasource.TransformationFailedException;
@@ -12,7 +13,6 @@ import lombok.SneakyThrows;
 
 import javax.annotation.Nonnull;
 import javax.xml.transform.TransformerException;
-import java.util.Collections;
 import java.util.Set;
 
 public class Transformer {

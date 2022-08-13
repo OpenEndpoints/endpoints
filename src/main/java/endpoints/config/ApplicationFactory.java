@@ -6,9 +6,9 @@ import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.DocumentGenerator;
-import com.offerready.xslt.DocumentOutputDefinitionParser;
+import com.offerready.xslt.parser.DocumentOutputDefinitionParser;
+import com.offerready.xslt.parser.SecurityParser;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import com.offerready.xslt.config.SecurityParser;
 import endpoints.GitRevision;
 import endpoints.PublishEnvironment;
 import endpoints.datasource.DataSource;
@@ -44,7 +44,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         if (result.source == null) throw new ConfigurationException("Transformer references data source '"
             +getMandatoryAttribute(element, "data-source")+"' but it cannot be found");
         
-        result.defn = parseOutputDefinition(new File(application, "data-source-xslt"), element);
+        result.defn = parseDocumentOutputDefinition(new File(application, "data-source-xslt"), element);
         result.generator = new DocumentGenerator(threads, result.defn);
 
         var fontsDirectory = new File(application, "fonts");
