@@ -84,7 +84,7 @@ Vagrant.configure(2) do |config|
 
     echo --- Build software
     sudo -u vagrant /bin/bash -c 'source /etc/environment && mvn -f /vagrant/pom.xml clean test'
-    echo 'mvn -f /vagrant/pom.xml -Dspotbugs.skip=true clean jetty:run' >> ~vagrant/.bash_history
+    echo 'mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true clean jetty:run' >> ~vagrant/.bash_history
 
     echo --- Create example-application PostgreSQL schema
     (cd /tmp && sudo -u postgres psql -c "create database example_application")
