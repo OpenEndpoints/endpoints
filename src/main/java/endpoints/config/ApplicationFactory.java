@@ -115,7 +115,8 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             result.revision = revision;
             result.transformers = transformers;
             result.endpoints = EndpointHierarchyParser.parse(threads, transformers, directory, httpXsltDirectory,
-                xmlFromApplicationDirectory, new File(directory, "static"), new File(directory, "parameter-xslt"),
+                xmlFromApplicationDirectory, new File(directory, "ooxml-responses"),
+                new File(directory, "static"), new File(directory, "parameter-xslt"),
                 dataSourcePostProcessingXsltDir, new File(directory, "endpoints.xml"));
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));
             result.emailServerOrNull = emailServer;

@@ -135,6 +135,16 @@
         </task>
       </endpoint>
 
+      <endpoint name="doc">
+        <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
+        <success>
+          <ooxml-parameter-expansion source="in.docx" download-filename="doc-${invoice-number}.docx"/>
+        </success>
+        <error>
+          <response-transformation name="produce-error"/>
+        </error>
+      </endpoint>
+
       <endpoint name="download-pdf">
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
         <success>

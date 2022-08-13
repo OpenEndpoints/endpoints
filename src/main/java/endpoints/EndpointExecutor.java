@@ -437,6 +437,11 @@ public class EndpointExecutor {
                     destination.setContentDispositionToDownload(
                         replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
             }
+            else if (config instanceof OoxmlParameterExpansionResponseConfiguration) {
+                var r = (OoxmlParameterExpansionResponseConfiguration) config;
+                destination.setStatusCode(contentStatusCode);
+                r.scheduleExecution(context, destination);
+            }
             else throw new IllegalStateException("Unexpected config: " + config);
             
             responseConsumer.accept(destination);

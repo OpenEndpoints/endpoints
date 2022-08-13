@@ -3445,6 +3445,53 @@ filename
 \begin_layout Description
 
 \family typewriter
+<ooxml-parameter-expansion
+\begin_inset space ~
+\end_inset
+
+source="foo.docx"
+\begin_inset space ~
+\end_inset
+
+download-filename="bar.docx"/>
+\family default
+ This will read in the file 
+\begin_inset Quotes eld
+\end_inset
+
+foo.docx
+\begin_inset Quotes erd
+\end_inset
+
+ from the 
+\begin_inset Quotes eld
+\end_inset
+
+ooxml-responses
+\begin_inset Quotes erd
+\end_inset
+
+ directory under the Endpoint's configuration and replace any 
+\family typewriter
+${foo}
+\family default
+ variables in the document's body, and deliver it.
+ Only DOCX is supported; DOC is not supported.
+ The download will be presented to the user with the default download filename
+ 
+\begin_inset Quotes eld
+\end_inset
+
+bar.docx
+\begin_inset Quotes erd
+\end_inset
+
+; the latter may contain parameters.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 <forward-to-endpoint
 \begin_inset space ~
 \end_inset
