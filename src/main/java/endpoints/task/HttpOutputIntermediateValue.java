@@ -32,8 +32,8 @@ public abstract class HttpOutputIntermediateValue {
 
     public static class HttpJsonOutputIntermediateValue extends HttpOutputIntermediateValue {
         public final @Nonnull JsonPath jsonPath;
-        public HttpJsonOutputIntermediateValue(@Nonnull String jsonpath) throws ConfigurationException {
-            try { jsonPath = JsonPath.compile(jsonpath); }
+        public HttpJsonOutputIntermediateValue(@Nonnull String jsonPathStr) throws ConfigurationException {
+            try { jsonPath = JsonPath.compile(jsonPathStr); }
             catch (InvalidPathException e) { throw new ConfigurationException(e); }
         }
     }
