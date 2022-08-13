@@ -38,5 +38,5 @@ public class UrlResponseConfiguration extends ResponseConfiguration {
                 downloadFilenamePatternOrNull, "download-filename");
     }
 
-    public boolean isDownload() { return downloadFilenamePatternOrNull != null; }
+    @Override public boolean isDownload() { return downloadFilenamePatternOrNull != null; }
 }

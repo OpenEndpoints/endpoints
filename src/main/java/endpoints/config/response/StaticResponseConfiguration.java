@@ -52,5 +52,5 @@ public class StaticResponseConfiguration extends ResponseConfiguration {
                 downloadFilenamePatternOrNull, "download-filename");
     }
 
-    public boolean isDownload() { return downloadFilenamePatternOrNull != null; }
+    @Override public boolean isDownload() { return downloadFilenamePatternOrNull != null; }
 }
