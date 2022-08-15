@@ -47,6 +47,7 @@
   * [Endpoint to Return XSLT Transformation](configuration/types-of-endpoints/endpoint-to-return-xslt-transformation.md)
   * [Endpoint to Return Content From Url](configuration/types-of-endpoints/endpoint-to-return-content-from-url.md)
   * [Endpoint to Return Static File](configuration/types-of-endpoints/endpoint-to-return-static-file.md)
+  * [Endpoint to Return OOXML](configuration/types-of-endpoints/endpoint-to-return-ooxml-file.md)
   * [Endpoint to Redirect Request](configuration/types-of-endpoints/endpoint-to-redirect-request.md)
   * [Forwarding Between Endpoints](configuration/types-of-endpoints/forwarding-between-endpoints.md)
   * [Conditional Success Action](configuration/types-of-endpoints/conditional-success-action.md)
