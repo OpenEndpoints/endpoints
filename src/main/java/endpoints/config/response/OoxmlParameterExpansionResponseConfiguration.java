@@ -2,6 +2,7 @@ package endpoints.config.response;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.DomVariableExpander;
+import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.destination.BufferedHttpResponseDocumentGenerationDestination;
 import endpoints.PlaintextParameterReplacer;
@@ -54,6 +55,7 @@ public class OoxmlParameterExpansionResponseConfiguration extends ResponseConfig
         try (
             var zipInput = new ZipInputStream(new FileInputStream(input));
             var zipOutput = new ZipOutputStream(output);
+            var ignored = new Timer(getClass().getSimpleName() + " expansion, input='" + input.getName() + "'");
         ) {
             while (true) {
                 var entry = zipInput.getNextEntry();

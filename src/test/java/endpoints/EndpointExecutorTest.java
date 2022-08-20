@@ -42,7 +42,7 @@ public class EndpointExecutorTest extends TestCase {
                 @Nonnull String id, @Nonnull String afterXml, @Nonnull Runnable task
             ) throws ConfigurationException  {
                 super(threads, new File("/"), Map.of(), 
-                    new File("/"), idx, DomParser.from("<foo id='"+id+"'>"+afterXml+"</foo>"));
+                    new File("/"), "test", idx, DomParser.from("<foo id='"+id+"'>"+afterXml+"</foo>"));
                 this.task = task;
             }
 

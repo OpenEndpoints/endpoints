@@ -53,7 +53,7 @@ public class HttpRequestTaskTest extends TestCase {
             xml.append("</task>");
             
             var threads = new XsltCompilationThreads();
-            var result = new HttpRequestTask(threads, xsltDir.file, Map.of(), xsltDir.file, 0, DomParser.from(xml.toString()));
+            var result = new HttpRequestTask(threads, xsltDir.file, Map.of(), xsltDir.file, "test", 0, DomParser.from(xml.toString()));
             threads.execute();
             
             return result;

@@ -50,9 +50,9 @@ public class ServicePortalEndpointMenuItemsParser extends DomParser {
         try {
             var candidate = endpoints.findEndpointOrThrow(name);
             for (var successResponse : candidate.success)
-                assertResponseConfigurationAcceptable("Endpoint '" + name.name + "': "+
+                assertResponseConfigurationAcceptable("<endpoint name='" + name.name + "'>: "+
                     successResponse.getHumanReadableId()+": ", successResponse);
-            assertResponseConfigurationAcceptable("Endpoint '" + name.name + "': "+
+            assertResponseConfigurationAcceptable("<endpoint name='" + name.name + "'>: "+
                 candidate.error.getHumanReadableId()+": ", candidate.error);
             return name;
         }

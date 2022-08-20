@@ -37,9 +37,10 @@ public class HttpRequestTask extends Task {
 
     public HttpRequestTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, 
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, int indexFromZero, @Nonnull Element config
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, @Nonnull String endpointNameForLogging,
+        int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
+        super(threads, httpXsltDirectory, transformers, staticDir, endpointNameForLogging, indexFromZero, config);
         spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
         outputIntermediateValues = HttpOutputIntermediateValue.parse(
             DomParser.getSubElements(config, "output-intermediate-value"));

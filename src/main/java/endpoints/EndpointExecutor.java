@@ -219,7 +219,11 @@ public class EndpointExecutor {
             dataSourceResults.add(c.scheduleExecution(context, Set.of()));
 
         return threads.addTaskWithDependencies(dataSourceResults, () -> {
-            try {
+            var result = new HashMap<ParameterName, String>();
+            try (
+                var ignored = new Timer("<endpoint name='" + endpoint.name.getName() + "'>: " +
+                    "<parameter-transformation> XSLT Transformation")
+            ) {
                 // Add results of e.g. <xml-from-application>
                 for (var r : dataSourceResults)
                     for (var element : r.get())
@@ -251,7 +255,6 @@ public class EndpointExecutor {
                         "New format is to return <error> or nothing.");
                 assertNoOtherElements(outputParametersRoot, "error", "parameter");
 
-                var result = new HashMap<ParameterName, String>();
                 var endpointsParameters = new HashSet<>(endpoint.aggregateParametersOverParents().keySet());
                 TransformationContext.getSystemParameterNames().forEach(x -> endpointsParameters.add(new ParameterName(x)));
                 for (var parameterElement : getSubElements(outputParametersRoot, "parameter")) {
@@ -262,13 +265,13 @@ public class EndpointExecutor {
                             "isn't declared in 'endpoints.xml'");
                     result.put(paramName, getMandatoryAttribute(parameterElement, "value"));
                 }
-
-                consumeParameters.accept(result);
             }
             catch (ConfigurationException e) { throw new RuntimeException(new InvalidRequestException(
                 "While processing result of parameter transformation", e)); }
             catch (DocumentTemplateInvalidException | TransformerException |
                 ParameterTransformationHadErrorException | InvalidRequestException e) { throw new RuntimeException(e); }
+
+            consumeParameters.accept(result);
         });
     }
     
@@ -319,7 +322,7 @@ public class EndpointExecutor {
     
                     if (transformedParameters.containsKey(param)) checkedParameters.put(param, transformedParameters.get(param));
                     else if (defn.defaultValueOrNull != null) checkedParameters.put(param, defn.defaultValueOrNull);
-                    else throw new InvalidRequestException("Endpoint '" + endpoint.name.name + "': " +
+                    else throw new InvalidRequestException("<endpoint name='" + endpoint.name.name + "'>: " +
                         "Parameter '"+param.name+"' did not have a supplied value, nor a default");
                 }
                 consumeParameters.accept(checkedParameters);
