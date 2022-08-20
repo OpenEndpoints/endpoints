@@ -138,7 +138,7 @@
       <endpoint name="doc">
         <include-in-hash><parameter name="param-in-hash"/></include-in-hash>
         <success>
-          <ooxml-parameter-expansion source="in.docx" download-filename="doc-${invoice-number}.docx"/>
+          <ooxml-parameter-expansion source="in.pptx" download-filename="${invoice-number}.pptx"/>
         </success>
         <error>
           <response-transformation name="produce-error"/>

@@ -63,7 +63,7 @@ public class OoxmlParameterExpansionResponseConfiguration extends ResponseConfig
                 try {
                     zipOutput.putNextEntry(new ZipEntry(entry.getName()));
 
-                    if (entry.getName().endsWith("document.xml")) {
+                    if (entry.getName().endsWith("document.xml") || entry.getName().matches(".*slide\\d+\\.xml")) {
                         var xmlInput = DomParser.from(new ByteArrayInputStream(zipInput.readAllBytes()));
                         var xmlOutput = DomVariableExpander.expand(dollarThenBraces, params, xmlInput);
                         var xmlOutputFormatted = DomParser.formatXmlPretty(xmlOutput.getDocumentElement());
