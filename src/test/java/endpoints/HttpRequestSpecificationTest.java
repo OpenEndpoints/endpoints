@@ -244,6 +244,13 @@ public class HttpRequestSpecificationTest extends TestCase {
         });
         assertEquals("response", jsonResponse.getTagName());   // HttpRequestSpecification adds this wrapper XML element
         assertEquals("output", DomParser.getSubElements(jsonResponse, "*").get(0).getTagName());
+        
+        // Test HTML response body
+        var htmlResponse = runTest(false, "", (req, resp) -> {
+            resp.setContentType("text/html");
+            IOUtils.write("<html><body><b>I am bold text!</b></body></html>", resp.getOutputStream());
+        });
+        assertEquals("html", htmlResponse.getTagName());
 
         // Test empty
         assertEquals("empty-response", runTest(false, "", (req, resp) -> {
