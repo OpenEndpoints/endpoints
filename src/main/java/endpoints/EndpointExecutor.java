@@ -454,7 +454,8 @@ public class EndpointExecutor {
         public void run() {
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
-            boolean satisfiesCondition = config.satisfiesCondition(stringParams);
+            boolean satisfiesCondition = config.satisfiesCondition(
+                context.endpoint.getParameterMultipleValueSeparator(), stringParams);
             synchronized (context) {
                 if (context.alreadyDeliveredResponse || !satisfiesCondition) return;
                 context.alreadyDeliveredResponse = true;

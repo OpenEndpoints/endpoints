@@ -276,7 +276,7 @@ public class EmailTask extends Task {
         }
 
         for (var at : attachments) {
-            if ( ! at.condition.evaluate(stringParams)) continue;
+            if ( ! at.condition.evaluate(context.endpoint.getParameterMultipleValueSeparator(), stringParams)) continue;
 
             if (at instanceof AttachmentStatic) {
                 var attachmentPart = new MimeBodyPart();

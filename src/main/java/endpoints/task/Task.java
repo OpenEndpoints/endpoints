@@ -104,7 +104,7 @@ public abstract class Task extends EndpointExecutionParticipant {
         context.threads.addTaskWithDependencies(dependencies, () -> {
             try {
                 var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
-                if (condition.evaluate(stringParams))
+                if (condition.evaluate(context.endpoint.getParameterMultipleValueSeparator(), stringParams))
                     logAndExecuteThenScheduleSynchronizationPoint(context, workComplete);
                 else
                     context.threads.addTask(workComplete);

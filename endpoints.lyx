@@ -1312,6 +1312,35 @@ bar
 .
 \end_layout
 
+\begin_layout Standard
+If the parameter has a value like 
+\family typewriter
+foo||bar
+\family default
+ i.e.
+ created as a result of a request such as 
+\family typewriter
+?param=foo&param=bar
+\family default
+ then the 
+\family typewriter
+equals=".."
+\family default
+ will check if 
+\emph on
+any
+\emph default
+ of the values match, and 
+\family typewriter
+notequals=".."
+\family default
+ will check that 
+\emph on
+none
+\emph default
+ of the values match the value.
+\end_layout
+
 \begin_layout Subsubsection
 Parallel Execution of Tasks
 \end_layout
