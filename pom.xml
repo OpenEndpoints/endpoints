@@ -123,7 +123,7 @@
         <dependency>
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
-            <version>3.1.11</version>
+            <version>4.7.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -133,11 +133,13 @@
             <scope>provided</scope>  <!-- only does compile-type stuff -->
         </dependency>
         <dependency>
+            <!-- Logback includes SLF4J API -->
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>1.2.11</version>
         </dependency>
         <dependency>
+            <!-- Impl log4j 1 API and send logs to SLF4J -->
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
             <version>1.7.32</version>
@@ -166,7 +168,7 @@
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
             <artifactId>org.eclipse.jgit</artifactId>
-            <version>4.7.0.201704051617-r</version>
+            <version>4.11.9.201909030838-r</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
@@ -176,7 +178,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.3.3</version>
+            <version>42.5.0</version>
         </dependency>
         <dependency>
             <groupId>com.offerready</groupId>
@@ -239,7 +241,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.14.3</version>
+            <version>1.15.3</version>
         </dependency>
     </dependencies>
 
@@ -277,7 +279,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>3.1.11</version>
+                <version>4.7.2.0</version>
                 <configuration>
                     <effort>Max</effort>
                     <threshold>High</threshold>
