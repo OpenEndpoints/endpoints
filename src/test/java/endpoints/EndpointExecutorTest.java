@@ -42,7 +42,7 @@ public class EndpointExecutorTest extends TestCase {
                 @Nonnull String id, @Nonnull String afterXml, @Nonnull Runnable task
             ) throws ConfigurationException  {
                 super(threads, new File("/"), Map.of(), 
-                    new File("/"), "test", idx, DomParser.from("<foo id='"+id+"'>"+afterXml+"</foo>"));
+                    new File("/"), idx, DomParser.from("<foo id='"+id+"'>"+afterXml+"</foo>"));
                 this.task = task;
             }
 
@@ -68,7 +68,7 @@ public class EndpointExecutorTest extends TestCase {
                         var threads = new XsltCompilationThreads();
                         threads.setThreadCount(10);
                         
-                        var endpoint = new Endpoint();
+                        var endpoint = Endpoint.newForTesting();
                         endpoint.tasks.add(new MyTask(threads, 0, "a", "", 
                             () -> { sleep(); output.append("a"); }));
                         endpoint.tasks.add(new MyTask(threads, 1, "b", "<after task-id='a'/>", 
@@ -79,7 +79,7 @@ public class EndpointExecutorTest extends TestCase {
                         );
                         
                         var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
-                            Application.newForTesting(Map.of()), tx, threads,
+                            Application.newForTesting(Map.of()), tx, threads, endpoint,
                             Map.of(new ParameterName("param"), param), error, RequestId.newRandom(), 
                             Request.newForTesting(), Map.of(), Map.of());
                         

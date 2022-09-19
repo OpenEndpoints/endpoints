@@ -19,6 +19,12 @@ public class Endpoint extends EndpointHierarchyNode {
     public @Nonnull List<ResponseConfiguration> success;
     public @Nonnull ResponseConfiguration error;
     public final @Nonnull List<Task> tasks = new ArrayList<>();
+    
+    public static @Nonnull Endpoint newForTesting() {
+        var result = new Endpoint();
+        result.name = new NodeName("test");
+        return result;
+    }
 
     @Override
     public @Nonnull Map<NodeName, Endpoint> getEndpointForName() {

@@ -212,7 +212,7 @@ public class EndpointExecutor {
         appendTextElement(inputFromApplicationElement, "base-url", DeploymentParameters.get().baseUrl.toExternalForm());
 
         // Schedule execution of e.g. <xml-from-application>
-        var context = new TransformationContext(environment, applicationName, application, tx, threads, requestParameters,
+        var context = new TransformationContext(environment, applicationName, application, tx, threads, endpoint, requestParameters,
             ParameterNotFoundPolicy.emptyString, requestId, req, autoInc, new HashMap<>());
         var dataSourceResults = new ArrayList<DataSourceCommandFetcher>();
         for (var c : parameterTransformation.dataSourceCommands)
@@ -644,8 +644,8 @@ public class EndpointExecutor {
                 try {
                     if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
                     
-                    var context = new TransformationContext(environment, applicationName, application, tx, threads, parameters,
-                        ParameterNotFoundPolicy.error, requestId, req, autoInc, requestLogExpressionCaptures);
+                    var context = new TransformationContext(environment, applicationName, application, tx, threads, endpoint, 
+                        parameters, ParameterNotFoundPolicy.error, requestId, req, autoInc, requestLogExpressionCaptures);
                     scheduleTasksAndSuccess(environment, applicationName, appConfig,
                         context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
                 }
@@ -752,7 +752,8 @@ public class EndpointExecutor {
                     threads.setThreadNamePrefix("<error>");
                     var autoInc = newLazyNumbers(applicationName, environment, now);
                     var context = new TransformationContext(environment, applicationName, application, tx, 
-                        threads, errorExpansionValues, ParameterNotFoundPolicy.error, requestId, req, autoInc, new HashMap<>());
+                        threads, endpoint, errorExpansionValues, ParameterNotFoundPolicy.error, 
+                        requestId, req, autoInc, new HashMap<>());
                     threads.addTask(new Response(context, endpoint.error, statusCode, errorResponse));
                     
                     try { threads.execute(); }

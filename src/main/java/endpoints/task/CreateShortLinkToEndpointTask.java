@@ -32,10 +32,10 @@ public class CreateShortLinkToEndpointTask extends Task {
 
     public CreateShortLinkToEndpointTask(
         @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, @Nonnull String endpointNameForLogging,
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, transformers, staticDir, endpointNameForLogging, indexFromZero, config);
+        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
         assertNoOtherElements(config);
         destinationEndpoint = new NodeName(getMandatoryAttribute(config, "destination-endpoint-name"));
         outputIntermediateValue = new IntermediateValueName(getMandatoryAttribute(config, "output-intermediate-value"));

@@ -91,16 +91,16 @@ public class EndpointHierarchyParser extends DomParser {
     protected static @Nonnull Task parseTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
-        @Nonnull Set<ParameterName> params, @Nonnull String endpointNameForLogging, int indexFromZero, @Nonnull Element element
+        @Nonnull Set<ParameterName> params, int indexFromZero, @Nonnull Element element
     ) throws ConfigurationException {
         var taskClassName = getMandatoryAttribute(element, "class");
         try {
             try {
                 @SuppressWarnings("unchecked") var taskClass = (Class<? extends Task>) Class.forName(taskClassName);
                 var constructor = taskClass.getConstructor(XsltCompilationThreads.class, File.class, Map.class,
-                    File.class, String.class, int.class, Element.class);
+                    File.class, int.class, Element.class);
                 var result = constructor.newInstance(threads, httpXsltDirectory, transformers, staticDir, 
-                    endpointNameForLogging, indexFromZero, element);
+                    indexFromZero, element);
                 result.assertParametersSuffice(params);
                 
                 if ( ! result.getOutputIntermediateValues().isEmpty() && result.condition.isOptional())
@@ -221,8 +221,7 @@ public class EndpointHierarchyParser extends DomParser {
             var taskElements = getSubElements(element, "task");
             for (int t = 0; t < taskElements.size(); t++)
                 result.tasks.add(parseTask(threads, httpXsltDirectory, 
-                    transformers, staticDir, result.aggregateParametersOverParents().keySet(), 
-                    result.name.getName(), t, taskElements.get(t)));
+                    transformers, staticDir, result.aggregateParametersOverParents().keySet(), t, taskElements.get(t)));
             
             var successAndTasks = new ArrayList<EndpointExecutionParticipant>();
             successAndTasks.addAll(result.success);

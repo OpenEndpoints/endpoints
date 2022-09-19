@@ -32,6 +32,7 @@ public class TransformationContext {
     public final @Nonnull Application application;
     public final @Nonnull ApplicationTransaction tx;
     public final @Nonnull ThreadPool threads;
+    public final @Nonnull Endpoint endpoint;
     private final @Nonnull Map<ParameterName, String> params;
     public final @Nonnull ParameterNotFoundPolicy parameterNotFoundPolicy;
     public final @Nonnull Map<IntermediateValueName, String> intermediateValues = synchronizedMap(new HashMap<>());

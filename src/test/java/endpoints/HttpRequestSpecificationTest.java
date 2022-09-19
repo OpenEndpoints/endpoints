@@ -7,10 +7,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
 import endpoints.TransformationContext.ParameterNotFoundPolicy;
-import endpoints.config.Application;
-import endpoints.config.ApplicationName;
-import endpoints.config.ParameterName;
-import endpoints.config.Transformer;
+import endpoints.config.*;
 import endpoints.datasource.TransformationFailedException;
 import junit.framework.TestCase;
 import lombok.SneakyThrows;
@@ -93,7 +90,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             var application = Application.newForTesting(Map.of("t", Transformer.newIdentityTransformerForTesting()));
             try (var tx = new ApplicationTransaction(application)) {
                 var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
-                    application, tx, new ThreadPool(), params,
+                    application, tx, new ThreadPool(), Endpoint.newForTesting(), params,
                     ParameterNotFoundPolicy.error, RequestId.newRandom(), endpoints.Request.newForTesting(), Map.of(), Map.of());
                 var resultContainer = new Object() {
                     public Element element;

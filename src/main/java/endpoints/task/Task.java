@@ -20,7 +20,6 @@ import static com.databasesandlife.util.DomParser.getOptionalAttribute;
 
 public abstract class Task extends EndpointExecutionParticipant {
     
-    protected final @Nonnull String endpointNameForLogging;
     protected final int taskIndexFromZero;
     protected final @CheckForNull TaskId id;
     
@@ -31,12 +30,11 @@ public abstract class Task extends EndpointExecutionParticipant {
     @SuppressWarnings("unused") 
     public Task(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir, @Nonnull String endpointNameForLogging,
+        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
         super(config);
         
-        this.endpointNameForLogging = endpointNameForLogging;
         this.taskIndexFromZero = indexFromZero;
         this.id = Optional.ofNullable(getOptionalAttribute(config, "id")).map(x -> new TaskId(x)).orElse(null);
         this.condition = new TaskCondition(config);
@@ -89,7 +87,7 @@ public abstract class Task extends EndpointExecutionParticipant {
         @Nonnull TransformationContext context,
         @Nonnull SynchronizationPoint workComplete
     ) throws TaskExecutionFailedException {
-        try (var ignored = new Timer("<endpoint name='" + endpointNameForLogging + "'>: " + getHumanReadableId())) {
+        try (var ignored = new Timer("<endpoint name='" + context.endpoint.name.getName() + "'>: " + getHumanReadableId())) {
             executeThenScheduleSynchronizationPoint(context, workComplete);
         }
     }
