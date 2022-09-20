@@ -26,6 +26,7 @@ import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dolla
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 
 public class OoxmlParameterExpansionResponseConfiguration extends ResponseConfiguration {
     
@@ -79,7 +80,7 @@ public class OoxmlParameterExpansionResponseConfiguration extends ResponseConfig
 
     @Override public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         var stringParams = PlaintextParameterReplacer.getKeys(params, inputIntermediateValues);
-        expand(new NullOutputStream(), stringParams.stream().collect(toMap(p -> p, p -> "")));
+        expand(NULL_OUTPUT_STREAM, stringParams.stream().collect(toMap(p -> p, p -> "")));
         PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, downloadFilenamePattern, 
             "'download-filename' attribute");
     }

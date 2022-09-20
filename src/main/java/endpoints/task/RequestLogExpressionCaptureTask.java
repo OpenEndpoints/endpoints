@@ -4,7 +4,6 @@ import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
-import com.google.common.annotations.VisibleForTesting;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.RequestId;
@@ -48,7 +47,6 @@ public class RequestLogExpressionCaptureTask extends Task {
         if (key.contains("${")) throw new ConfigurationException("'key' may not contain parameters such as ${foo}");
     }
     
-    @VisibleForTesting
     @SneakyThrows(ConfigurationException.class)
     public static RequestLogExpressionCaptureTask newForTesting(@Nonnull String key, @Nonnull String valuePattern) {
         var xml = DomParser.from("<foo/>");

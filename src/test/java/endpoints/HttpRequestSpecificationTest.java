@@ -119,7 +119,6 @@ public class HttpRequestSpecificationTest extends TestCase {
     public void testReplaceXmlElementWithFileUploads() throws Exception {
         var uploadedFile = new UploadedFile() {
             @Nonnull @Override public String getFieldName() { return "foo"; }
-            @SneakyThrows(IOException.class)
             @Nonnull @Override public InputStream getInputStream() { return IOUtils.toInputStream("wt", UTF_8.name()); }
             @Nonnull @Override public String getContentType() { return "text/plain"; } 
             @Nonnull @Override public String getSubmittedFileName() { return "password.txt"; }

@@ -2,7 +2,6 @@ package endpoints.config.response;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.google.common.annotations.VisibleForTesting;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.config.NodeName;
 import endpoints.config.ParameterName;
@@ -51,7 +50,6 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
         catch (ConfigurationException e) { throw new ConfigurationException("<forward-to-endpoint>", e); }
     }
 
-    @VisibleForTesting
     @SneakyThrows(ConfigurationException.class)
     public static ForwardToEndpointResponseConfiguration newForTesting(@Nonnull NodeName endpoint) {
         var forwardToEndpointElement = DomParser.from("<unit-test/>");
