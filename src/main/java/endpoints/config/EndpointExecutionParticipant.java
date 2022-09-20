@@ -63,18 +63,18 @@ public abstract class EndpointExecutionParticipant {
                     .collect(Collectors.joining(", ")));
         
         for (var after : toVisit.predecessors) {
-            var sources = nodes.stream().filter(n -> after.equals(n.getTaskIdOrNull())).collect(toList());
+            var sources = nodes.stream().filter(n -> after.equals(n.getTaskIdOrNull())).toList();
             if (sources.size() == 0) throw new ConfigurationException(
                 toVisit.getHumanReadableId() + ": <after task-id='" + after.id + "'/> but no task found with this ID");
             if (sources.size() > 1) throw new ConfigurationException(
                 "Multiple tasks with same ID '" + after.id + "'");
             var relationship = "has <after task-id='" + after.id + "'/>";
             var pathSoFarInclUs = Stream.concat(pathSoFar.stream(), Stream.of(new ElementAndRelationship(toVisit, relationship)));
-            assertNoCircularDependenciesStartingFrom(nodes, pathSoFarInclUs.collect(toList()), sources.get(0));
+            assertNoCircularDependenciesStartingFrom(nodes, pathSoFarInclUs.toList(), sources.get(0));
         }
         
         for (var variable : toVisit.inputIntermediateValues) {
-            var sources = nodes.stream().filter(n -> n.getOutputIntermediateValues().contains(variable)).collect(toList());
+            var sources = nodes.stream().filter(n -> n.getOutputIntermediateValues().contains(variable)).toList();
             if (sources.size() == 0) throw new ConfigurationException(
                 toVisit.getHumanReadableId() + ": No <task>s produce output intermediate value '" + variable.name + "'");
             if (sources.size() > 1) throw new ConfigurationException(
@@ -82,7 +82,7 @@ public abstract class EndpointExecutionParticipant {
             var relationship = "has <input-intermediate-value name='"+variable.name+"'/> " +
                 "and " + toVisit.getHumanReadableId() + " has <output-intermediate-value name='"+variable.name+"'/>";
             var pathSoFarInclUs = Stream.concat(pathSoFar.stream(), Stream.of(new ElementAndRelationship(toVisit, relationship)));
-            assertNoCircularDependenciesStartingFrom(nodes, pathSoFarInclUs.collect(toList()), sources.get(0));
+            assertNoCircularDependenciesStartingFrom(nodes, pathSoFarInclUs.toList(), sources.get(0));
         }
     }
     

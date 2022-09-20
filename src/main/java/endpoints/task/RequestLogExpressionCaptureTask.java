@@ -88,7 +88,7 @@ public class RequestLogExpressionCaptureTask extends Task {
             .filter(t -> t instanceof RequestLogExpressionCaptureTask)
             .map(t -> (RequestLogExpressionCaptureTask) t)
             .map(t -> t.key)
-            .collect(toList());
+            .toList();
         for (var newKey : keys) {
             if (newKeysSoFar.containsKey(newKey)) {
                 var path = new ArrayList<>(newKeysSoFar.get(newKey));
@@ -114,7 +114,7 @@ public class RequestLogExpressionCaptureTask extends Task {
                 .filter(s -> s instanceof ForwardToEndpointResponseConfiguration)
                 .map(s -> (ForwardToEndpointResponseConfiguration) s)
                 .map(s -> endpointForName.get(s.endpoint))
-        ).collect(toList());
+        ).toList();
         
         for (var e : nextEndpoints) assertUniqueCaptureKeys(endpointForName, newKeysSoFar, e);
     }

@@ -45,12 +45,12 @@ public abstract class Task extends EndpointExecutionParticipant {
     }
     
     protected @Nonnull String ordinal(int n) {
-        switch (n) {
-            case 1: return "1st";
-            case 2: return "2nd";
-            case 3: return "3rd";
-            default: return n + "th";
-        }
+        return switch (n) {
+            case 1 -> "1st";
+            case 2 -> "2nd";
+            case 3 -> "3rd";
+            default -> n + "th";
+        };
     }
 
     protected @Nonnull String getHumanReadableId() {

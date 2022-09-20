@@ -3,7 +3,7 @@
 
 Vagrant.configure(2) do |config|
   config.vm.hostname = "endpoints"
-  config.vm.box = "ubuntu/bionic64"   # 18.04, We only support deployment via Docker 
+  config.vm.box = "ubuntu/jammy64"   # 22.04 (we use Docker for deployment so version here doesn't really matter)
   config.vm.network "forwarded_port", guest: 8080, host: 9758   # jetty or docker
   config.vm.network "forwarded_port", guest: 9999, host: 9759   # Java debugging
   config.vm.network "forwarded_port", guest: 5432, host: 9760   # PostgreSQL
@@ -25,12 +25,12 @@ Vagrant.configure(2) do |config|
     echo --- General OS installation
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qy    # grub upgrade warnings mess with the terminal
-    apt-get -qy install vim ntp unattended-upgrades less openjdk-11-jdk
+    apt-get -qy install vim ntp unattended-upgrades less openjdk-17-jdk
 
     echo -- PostgreSQL
-    apt-get -qy install postgresql-10
-    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
-    sed -i 's/^#listen_addresses = .*$/listen_addresses = '"'"'*'"'"'/' /etc/postgresql/10/main/postgresql.conf
+    apt-get -qy install postgresql-14
+    echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/14/main/pg_hba.conf
+    sed -i 's/^#listen_addresses = .*$/listen_addresses = '"'"'*'"'"'/' /etc/postgresql/14/main/postgresql.conf
     /etc/init.d/postgresql restart
     (cd /tmp && sudo -u postgres psql -c "alter user postgres password 'postgres'" postgres)  # os user postgres cannot see /root dir
 
@@ -39,9 +39,9 @@ Vagrant.configure(2) do |config|
     echo "bind-address = 0.0.0.0" >> /etc/mysql/mysql.conf.d/mysqld.cnf
     mysql -e 'CREATE USER '"'"'root'"'"'@'"'"'%'"'"' IDENTIFIED BY '"'"'root'"'"''
     mysql -e 'GRANT ALL ON *.* TO '"'"'root'"'"'@'"'"'%'"'"''
-    mysql -e 'UPDATE mysql.user SET plugin="mysql_native_password" WHERE User="root"'
-    mysql -e "UPDATE mysql.user SET authentication_string=PASSWORD('root')  WHERE  User='root';"
+    mysql -e "UPDATE mysql.user SET authentication_string=null WHERE User='root';"
     mysql -e 'FLUSH PRIVILEGES'
+    mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';"
     /etc/init.d/mysql restart
     echo 'mysql -uroot -proot example_application' >> ~vagrant/.bash_history
 

@@ -93,11 +93,11 @@ public class HttpRequestTask extends Task {
             else if (urlConnection.getContentType().toLowerCase().contains("json")) {
                 try (var inputStream = urlConnection.getInputStream()) {
                     for (var x : outputIntermediateValues) {
-                        if ( ! (x instanceof HttpJsonOutputIntermediateValue))
+                        if ( ! (x instanceof HttpJsonOutputIntermediateValue i))
                             throw new HttpRequestFailedException(url.toExternalForm(), null,
                                 "URL '" + url + "' returned JSON, yet output variables request XPath");
                         // JsonSmartJsonProvider, net.minidev.json.parser
-                        var value = ((HttpJsonOutputIntermediateValue) x).jsonPath.read(inputStream);
+                        var value = i.jsonPath.read(inputStream);
                         if (value instanceof List)
                             throw new HttpRequestFailedException(url.toExternalForm(), null, "URL '" + url + "': " +
                                 "JSONPath returned an array, whereas a string or number is required");

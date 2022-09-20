@@ -134,7 +134,7 @@ public class EmailTask extends Task {
         fromPattern = getMandatorySingleSubElement(config, "from").getTextContent().trim();
         subjectPattern = getMandatorySingleSubElement(config, "subject").getTextContent().trim();
 
-        toPatterns = getSubElements(config, "to").stream().map(e -> e.getTextContent().trim()).collect(toList());
+        toPatterns = getSubElements(config, "to").stream().map(e -> e.getTextContent().trim()).toList();
         if (toPatterns.isEmpty()) throw new ConfigurationException("At least one <to> must be present, " +
             "otherwise no emails would be sent, and the task would be pointless");
 
@@ -144,24 +144,19 @@ public class EmailTask extends Task {
 
         for (var a : getSubElements(config, "attachment-static", "attachment-transformation",
                 "attachments-from-request-file-uploads")) {
-            final Attachment attachment;
-            switch (a.getTagName()) {
-                case "attachment-static":
-                    attachment = findStaticFileAndAssertExists("<attachment-static>", 
+            var attachment = switch (a.getTagName()) {
+                case "attachment-static" -> 
+                    findStaticFileAndAssertExists("<attachment-static>", 
                         getMandatoryAttribute(a, "filename"));
-                    break;
-                case "attachment-transformation":
+                case "attachment-transformation" -> {
                     var attachmentTransformation = new AttachmentTransformation();
                     attachmentTransformation.filenamePattern = getMandatoryAttribute(a, "filename");
                     attachmentTransformation.contents = findTransformer(transformers, a);
-                    attachment = attachmentTransformation;
-                    break;
-                case "attachments-from-request-file-uploads":
-                    attachment = new AttachmentsFromRequestFileUploads();
-                    break;
-                default:
-                    throw new RuntimeException(a.getTagName());
-            }
+                    yield attachmentTransformation;
+                }
+                case "attachments-from-request-file-uploads" -> new AttachmentsFromRequestFileUploads();
+                default -> throw new RuntimeException(a.getTagName());
+            };
             attachment.condition = new TaskCondition(a);
             this.attachments.add(attachment);
         }
@@ -277,15 +272,14 @@ public class EmailTask extends Task {
 
         for (var at : attachments) {
             if ( ! at.condition.evaluate(context.endpoint.getParameterMultipleValueSeparator(), stringParams)) continue;
-
-            if (at instanceof AttachmentStatic) {
+            
+            if (at instanceof AttachmentStatic s) {
                 var attachmentPart = new MimeBodyPart();
-                attachmentPart.attachFile(((AttachmentStatic) at).file);
+                attachmentPart.attachFile(s.file);
                 attachmentPart.setDisposition(Part.ATTACHMENT);
                 mainPart.addBodyPart(attachmentPart);
             }
-            else if (at instanceof AttachmentTransformation) {
-                var a = (AttachmentTransformation) at;
+            else if (at instanceof AttachmentTransformation a) {
                 try {
                     var xslt = context.scheduleTransformation(a.contents, inputIntermediateValues);
                     var part = newMimeBodyForDestination(xslt.result);

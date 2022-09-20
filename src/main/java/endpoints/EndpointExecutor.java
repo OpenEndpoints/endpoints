@@ -403,8 +403,7 @@ public class EndpointExecutor {
             if (config instanceof EmptyResponseConfiguration) {
                 destination.setStatusCode(contentStatusCode);
             }
-            else if (config instanceof StaticResponseConfiguration) {
-                var r = (StaticResponseConfiguration) config;
+            else if (config instanceof StaticResponseConfiguration r) {
                 destination.setStatusCode(contentStatusCode);
                 destination.setContentType(new MimetypesFileTypeMap().getContentType(r.file));
                 try (var o = destination.getOutputStream()) { Files.copy(r.file.toPath(), o); }
@@ -412,8 +411,7 @@ public class EndpointExecutor {
                     destination.setContentDispositionToDownload(
                         replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
             }
-            else if (config instanceof UrlResponseConfiguration) {
-                var r = (UrlResponseConfiguration) config;
+            else if (config instanceof UrlResponseConfiguration r) {
                 destination.setStatusCode(contentStatusCode);
                 r.spec.scheduleExecutionAndAssertNoError(context, config.inputIntermediateValues, (@CheckForNull var result) -> {
                     if (result != null) {
@@ -426,22 +424,20 @@ public class EndpointExecutor {
                     destination.setContentDispositionToDownload(
                         replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
             }
-            else if (config instanceof RedirectResponseConfiguration) {
-                var url = replacePlainTextParameters(((RedirectResponseConfiguration)config).urlPattern, stringParams);
+            else if (config instanceof RedirectResponseConfiguration r) {
+                var url = replacePlainTextParameters(r.urlPattern, stringParams);
                 if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
                     throw new InvalidRequestException("Redirect URL '"+url+"' is not in whitelist");
                 destination.setRedirectUrl(new URL(url));
             }
-            else if (config instanceof TransformationResponseConfiguration) {
-                var r = (TransformationResponseConfiguration) config;
+            else if (config instanceof TransformationResponseConfiguration r) {
                 destination.setStatusCode(contentStatusCode);
                 r.transformer.scheduleExecution(context, config.inputIntermediateValues, destination);
                 if (r.downloadFilenamePatternOrNull != null)
                     destination.setContentDispositionToDownload(
                         replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
             }
-            else if (config instanceof OoxmlParameterExpansionResponseConfiguration) {
-                var r = (OoxmlParameterExpansionResponseConfiguration) config;
+            else if (config instanceof OoxmlParameterExpansionResponseConfiguration r) {
                 destination.setStatusCode(contentStatusCode);
                 r.scheduleExecution(context, destination);
             }
@@ -496,7 +492,7 @@ public class EndpointExecutor {
         @Override public void runUnconditionally() {
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
-            if (config instanceof ForwardToEndpointResponseConfiguration) {
+            if (config instanceof ForwardToEndpointResponseConfiguration fwd) {
                 var request = new Request() {
                     @Override public @CheckForNull InetAddress getClientIpAddress() { return context.request.getClientIpAddress(); }
                     @Override public @Nonnull Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() {
@@ -507,7 +503,7 @@ public class EndpointExecutor {
                         return context.request.getUploadedFiles(); }
                     @Override public RequestBody getRequestBodyIfPost() { return null; }
                     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
-                        var patterns = ((ForwardToEndpointResponseConfiguration) config).inputParameterPatterns;
+                        var patterns = fwd.inputParameterPatterns;
                         return patterns == null
                             ? stringParams.entrySet().stream().collect(
                                 toMap(e -> new ParameterName(e.getKey()), e -> List.of(e.getValue()))) 
@@ -746,8 +742,7 @@ public class EndpointExecutor {
                     errorExpansionValues.put(new ParameterName("internal-error-text"), 
                         Optional.ofNullable(e.getMessage()).orElse(""));
                     errorExpansionValues.put(new ParameterName("parameter-transformation-error-text"),
-                        e instanceof ParameterTransformationHadErrorException
-                            ? ((ParameterTransformationHadErrorException) e).error : "");
+                        e instanceof ParameterTransformationHadErrorException p ? p.error : "");
 
                     var threads = new ThreadPool();
                     threads.setThreadNamePrefix("<error>");
@@ -769,12 +764,9 @@ public class EndpointExecutor {
                         parameterTransformationLogger, autoInc, context.requestLogExpressionCaptures, 
                         errorResponse.destination, r -> {}, r -> {
                             r.setExceptionMessage(e.getMessage());
-                            r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException
-                                ? (((HttpRequestFailedException) e).url) : null);
-                            r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException
-                                ? (((HttpRequestFailedException) e).responseStatusCode) : null);
-                            r.setXsltParameterErrorMessage(e instanceof ParameterTransformationHadErrorException
-                                ? ((ParameterTransformationHadErrorException) e).error : null);
+                            r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException h ? h.url : null);
+                            r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException h ?h.responseStatusCode : null);
+                            r.setXsltParameterErrorMessage(e instanceof ParameterTransformationHadErrorException p ? p.error : null);
                         });
 
                     tx.commit();

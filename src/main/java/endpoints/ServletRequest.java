@@ -76,9 +76,12 @@ public class ServletRequest implements Request {
     }
     
     @SneakyThrows({ServletException.class, IOException.class})
-    @Override public @Nonnull List<UploadedFile> getUploadedFiles() {
+    @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() {
         return Optional.ofNullable(req.getContentType()).orElse("").startsWith("multipart/form-data")
-            ? req.getParts().stream().filter(p -> p.getContentType() != null).map(EndpointExecutorServlet.ServletUploadedFile::new).collect(toList())
+            ? req.getParts().stream()
+                .filter(p -> p.getContentType() != null)
+                .map(EndpointExecutorServlet.ServletUploadedFile::new)
+                .toList()
             : List.of();
     }
 }

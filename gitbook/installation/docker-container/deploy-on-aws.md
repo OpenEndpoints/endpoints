@@ -73,8 +73,8 @@ Endpoints uses the database to store various things such as which Endpoints "app
 
 1. In the AWS Management Console (web interface), navigate to RDS product. This is the AWS managed database product.
 2. Click “Create a new database”.
-3. Name it something like “Endpoints”
-4. We currently support PostgreSQL 10.
+3. Name it something like “Endpoints”.
+4. We currently support PostgreSQL 14 (although other versions will probably work).
 5. Select a random master password.
 6. Select “Create new Subnet Group”
 7. Set “Public Access” to “No”, as this database should not be publicly visible on the internet.

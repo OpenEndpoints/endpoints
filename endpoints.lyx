@@ -4261,7 +4261,8 @@ user=postgres&
 password=postgres
 \family default
 .
- At this point in time PostgreSQL 10 is supported.
+ See Vagrantfile for currently supported version, although other versions
+ will probably work fine.
 \end_layout
 
 \begin_layout Description
@@ -4735,6 +4736,7 @@ Flyway is used for automated database migrations.
 
 \begin_layout Itemize
 Database is PostgreSQL.
+ (See Vagrantfile for current version.)
 \end_layout
 
 \begin_layout Itemize

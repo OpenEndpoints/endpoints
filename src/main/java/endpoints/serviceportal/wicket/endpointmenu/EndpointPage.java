@@ -40,7 +40,7 @@ public abstract class EndpointPage extends AbstractLoggedInApplicationPage {
         };
         environmentForm.add(new DropDownChoice<>("environment", 
             LambdaModel.of(this::getEnvironmentDropDownChoice, this::setEnvironmentDropDownChoice),
-            Arrays.stream(PublishEnvironment.values()).filter(e -> item.itemForEnvironment.containsKey(e)).collect(toList()),
+            Arrays.stream(PublishEnvironment.values()).filter(e -> item.itemForEnvironment.containsKey(e)).toList(),
             new EnumChoiceRenderer<>(this)));
         environmentForm.setVisible(item.itemForEnvironment.size() > 1); // Don't display drop-down if there is nothing to choose
         add(environmentForm);

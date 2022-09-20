@@ -31,20 +31,19 @@ public abstract class DataSourceCommand {
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
     ) throws ConfigurationException {
         try {
-            final String className;
-            switch (command.getTagName()) {
-                case "parameters": className = ParametersCommand.class.getName(); break;
-                case "on-demand-incrementing-number": className = OnDemandIncrementingNumberCommand.class.getName(); break;
-                case "literal-xml": className = LiteralXmlCommand.class.getName(); break;
-                case "application-introspection": className = ApplicationIntrospectionCommand.class.getName(); break;
-                case "xml-from-url": className = XmlFromUrlCommand.class.getName(); break;
-                case "xml-from-application": className = XmlFromApplicationCommand.class.getName(); break;
-                case "xml-from-database": className = XmlFromDatabaseCommand.class.getName(); break;
-                case "md5": className = MD5Command.class.getName(); break;
-                case "request-log": className = RequestLogCommand.class.getName(); break;
-                case "command": className = getMandatoryAttribute(command, "class"); break;
-                default: throw new ConfigurationException("Command tag <"+command.getTagName()+"> unrecognized");
-            }
+            final String className = switch (command.getTagName()) {
+                case "parameters" -> ParametersCommand.class.getName();
+                case "on-demand-incrementing-number" -> OnDemandIncrementingNumberCommand.class.getName();
+                case "literal-xml" -> LiteralXmlCommand.class.getName();
+                case "application-introspection" -> ApplicationIntrospectionCommand.class.getName();
+                case "xml-from-url" -> XmlFromUrlCommand.class.getName();
+                case "xml-from-application" -> XmlFromApplicationCommand.class.getName();
+                case "xml-from-database" -> XmlFromDatabaseCommand.class.getName();
+                case "md5" -> MD5Command.class.getName();
+                case "request-log" -> RequestLogCommand.class.getName();
+                case "command" -> getMandatoryAttribute(command, "class");
+                default -> throw new ConfigurationException("Command tag <" + command.getTagName() + "> unrecognized");
+            };
 
             var constructor = Class.forName(className).getConstructor(XsltCompilationThreads.class,
                 File.class, File.class, File.class, File.class, Element.class);
@@ -52,8 +51,8 @@ public abstract class DataSourceCommand {
                 applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
         }
         catch (InvocationTargetException e) {
-            if (e.getCause() instanceof ConfigurationException)
-                throw new ConfigurationException("<" + command.getTagName() + ">", e.getCause());
+            if (e.getCause() instanceof ConfigurationException cause)
+                throw new ConfigurationException("<" + command.getTagName() + ">", cause);
             else throw e;
         }
     }

@@ -65,10 +65,9 @@ public class TaskCondition {
     public boolean evaluate(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, String> parameters) {
         var lhs = replacePlainTextParameters(lhsPattern, parameters).split(Pattern.quote(parameterMultipleValueSeparator));
         var rhs = replacePlainTextParameters(rhsPattern, parameters).split(Pattern.quote(parameterMultipleValueSeparator));
-        switch (operator) {
-            case equals: return stream(lhs).anyMatch(x -> Arrays.asList(rhs).contains(x));
-            case notequals: return stream(lhs).noneMatch(x -> Arrays.asList(rhs).contains(x));
-            default: throw new RuntimeException("Unexpected operator: " + operator);
-        }
+        return switch (operator) {
+            case equals -> stream(lhs).anyMatch(x -> Arrays.asList(rhs).contains(x));
+            case notequals -> stream(lhs).noneMatch(x -> Arrays.asList(rhs).contains(x));
+        };
     }
 }

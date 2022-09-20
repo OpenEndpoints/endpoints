@@ -78,10 +78,10 @@ public class EndpointFormPage extends EndpointPage {
         try (DbTransaction tx = DeploymentParameters.get().newDbTransaction()) {
             var params = request.getPostParameters().getParameterNames().stream().collect(toMap(
                 p -> new ParameterName(p),
-                p -> request.getPostParameters().getParameterValues(p).stream().map(v -> v.toString("")).collect(toList())
+                p -> request.getPostParameters().getParameterValues(p).stream().map(v -> v.toString("")).toList()
             ));
             var uploadedFiles = request.getFiles().values().stream().flatMap(x -> x.stream())
-                .map(item -> new WicketUploadedFile(item)).collect(toList());
+                .map(item -> new WicketUploadedFile(item)).toList();
             results.execute(tx, params, uploadedFiles);
             tx.commit();
         }

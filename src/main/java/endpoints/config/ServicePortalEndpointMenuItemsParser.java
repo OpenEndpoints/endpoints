@@ -33,10 +33,9 @@ public class ServicePortalEndpointMenuItemsParser extends DomParser {
     
     protected void assertResponseConfigurationAcceptable(@Nonnull String prefix, @Nonnull ResponseConfiguration r) 
     throws ConfigurationException {
-        if ( ! (r instanceof TransformationResponseConfiguration)) 
+        if ( ! (r instanceof TransformationResponseConfiguration t)) 
             throw new ConfigurationException(prefix + "Must produce content (not be redirect or empty response)");
-        
-        var t = (TransformationResponseConfiguration) r;
+
         if (t.downloadFilenamePatternOrNull == null) {
             String contentType = t.transformer.defn.contentType;
             if (contentType == null) throw new ConfigurationException(prefix + "Content Type mandatory");
@@ -66,25 +65,17 @@ public class ServicePortalEndpointMenuItemsParser extends DomParser {
 
         var result = new ArrayList<ServicePortalEndpointMenuItem>();
         for (var e : getSubElements(element, "menu-folder", "content", "form")) {
-            String displayName = getMandatoryAttribute(e, "menu-item-name");
-            final ServicePortalEndpointMenuItem newItem;
-            switch (e.getTagName()) {
-                case "content":
-                    newItem = new ServicePortalEndpointContentMenuItem(displayName, parseEnvironments(e),
-                        findEndpoint(endpoints, new NodeName(getMandatoryAttribute(e, "endpoint"))));
-                    break;
-                case "form":
-                    newItem = new ServicePortalEndpointFormMenuItem(displayName, parseEnvironments(e),
-                        findEndpoint(endpoints, new NodeName(getMandatoryAttribute(e, "form-endpoint"))),
-                        findEndpoint(endpoints, new NodeName(getMandatoryAttribute(e, "result-endpoint"))));
-                    break;
-                case "menu-folder":
-                    newItem = new ServicePortalEndpointMenuFolder(displayName, parseEnvironments(e),
-                        parseChildren(endpoints, e));
-                    break;
-                default:
-                    throw new RuntimeException(e.getTagName());
-            }
+            var displayName = getMandatoryAttribute(e, "menu-item-name");
+            var newItem = switch (e.getTagName()) {
+                case "content" -> new ServicePortalEndpointContentMenuItem(displayName, parseEnvironments(e),
+                    findEndpoint(endpoints, new NodeName(getMandatoryAttribute(e, "endpoint"))));
+                case "form" -> new ServicePortalEndpointFormMenuItem(displayName, parseEnvironments(e),
+                    findEndpoint(endpoints, new NodeName(getMandatoryAttribute(e, "form-endpoint"))),
+                    findEndpoint(endpoints, new NodeName(getMandatoryAttribute(e, "result-endpoint"))));
+                case "menu-folder" -> new ServicePortalEndpointMenuFolder(displayName, parseEnvironments(e),
+                    parseChildren(endpoints, e));
+                default -> throw new RuntimeException(e.getTagName());
+            };
             result.add(newItem);
         }
         return result;

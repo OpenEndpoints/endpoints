@@ -61,15 +61,15 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     protected static void assertEmailServerConfiguredIfEmailTasks(@Nonnull Application result, @Nonnull EndpointHierarchyFolderNode node)
     throws ConfigurationException {
         for (var child : node.children) {
-            if (child instanceof Endpoint) {
-                for (var t : ((Endpoint) child).tasks)
+            if (child instanceof Endpoint e) {
+                for (var t : e.tasks)
                     if (t.requiresEmailServer())
                         if (result.emailServerOrNull == null)
                             throw new ConfigurationException("Application has one or more email tasks, " +
                                 "but 'email-sending-configuration.xml' missing");
             }
-            else if (child instanceof EndpointHierarchyFolderNode) {
-                assertEmailServerConfiguredIfEmailTasks(result, (EndpointHierarchyFolderNode) child);
+            else if (child instanceof EndpointHierarchyFolderNode f) {
+                assertEmailServerConfiguredIfEmailTasks(result, f);
             }
             else throw new RuntimeException("Unexpected child: "+child.getClass()); 
         }

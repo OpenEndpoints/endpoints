@@ -72,7 +72,7 @@ public class GitApplicationRepository {
     
     protected @CheckForNull TransportConfigCallback getTransportConfigCallback() {
         return transport -> {
-            if (transport instanceof SshTransport) {
+            if (transport instanceof SshTransport ssh) {
                 var rsaPrivateKeyAsBytes = rsaPrivateKey == null ? null : rsaPrivateKey.getBytes(StandardCharsets.UTF_8);
 
                 var sshSessionFactory = new JschConfigSessionFactory() {
@@ -90,7 +90,7 @@ public class GitApplicationRepository {
                     }
                 };
 
-                ((SshTransport) transport).setSshSessionFactory(sshSessionFactory);
+                ssh.setSshSessionFactory(sshSessionFactory);
             }
         };
     }

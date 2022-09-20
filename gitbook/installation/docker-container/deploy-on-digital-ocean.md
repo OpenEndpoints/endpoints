@@ -25,7 +25,7 @@ This is an **example installation** on [DigitalOcean](https://digitalocean.com).
 5. Create a database:
    1. Click on “Databases” in left navigation
    2. Choose “PostgreSQL”
-   3. Currently we recommend PostgreSQL 10+.
+   3. Currently we recommend PostgreSQL 14 (although other versions will probably work).
    4. We recommend starting with the cheapest version which is “Basic Node” with 1GB of RAM.
    5. Choose your Data Center.
    6. Under “Choose a unique database cluster name” choose something like “endpoints”.

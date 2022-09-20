@@ -101,13 +101,13 @@ public class HttpRequestSpecification {
 
     protected static @Nonnull JsonNode expandJson(@Nonnull Map<String, String> parameters, @Nonnull JsonNode input)
     throws VariableNotFoundException {
-        if (input instanceof ArrayNode) {
-            var result = ((ArrayNode) input).arrayNode();
+        if (input instanceof ArrayNode arrayNode) {
+            var result = arrayNode.arrayNode();
             for (int i = 0; i < input.size(); i++) result.add(expandJson(parameters, input.get(i)));
             return result;
         }
-        else if (input instanceof ObjectNode) {
-            var result = ((ObjectNode) input).objectNode();
+        else if (input instanceof ObjectNode objectNode) {
+            var result = objectNode.objectNode();
             for (Iterator<Map.Entry<String, JsonNode>> i = input.fields(); i.hasNext(); ) {
                 var e = i.next();
                 result.set(e.getKey(), expandJson(parameters, e.getValue()));
@@ -135,7 +135,7 @@ public class HttpRequestSpecification {
                     
                     var fileList = fileUploads.stream()
                         .filter(f -> f.getFieldName().equalsIgnoreCase(uploadFieldName))
-                        .collect(toList());
+                        .toList();
                     if (fileList.size() > 1) throw new InvalidRequestException(
                         "More than one <input type='file' name='" + uploadFieldName + "'> found in request");
                     if (fileList.size() < 1) throw new InvalidRequestException(

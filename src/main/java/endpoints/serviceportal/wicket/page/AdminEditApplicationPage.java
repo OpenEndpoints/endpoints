@@ -135,23 +135,22 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
             r.setGitUrl(gitUrl);
             
             switch (authType) {
-                case authPublic:
+                case authPublic -> {
                     r.setGitUsername(null);
                     r.setGitPasswordCleartext(null);
                     r.setGitRsaPrivateKeyCleartext(null);
-                    break;
-                case authUsernamePassword:
+                }
+                case authUsernamePassword -> {
                     r.setGitUsername(username);
                     if ( ! newPassword.equals(notShown)) r.setGitPasswordCleartext(new CleartextPassword(newPassword));
                     r.setGitRsaPrivateKeyCleartext(null);
-                    break;
-                case authPrivateKey:
+                }
+                case authPrivateKey -> {
                     r.setGitUsername(null);
                     r.setGitPasswordCleartext(null);
                     if ( ! newPrivateKey.equals(notShown)) r.setGitRsaPrivateKeyCleartext(newPrivateKey);
-                    break;
-                default:
-                    throw new IllegalStateException(authType.name());
+                }
+                default -> throw new IllegalStateException(authType.name());
             }
             
             try {

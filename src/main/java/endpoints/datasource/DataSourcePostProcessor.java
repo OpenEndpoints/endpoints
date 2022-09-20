@@ -72,7 +72,7 @@ public class DataSourcePostProcessor {
             var result = new ArrayList<Element>();
             for (int i = 0; i < outputDoc.getDocumentElement().getChildNodes().getLength(); i++) {
                 var x = outputDoc.getDocumentElement().getChildNodes().item(i);
-                if (x instanceof Element) result.add((Element) x);
+                if (x instanceof Element e) result.add(e);
             }
             return result.toArray(Element[]::new);
         }

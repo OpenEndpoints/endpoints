@@ -43,14 +43,14 @@ public class HttpRequestTaskTest extends TestCase {
         }
     }
     
-    @SuppressWarnings("StringBufferReplaceableByString")
     protected @Nonnull HttpRequestTask newTask(String extraXml, boolean ignoreErrors) throws ConfigurationException {
         try (var xsltDir = new TemporaryFile("foo", "bar")) {
-            var xml = new StringBuilder();
-            xml.append("<task ").append(ignoreErrors ? "ignore-if-error='true'" : "").append(">");
-            xml.append("  <url>http://www.unit-test.com</url>");
-            xml.append(extraXml);
-            xml.append("</task>");
+            var xml = """
+                <task %s>
+                  <url>http://www.unit-test.com</url>
+                  %s
+                </task>
+                """.formatted(ignoreErrors ? "ignore-if-error='true'" : "", extraXml);
             
             var threads = new XsltCompilationThreads();
             var result = new HttpRequestTask(threads, xsltDir.file, Map.of(), xsltDir.file, 0, DomParser.from(xml.toString()));
