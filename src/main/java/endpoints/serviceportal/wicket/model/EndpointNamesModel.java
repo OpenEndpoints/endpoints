@@ -21,7 +21,7 @@ public class EndpointNamesModel extends CachingFutureModel<ArrayList<NodeName>> 
     protected final @Nonnull ApplicationName applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
     protected final @Nonnull SerializableSupplier<PublishEnvironment> environment;
 
-    @Override protected ArrayList<NodeName> populate() {
+    @Override protected @Nonnull ArrayList<NodeName> populate() {
         try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer(getClass().getSimpleName()+".load")) {
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment.get());
             var names = application.getEndpoints().getEndpointForName().keySet();

@@ -19,8 +19,7 @@ public class ParametersModel extends CachingFutureModel<ArrayList<ParameterName>
     protected final @Nonnull SerializableSupplier<PublishEnvironment> environment;
     protected final @Nonnull SerializableSupplier<NodeName> endpoint;
     
-    @SuppressWarnings("TryWithIdenticalCatches")
-    @Override protected ArrayList<ParameterName> populate() {
+    @Override protected @Nonnull ArrayList<ParameterName> populate() {
         if (endpoint.get() == null) return new ArrayList<>();
 
         try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer(getClass().getSimpleName()+".load")) {
