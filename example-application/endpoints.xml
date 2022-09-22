@@ -23,7 +23,7 @@
         </task>
         <task class="endpoints.task.EmailTask" if="${dont-send}" notequals="true">
           <input-intermediate-value name="swagger-version"/>
-          <from>endpoints@example.com</from>
+          <from>endpoints@databasesandlife.com</from>
           <to>${email-address}</to>
           <to>${email-address}</to>
           <subject>Email from Endpoints to: ${email-address} (Dots are ${param.with.dots})</subject>
@@ -122,10 +122,10 @@
           <response-transformation name="produce-error"/>
         </error>
         <task class="endpoints.task.EmailTask" if="${email-address}" notequals="">
-          <from>endpoints@example.com</from>
+          <from>endpoints@databasesandlife.com</from>
           <to>${email-address}</to>
           <to>${email-address}</to>
-          <subject>Email from Endpoints to: ${email-address}</subject>
+          <subject>PDF Email from Endpoints to: ${email-address}</subject>
           <body-transformation name="produce-text"/>
           <body-transformation name="produce-html"/>
           <attachment-static filename="static-subdirectory/spheres.png"/>
