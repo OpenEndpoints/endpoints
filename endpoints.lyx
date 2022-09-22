@@ -1697,6 +1697,44 @@ ${foo}
 \begin_layout Itemize
 
 \family typewriter
+<attachment-ooxml-parameter-expansion source="foo.docx" filename="bar.docx"/>
+\family default
+ will read in the file 
+\begin_inset Quotes eld
+\end_inset
+
+foo.docx
+\begin_inset Quotes erd
+\end_inset
+
+ from the 
+\begin_inset Quotes eld
+\end_inset
+
+ooxml-responses
+\begin_inset Quotes erd
+\end_inset
+
+ directory under the Endpoint's configuration and replace any 
+\family typewriter
+${foo}
+\family default
+ variables in the document's body, and deliver it.
+ Only DOCX is supported; DOC is not supported.
+ The name of the file is specified in the 
+\family typewriter
+filename
+\family default
+ attribute, parameters like 
+\family typewriter
+${foo}
+\family default
+ are expanded.
+\end_layout
+
+\begin_layout Itemize
+
+\family typewriter
 <attachments-from-request-file-uploads/>
 \family default
 .

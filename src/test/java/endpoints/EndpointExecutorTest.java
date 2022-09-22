@@ -41,7 +41,7 @@ public class EndpointExecutorTest extends TestCase {
                 @Nonnull XsltCompilationThreads threads, int idx, 
                 @Nonnull String id, @Nonnull String afterXml, @Nonnull Runnable task
             ) throws ConfigurationException  {
-                super(threads, new File("/"), Map.of(), 
+                super(threads, new File("/"), new File("/"), Map.of(), 
                     new File("/"), idx, DomParser.from("<foo id='"+id+"'>"+afterXml+"</foo>"));
                 this.task = task;
             }

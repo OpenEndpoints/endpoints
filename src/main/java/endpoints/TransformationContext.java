@@ -1,6 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.ThreadPool;
+import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.offerready.xslt.destination.BufferedDocumentGenerationDestination;
 import endpoints.config.*;
 import endpoints.datasource.TransformationFailedException;
@@ -42,17 +43,13 @@ public class TransformationContext {
     public final @Nonnull Map<String, String> requestLogExpressionCaptures;
     public boolean alreadyDeliveredResponse = false;
 
-    public static class TransformerExecutor implements Runnable {
-        public final @Nonnull BufferedDocumentGenerationDestination result = new BufferedDocumentGenerationDestination();
-        @Override public void run() { }
-    }
-    
-    public synchronized @Nonnull TransformerExecutor scheduleTransformation(
+    public synchronized @Nonnull Runnable scheduleTransformation(
+        @Nonnull BufferedDocumentGenerationDestination outputTo,
         @Nonnull Transformer transformer,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws TransformationFailedException {
-        var result = new TransformerExecutor();
-        var process = transformer.scheduleExecution(this, visibleIntermediateValues, result.result);
+        var result = new SynchronizationPoint();
+        var process = transformer.scheduleExecution(this, visibleIntermediateValues, outputTo);
         threads.addTaskWithDependencies(List.of(process), result);
         return result;
     }

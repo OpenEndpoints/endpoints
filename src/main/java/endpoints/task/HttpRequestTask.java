@@ -36,11 +36,11 @@ public class HttpRequestTask extends Task {
     protected @Nonnull List<HttpOutputIntermediateValue> outputIntermediateValues;
 
     public HttpRequestTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, 
+        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir, 
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
+        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
         spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
         outputIntermediateValues = HttpOutputIntermediateValue.parse(
             DomParser.getSubElements(config, "output-intermediate-value"));

@@ -3,6 +3,7 @@ package endpoints.task;
 import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
+import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.DeploymentParameters;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
@@ -31,11 +32,11 @@ public class CreateShortLinkToEndpointTask extends Task {
     protected final @Nonnull Duration expiry;
 
     public CreateShortLinkToEndpointTask(
-        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
+        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
         assertNoOtherElements(config);
         destinationEndpoint = new NodeName(getMandatoryAttribute(config, "destination-endpoint-name"));
         outputIntermediateValue = new IntermediateValueName(getMandatoryAttribute(config, "output-intermediate-value"));

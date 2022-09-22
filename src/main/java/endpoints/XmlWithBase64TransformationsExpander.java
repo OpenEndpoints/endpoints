@@ -3,7 +3,7 @@ package endpoints;
 import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.IdentityForwardingSaxHandler;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import endpoints.TransformationContext.TransformerExecutor;
+import com.offerready.xslt.destination.BufferedDocumentGenerationDestination;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.Transformer;
 import endpoints.datasource.TransformationFailedException;
@@ -25,7 +25,7 @@ public class XmlWithBase64TransformationsExpander {
     
     protected @Nonnull TransformationContext context;
     protected @Nonnull Document input;
-    protected @Nonnull IdentityHashMap<Transformer, TransformerExecutor> tasks = new IdentityHashMap<>();
+    protected @Nonnull Map<Transformer, BufferedDocumentGenerationDestination> transformerOutput = new IdentityHashMap<>();
     
     @SneakyThrows(TransformerException.class)
     protected Map<String, Transformer> parseTransformers() {
@@ -59,7 +59,7 @@ public class XmlWithBase64TransformationsExpander {
                 if (transformerName != null) {
                     var transformer = context.application.getTransformers().get(transformerName);
                     if (transformer == null) throw new RuntimeException(transformerName);
-                    var bytes = tasks.get(transformer).result.getBody().toByteArray();
+                    var bytes = transformerOutput.get(transformer).getBody().toByteArray();
 
                     super.startElement(uri, localName, qName, atts);
 
@@ -80,8 +80,9 @@ public class XmlWithBase64TransformationsExpander {
         
         var futures = new ArrayList<Runnable>(transformers.size());
         for (var t : transformers.values()) {
-            var transformTask = context.scheduleTransformation(t, visibleIntermediateValues);
-            tasks.put(t, transformTask);
+            var destination = new BufferedDocumentGenerationDestination();
+            var transformTask = context.scheduleTransformation(destination, t, visibleIntermediateValues);
+            transformerOutput.put(t, destination);
             futures.add(transformTask);
         }
         

@@ -52,6 +52,8 @@ The task \<task class="endpoints.task.EmailTask"> sends an email. It has the fol
     <attachment-static filename="path-to-file-in-static"/>
     <!-- zero or many -->
     <attachment-transformation name="a-transformation" filename="invoice-${invoice-number}.pdf"/>
+    <!-- zero or many -->
+    <attachment-ooxml-parameter-expansion source="foo.docx" filename="invoice-${invoice-number}.pdf"/>
     <!-- zero or one -->
     <attachments-from-request-file-uploads/>
 </task>
@@ -68,6 +70,8 @@ The task \<task class="endpoints.task.EmailTask"> sends an email. It has the fol
 • \<attachment-static filename="path/foo.pdf"> takes the foo.pdf file out of the static directory and includes it as an attachment in the email. Variables are not allowed in the filename attribute.
 
 • \<attachment-transformation name="a-transformation" filename="invoice-${invoice-number}.pdf"/>. For each of the elements, the transformation is executed, and the resulting bytes are attached as a file to the sent email. The name of the file is specified in the filename attribute, variables are expanded.
+
+• \<attachment-ooxml-parameter-expansion source="foo.docx" filename="invoice-${invoice-number}.pdf"/> will read in the file “foo.docx” from the “ooxml-responses” directory under the Endpoint's configuration and replace any ${foo} variables in the document's body, and deliver it. Only DOCX is supported; DOC is not supported. The name of the file is specified in the filename attribute, parameters like ${foo} are expanded.
 
 • \<attachments-from-request-file-uploads/>. This includes as attachments all file uploads that have been uploaded to this request. Any attachment may (optionally) have attributes such as if="${foo}" equals="bar".
 

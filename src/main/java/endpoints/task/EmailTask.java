@@ -4,9 +4,10 @@ import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import com.offerready.xslt.destination.EmailPartDocumentDestination;
+import endpoints.OoxmlParameterExpander;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
-import endpoints.TransformationContext.TransformerExecutor;
 import endpoints.UploadedFile;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -37,7 +38,6 @@ import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.offerready.xslt.destination.EmailPartDocumentDestination.newMimeBodyForDestination;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 
 public class EmailTask extends Task {
     
@@ -73,6 +73,17 @@ public class EmailTask extends Task {
         public @Override void assertTemplatesValid() throws DocumentTemplateInvalidException {
             super.assertTemplatesValid();
             contents.assertTemplatesValid();
+        }
+    }
+    
+    protected static class AttachmentOoxmlParameterExpansion extends Attachment {
+        protected @Nonnull OoxmlParameterExpander expander;
+        
+        public @Override void assertParametersSuffice(
+            @Nonnull Set<ParameterName> params,
+            @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+        ) throws ConfigurationException {
+            expander.assertParametersSuffice(params, visibleIntermediateValues);
         }
     }
 
@@ -120,14 +131,15 @@ public class EmailTask extends Task {
     }
 
     public EmailTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, transformers, staticDir, indexFromZero, config);
+        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
         
         assertNoOtherElements(config, "after", "input-intermediate-value","from", "to", "subject", "body-transformation",
-            "attachment-static", "attachment-transformation", "attachments-from-request-file-uploads");
+            "attachment-static", "attachment-transformation", "attachment-ooxml-parameter-expansion", 
+            "attachments-from-request-file-uploads");
 
         this.staticDir = staticDir;
 
@@ -143,16 +155,21 @@ public class EmailTask extends Task {
         if (alternativeBodies.isEmpty()) throw new ConfigurationException("<body-transformation> is missing");
 
         for (var a : getSubElements(config, "attachment-static", "attachment-transformation",
-                "attachments-from-request-file-uploads")) {
+                "attachment-ooxml-parameter-expansion", "attachments-from-request-file-uploads")) {
             var attachment = switch (a.getTagName()) {
                 case "attachment-static" -> 
                     findStaticFileAndAssertExists("<attachment-static>", 
                         getMandatoryAttribute(a, "filename"));
                 case "attachment-transformation" -> {
-                    var attachmentTransformation = new AttachmentTransformation();
-                    attachmentTransformation.filenamePattern = getMandatoryAttribute(a, "filename");
-                    attachmentTransformation.contents = findTransformer(transformers, a);
-                    yield attachmentTransformation;
+                    var result = new AttachmentTransformation();
+                    result.filenamePattern = getMandatoryAttribute(a, "filename");
+                    result.contents = findTransformer(transformers, a);
+                    yield result;
+                }
+                case "attachment-ooxml-parameter-expansion" -> {
+                    var result = new AttachmentOoxmlParameterExpansion();
+                    result.expander = new OoxmlParameterExpander(ooxmlDir, "filename", a);
+                    yield result;
                 }
                 case "attachments-from-request-file-uploads" -> new AttachmentsFromRequestFileUploads();
                 default -> throw new RuntimeException(a.getTagName());
@@ -185,10 +202,11 @@ public class EmailTask extends Task {
         for (var a : attachments) a.assertTemplatesValid();
     }
 
+    /** Takes HTML which has been previously produced, and replaces cid:xx images with correct references, and adds attachments */ 
     @SneakyThrows(MessagingException.class)
     protected @Nonnull MimeBodyPart scheduleHtmlBodyPart(
         @Nonnull TransformationContext context, @Nonnull BodyPart html, 
-        @Nonnull List<Runnable> partTasks, @Nonnull TransformerExecutor htmlExecutor
+        @Nonnull List<Runnable> partTasks, @Nonnull Runnable htmlExecutor, @Nonnull EmailPartDocumentDestination destination
     ) {
         var bodyPart = new MimeBodyPart();
         var body = new MimeMultipart("related");
@@ -201,7 +219,7 @@ public class EmailTask extends Task {
             @Override public void run() {
                 var referencedFiles = new TreeMap<String, BodyPart>();
                 var matcher = Pattern.compile("['\"]cid:([/\\w\\-]+\\.\\w{3,4})['\"]")
-                    .matcher(htmlExecutor.result.getBody().toString(UTF_8));
+                    .matcher(destination.getBody().toString(UTF_8));
                 while (matcher.find()) {
                     var whole = matcher.group();
                     var path = matcher.group(1); // e.g. "foo/bar.jpg"
@@ -257,14 +275,16 @@ public class EmailTask extends Task {
         mainPart.addBodyPart(bodyPart);
         for (var bodyTransformer : alternativeBodies) {
             try {
-                var xslt = context.scheduleTransformation(bodyTransformer, inputIntermediateValues);
-                var contentsBodyPart = newMimeBodyForDestination(xslt.result);
+                var bodyDestination = new EmailPartDocumentDestination();
+                var xslt = context.scheduleTransformation(bodyDestination, bodyTransformer, inputIntermediateValues);
+                var contentsBodyPart = newMimeBodyForDestination(bodyDestination);
                 var contentType = Optional.ofNullable(bodyTransformer.getDefn().contentType).orElse("").toLowerCase();
                 if (contentType.contains("text/html") && contentType.contains("utf-8")) {
-                    body.addBodyPart(scheduleHtmlBodyPart(context, contentsBodyPart, partTasks, xslt));
+                    // This adds its final task, which depends on "xslt", to "partTasks"
+                    body.addBodyPart(scheduleHtmlBodyPart(context, contentsBodyPart, partTasks, xslt, bodyDestination));
                 } else {
-                    body.addBodyPart(contentsBodyPart);
                     partTasks.add(xslt);
+                    body.addBodyPart(contentsBodyPart);
                 }
             }
             catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Email body", e); }
@@ -281,14 +301,17 @@ public class EmailTask extends Task {
             }
             else if (at instanceof AttachmentTransformation a) {
                 try {
-                    var xslt = context.scheduleTransformation(a.contents, inputIntermediateValues);
-                    var part = newMimeBodyForDestination(xslt.result);
-                    part.setFileName(replacePlainTextParameters(a.filenamePattern, stringParams));
-                    part.setDisposition(Part.ATTACHMENT);
-                    mainPart.addBodyPart(part);
-                    partTasks.add(xslt);
+                    var result = new EmailPartDocumentDestination();
+                    result.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, stringParams));
+                    partTasks.add(context.scheduleTransformation(result, a.contents, inputIntermediateValues));
+                    mainPart.addBodyPart(result.getBodyPart());
                 }
                 catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e); }
+            }
+            else if (at instanceof AttachmentOoxmlParameterExpansion o) {
+                var result = new EmailPartDocumentDestination();
+                partTasks.add(o.expander.scheduleExecution(context, result, inputIntermediateValues));
+                mainPart.addBodyPart(result.getBodyPart());
             }
             else if (at instanceof AttachmentsFromRequestFileUploads) {
                 for (var upload : context.request.getUploadedFiles()) {

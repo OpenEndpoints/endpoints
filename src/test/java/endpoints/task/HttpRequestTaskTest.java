@@ -53,7 +53,8 @@ public class HttpRequestTaskTest extends TestCase {
                 """.formatted(ignoreErrors ? "ignore-if-error='true'" : "", extraXml);
             
             var threads = new XsltCompilationThreads();
-            var result = new HttpRequestTask(threads, xsltDir.file, Map.of(), xsltDir.file, 0, DomParser.from(xml.toString()));
+            var result = new HttpRequestTask(threads, xsltDir.file, xsltDir.file, 
+                Map.of(), xsltDir.file, 0, DomParser.from(xml));
             threads.execute();
             
             return result;

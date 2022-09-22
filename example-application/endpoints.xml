@@ -131,6 +131,7 @@
           <attachment-static filename="static-subdirectory/spheres.png"/>
           <attachment-transformation name="produce-pdf" if="foo" equals="foo" filename="invoice-${invoice-number}.pdf"/>
           <attachment-transformation name="produce-pdf" if="foo" equals="bar" filename="DO-NOT-INCLUDE-${invoice-number}.pdf"/>
+          <attachment-ooxml-parameter-expansion source="in.pptx" filename="ppt-${invoice-number}.pptx"/>
           <attachments-from-request-file-uploads/>
         </task>
       </endpoint>

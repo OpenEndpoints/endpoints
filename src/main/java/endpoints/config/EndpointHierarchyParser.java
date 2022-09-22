@@ -89,7 +89,7 @@ public class EndpointHierarchyParser extends DomParser {
     @SneakyThrows({SecurityException.class, ClassNotFoundException.class, NoSuchMethodException.class,
         IllegalAccessException.class, InstantiationException.class, InvocationTargetException.class})
     protected static @Nonnull Task parseTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
         @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
         @Nonnull Set<ParameterName> params, int indexFromZero, @Nonnull Element element
     ) throws ConfigurationException {
@@ -97,9 +97,9 @@ public class EndpointHierarchyParser extends DomParser {
         try {
             try {
                 @SuppressWarnings("unchecked") var taskClass = (Class<? extends Task>) Class.forName(taskClassName);
-                var constructor = taskClass.getConstructor(XsltCompilationThreads.class, File.class, Map.class,
-                    File.class, int.class, Element.class);
-                var result = constructor.newInstance(threads, httpXsltDirectory, transformers, staticDir, 
+                var constructor = taskClass.getConstructor(XsltCompilationThreads.class,
+                    File.class, File.class, Map.class, File.class, int.class, Element.class);
+                var result = constructor.newInstance(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, 
                     indexFromZero, element);
                 result.assertParametersSuffice(params);
                 
@@ -220,7 +220,7 @@ public class EndpointHierarchyParser extends DomParser {
             
             var taskElements = getSubElements(element, "task");
             for (int t = 0; t < taskElements.size(); t++)
-                result.tasks.add(parseTask(threads, httpXsltDirectory, 
+                result.tasks.add(parseTask(threads, httpXsltDirectory, ooxmlDir, 
                     transformers, staticDir, result.aggregateParametersOverParents().keySet(), t, taskElements.get(t)));
             
             var successAndTasks = new ArrayList<EndpointExecutionParticipant>();
