@@ -36,4 +36,8 @@ public class Application {
         result.transformers = transformers;
         return result;
     }
+    
+    public static @Nonnull Application newForTesting() {
+        return newForTesting(Map.of());
+    }
 }

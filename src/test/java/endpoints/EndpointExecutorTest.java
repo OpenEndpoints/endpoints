@@ -62,7 +62,7 @@ public class EndpointExecutorTest extends TestCase {
         for (int i = 0; i < threadCount; i++) { // As this thread stuff involves timing, run it a few times to try and provoke an error
             p.addTask(() -> {
                 for (var param : new String[] { "special", "normal" }) {
-                    try (var tx = new ApplicationTransaction(Application.newForTesting(Map.of()))) {
+                    try (var tx = new ApplicationTransaction(Application.newForTesting())) {
                         var output = new StringBuffer();
                         
                         var threads = new XsltCompilationThreads();
@@ -79,7 +79,7 @@ public class EndpointExecutorTest extends TestCase {
                         );
                         
                         var context = new TransformationContext(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
-                            Application.newForTesting(Map.of()), tx, threads, endpoint,
+                            Application.newForTesting(), tx, threads, endpoint,
                             Map.of(new ParameterName("param"), param), error, RequestId.newRandom(), 
                             Request.newForTesting(), Map.of(), Map.of());
                         
