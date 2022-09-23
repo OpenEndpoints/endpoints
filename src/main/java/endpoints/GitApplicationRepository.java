@@ -133,6 +133,9 @@ public class GitApplicationRepository {
     throws RepositoryCommandFailedException {
         var tmpDir = newTemporaryDirectory(destination);
         try (var ignored = new Timer("Git checkout of application '" + url + "'")) {
+            // Alas we have to download the entire repository here.
+            // There is .setDepth(1) but that downloads the latest revision, which might not be the one we want.
+            // There is no way to specify "download only revision X" via jGit.
             Git.cloneRepository()
                 .setURI(url)
                 .setDirectory(tmpDir)
