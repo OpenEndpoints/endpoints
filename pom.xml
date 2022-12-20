@@ -33,7 +33,7 @@
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <flyway.version>5.0.7</flyway.version>
+        <flyway.version>9.10.1</flyway.version>
         <wicket.version>8.13.0</wicket.version>
         <jooq.version>3.15.12</jooq.version>
         <jgit.version>6.3.0.202209071007-r</jgit.version>
@@ -322,6 +322,7 @@
 
                 <configuration>
                     <url>${env.ENDPOINTS_JDBC_URL}</url>
+                    <cleanDisabled>false</cleanDisabled>
                     <locations>
                         <location>filesystem:src/main/resources/endpoints/migration</location>
                     </locations>

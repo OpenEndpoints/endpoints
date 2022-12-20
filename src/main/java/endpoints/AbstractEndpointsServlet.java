@@ -2,8 +2,9 @@ package endpoints;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.LoggerFactory;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -36,9 +37,10 @@ public abstract class AbstractEndpointsServlet extends HttpServlet {
     public void init() throws ServletException {
         super.init();
 
-        var flyway = new Flyway();
-        flyway.setDataSource(DeploymentParameters.get().jdbcUrl, null, null);
-        flyway.setLocations("classpath:endpoints/migration");
+        var configuration = new FluentConfiguration()
+            .dataSource(DeploymentParameters.get().jdbcUrl, null, null)
+            .locations("classpath:endpoints/migration");
+        var flyway = new Flyway(configuration);
         flyway.migrate();
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {

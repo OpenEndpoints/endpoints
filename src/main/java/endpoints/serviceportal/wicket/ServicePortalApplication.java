@@ -14,6 +14,7 @@ import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Response;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.configuration.FluentConfiguration;
 
 import javax.annotation.Nonnull;
 import java.nio.charset.StandardCharsets;
@@ -34,9 +35,11 @@ public class ServicePortalApplication extends WebApplication {
     @Override public void init() {
         super.init();
 
-        var flyway = new Flyway();
-        flyway.setDataSource(DeploymentParameters.get().jdbcUrl, null, null);
-        flyway.setLocations("classpath:endpoints/migration");
+        // Migrate database to current schema if necessary
+        var configuration = new FluentConfiguration()
+            .dataSource(DeploymentParameters.get().jdbcUrl, null, null)
+            .locations("classpath:endpoints/migration");
+        var flyway = new Flyway(configuration);
         flyway.migrate();
 
         // Check that environment variables are set and valid
