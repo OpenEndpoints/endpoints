@@ -25,8 +25,8 @@ import static java.util.stream.Collectors.toMap;
 
 public class JsonToXmlConverter {
 
-    protected static final Pattern patternFirstChar = Pattern.compile("^[^a-z_]");
-    protected static final Pattern patternNonFirstChar = Pattern.compile("[^a-z0-9-_.]");
+    protected static final Pattern patternFirstChar = Pattern.compile("^[^a-zA-Z_]");
+    protected static final Pattern patternNonFirstChar = Pattern.compile("[^a-zA-Z0-9-_.]");
     
     protected @Nonnull String makeKeySafeForXml(@Nonnull Pattern pattern, @Nonnull String key) {
         var result = new StringBuilder();
