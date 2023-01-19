@@ -1054,6 +1054,8 @@ success
 
 \begin_layout Enumerate
 Parameters are extracted from the result of the transformation.
+ If the same parameter appears multiple times, then later values override
+ earlier values.
 \end_layout
 
 \begin_layout Enumerate

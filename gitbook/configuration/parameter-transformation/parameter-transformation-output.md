@@ -15,6 +15,7 @@ The required output scheme is:
 
 * Each parameter existing in endpoints.xml must be present in the output, except if the parameter has a default-value (which will be applied if the parameter were missing in the output).
 * Output of a parameter not existing in endpoints.xml will raise an error.
+* If the same parameter appears multiple times, then later values override earlier values.
 
 ## Raise Custom Error
 
