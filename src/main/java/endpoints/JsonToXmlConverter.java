@@ -61,7 +61,6 @@ public class JsonToXmlConverter {
     public @Nonnull Element convert(@Nonnull String contentType, @Nonnull InputStream jsonInputStream, @Nonnull String rootElement) 
     throws JSONException, IOException {
         
-        @SuppressWarnings("UnstableApiUsage") 
         var charset = com.google.common.net.MediaType.parse(contentType).charset().or(UTF_8);
         
         String xmlString;
