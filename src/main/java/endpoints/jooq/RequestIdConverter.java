@@ -6,7 +6,6 @@ import org.jooq.Converter;
 import javax.annotation.CheckForNull;
 import java.util.UUID;
 
-@SuppressWarnings("serial")
 public class RequestIdConverter implements Converter<UUID, RequestId> {
 
     @Override public Class<UUID> fromType() { return UUID.class; }
@@ -21,6 +20,6 @@ public class RequestIdConverter implements Converter<UUID, RequestId> {
     @Override
     public @CheckForNull UUID to(@CheckForNull RequestId x) {
         if (x == null) return null;
-        return x.getId();
+        return x.id();
     }
 }

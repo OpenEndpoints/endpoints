@@ -26,6 +26,7 @@ public class ForwardToEndpointResponseConfiguration extends ResponseConfiguratio
     /** Null means that all parameters are forwarded */
     @CheckForNull public Map<ParameterName, String> inputParameterPatterns;
 
+    @SuppressWarnings("SameParameterValue") 
     protected Map<ParameterName, String> parseParameterMap(Element container, String elementName, String keyAttribute)
     throws ConfigurationException {
         var result = new HashMap<ParameterName, String>();

@@ -5,7 +5,6 @@ import org.jooq.Converter;
 
 import javax.annotation.CheckForNull;
 
-@SuppressWarnings("serial")
 public class ServicePortalUsernameConverter implements Converter<String, ServicePortalUsername> {
 
     @Override public Class<String> fromType() { return String.class; }
@@ -20,6 +19,6 @@ public class ServicePortalUsernameConverter implements Converter<String, Service
     @Override
     public @CheckForNull String to(@CheckForNull ServicePortalUsername x) {
         if (x == null) return null;
-        return x.username;
+        return x.username();
     }
 }

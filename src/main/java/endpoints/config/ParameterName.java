@@ -5,12 +5,8 @@ import lombok.Value;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("serial")
 @Value
 public class ParameterName implements Serializable, Comparable<ParameterName> {
     

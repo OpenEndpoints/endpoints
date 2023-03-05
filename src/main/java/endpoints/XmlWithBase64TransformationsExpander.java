@@ -32,10 +32,10 @@ public class XmlWithBase64TransformationsExpander {
         var result = new HashMap<String, Transformer>();
         DomVariableExpander.expand(input, x -> new IdentityForwardingSaxHandler(x) {
             @SneakyThrows(ConfigurationException.class)
-            @Override public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-                var transformerName = atts.getValue("xslt-transformation");
+            @Override public void startElement(String uri, String localName, String qName, Attributes attrs) throws SAXException {
+                var transformerName = attrs.getValue("xslt-transformation");
                 if (transformerName != null) {
-                    var encoding = atts.getValue("encoding");
+                    var encoding = attrs.getValue("encoding");
                     if ( ! "base64".equals(encoding)) throw new ConfigurationException("<"+localName+" xslt-transformation='"
                         + transformerName + "' encoding='"+encoding+"'> must have encoding='base64'");
                     
@@ -45,7 +45,7 @@ public class XmlWithBase64TransformationsExpander {
                     result.put(transformerName, transformer);
                 }
 
-                super.startElement(uri, localName, qName, atts);
+                super.startElement(uri, localName, qName, attrs);
             }
         });
         return result;
@@ -54,19 +54,19 @@ public class XmlWithBase64TransformationsExpander {
     @SneakyThrows(TransformerException.class)
     protected @Nonnull Document insertFilesIntoXml() {
         return DomVariableExpander.expand(input, x -> new IdentityForwardingSaxHandler(x) {
-            @Override public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-                var transformerName = atts.getValue("xslt-transformation");
+            @Override public void startElement(String uri, String localName, String qName, Attributes attrs) throws SAXException {
+                var transformerName = attrs.getValue("xslt-transformation");
                 if (transformerName != null) {
                     var transformer = context.application.getTransformers().get(transformerName);
                     if (transformer == null) throw new RuntimeException(transformerName);
                     var bytes = transformerOutput.get(transformer).getBody().toByteArray();
 
-                    super.startElement(uri, localName, qName, atts);
+                    super.startElement(uri, localName, qName, attrs);
 
                     var base64 = Base64.encodeBase64String(bytes).toCharArray();
                     super.characters(base64, 0, base64.length);
                 } else {
-                    super.startElement(uri, localName, qName, atts);
+                    super.startElement(uri, localName, qName, attrs);
                 }
             }
         });

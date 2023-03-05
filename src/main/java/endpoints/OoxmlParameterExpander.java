@@ -50,7 +50,7 @@ public class OoxmlParameterExpander {
         try (
             var zipInput = new ZipInputStream(new FileInputStream(input));
             var zipOutput = new ZipOutputStream(output);
-            var ignored = new Timer(getClass().getSimpleName() + " expansion, input='" + input.getName() + "'");
+            var ignored = new Timer(getClass().getSimpleName() + " expansion, input='" + input.getName() + "'")
         ) {
             while (true) {
                 var entry = zipInput.getNextEntry();

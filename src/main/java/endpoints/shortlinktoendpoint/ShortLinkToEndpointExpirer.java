@@ -12,7 +12,7 @@ import static org.jooq.impl.DSL.select;
 public class ShortLinkToEndpointExpirer extends DailyJob {
 
     @Override protected void performJob() {
-        try (var tx = DeploymentParameters.get().newDbTransaction();) {
+        try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var now = Instant.now();
             tx.jooq()
                 .deleteFrom(SHORT_LINK_TO_ENDPOINT_PARAMETER)

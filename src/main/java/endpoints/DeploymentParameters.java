@@ -56,7 +56,7 @@ public class DeploymentParameters {
 
     protected @Nonnull String getMandatoryParameter(@Nonnull String var) {
         var result = getOptionalParameter(var);
-        if ( ! result.isPresent()) throw new RuntimeException("Environment variable '" + var + "' is not set");
+        if (result.isEmpty()) throw new RuntimeException("Environment variable '" + var + "' is not set");
         return result.get();
     }
     

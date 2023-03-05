@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
-import static java.util.stream.Collectors.toList;
 
 public class RequestLogExpressionCaptureTask extends Task {
     

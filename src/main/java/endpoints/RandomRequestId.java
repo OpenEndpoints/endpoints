@@ -2,7 +2,6 @@ package endpoints;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.config.ApplicationName;
-import lombok.Value;
 
 import javax.annotation.Nonnull;
 
@@ -12,20 +11,19 @@ import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
 import static org.apache.commons.lang.RandomStringUtils.random;
 import static org.apache.commons.lang.RandomStringUtils.randomNumeric;
 
-@Value
-public class RandomRequestId implements Serializable {
-    
-    long id;
+public record RandomRequestId(
+    long id
+) implements Serializable {
 
     /**
      * Note: Assumes application is "locked" i.e. only one instance of this code is running at once
      */
-    protected static @Nonnull RandomRequestId generate(
+    public static @Nonnull RandomRequestId generate(
         @Nonnull DbTransaction tx,
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment
     ) {
         for (int attempt = 0; attempt < 100; attempt++) {
-            // 10 digits, starting with a non-zero so it is always 10 characters long
+            // 10 digits, starting with a non-zero, so it is always 10 characters long
             var candidate = new RandomRequestId(Long.parseLong(random(1, "123456789") + randomNumeric(9)));
 
             var existingCount = tx.jooq()

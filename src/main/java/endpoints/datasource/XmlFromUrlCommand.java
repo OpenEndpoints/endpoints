@@ -3,7 +3,6 @@ package endpoints.datasource;
 import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.ThreadPool.ScheduleDependencyInAnyOrder;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
 import endpoints.HttpRequestSpecification;

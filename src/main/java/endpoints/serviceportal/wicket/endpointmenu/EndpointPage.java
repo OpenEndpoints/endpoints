@@ -4,7 +4,6 @@ import endpoints.PublishEnvironment;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointContentMenuItem;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointFormMenuItem;
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;
-import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.page.AbstractLoggedInApplicationPage;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,9 +16,6 @@ import org.apache.wicket.model.LambdaModel;
 import javax.annotation.Nonnull;
 
 import java.util.Arrays;
-import java.util.stream.Collectors;
-
-import static java.util.stream.Collectors.toList;
 
 public abstract class EndpointPage extends AbstractLoggedInApplicationPage {
     

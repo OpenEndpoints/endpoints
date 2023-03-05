@@ -4,7 +4,6 @@ import com.databasesandlife.util.Timer;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

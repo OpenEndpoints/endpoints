@@ -2,7 +2,6 @@ package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
@@ -19,7 +18,6 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.databasesandlife.util.DomParser.getSubElements;
-import static java.util.stream.Collectors.toList;
 
 public class DataSource {
     

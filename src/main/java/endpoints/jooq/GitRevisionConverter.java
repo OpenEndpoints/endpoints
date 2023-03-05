@@ -5,7 +5,6 @@ import org.jooq.Converter;
 
 import javax.annotation.CheckForNull;
 
-@SuppressWarnings("serial")
 public class GitRevisionConverter implements Converter<String, GitRevision> {
 
     @Override public Class<String> fromType() { return String.class; }
@@ -20,6 +19,6 @@ public class GitRevisionConverter implements Converter<String, GitRevision> {
     @Override
     public @CheckForNull String to(@CheckForNull GitRevision x) {
         if (x == null) return null;
-        return x.getSha256Hex();
+        return x.sha256Hex();
     }
 }

@@ -1,7 +1,6 @@
 package endpoints.datasource;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
@@ -12,12 +11,10 @@ import org.w3c.dom.Element;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static com.databasesandlife.util.DomParser.getSubElements;
 
 public abstract class DataSourceCommand {
 

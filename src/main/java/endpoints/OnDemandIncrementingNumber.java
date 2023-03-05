@@ -27,12 +27,12 @@ public class OnDemandIncrementingNumber {
     
     public enum OnDemandIncrementingNumberType {
         perpetual {
-            public @Override @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_PERPETUAL_INCREMENTING_NUMBER; }
-            public @Override @Nonnull Condition getRequestLogCondition(Instant now, ZoneId timezone) { return trueCondition(); }
+            @Override public @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_PERPETUAL_INCREMENTING_NUMBER; }
+            @Override public @Nonnull Condition getRequestLogCondition(Instant now, ZoneId timezone) { return trueCondition(); }
         },
         year {
-            public @Override @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_YEAR_INCREMENTING_NUMBER; }
-            public @Override @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) { 
+            @Override public @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_YEAR_INCREMENTING_NUMBER; }
+            @Override public @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) { 
                 var nowLocal = now.atZone(timezone).toLocalDateTime();
                 var startLocal = LocalDateTime.of(nowLocal.getYear(), Month.JANUARY, 1, 0, 0);
                 return REQUEST_LOG.DATETIME.ge(startLocal.atZone(timezone).toInstant())
@@ -40,8 +40,8 @@ public class OnDemandIncrementingNumber {
             }
         },
         month {
-            public @Override @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_MONTH_INCREMENTING_NUMBER; }
-            public @Override @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) {
+            @Override public @Nonnull Field<Integer> getRequestLogIdsField() { return REQUEST_LOG_IDS.ON_DEMAND_MONTH_INCREMENTING_NUMBER; }
+            @Override public @Nonnull Condition getRequestLogCondition(@Nonnull Instant now, @Nonnull ZoneId timezone) {
                 var nowLocal = now.atZone(timezone).toLocalDateTime();
                 var startLocal = LocalDateTime.of(nowLocal.getYear(), nowLocal.getMonth(), 1, 0, 0);
                 return REQUEST_LOG.DATETIME.ge(startLocal.atZone(timezone).toInstant())

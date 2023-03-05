@@ -62,14 +62,14 @@ public class RequestLogCommand extends DataSourceCommand {
     ) {
         var element = doc.createElement("request-log-entry");
 
-        appendElementWithText(element, e->{}, "request-id", r.getRequestId().id);
+        appendElementWithText(element, e->{}, "request-id", r.getRequestId().id());
         appendElementWithText(element, e->{}, "endpoint", ids.getEndpoint().name);
         appendElementWithText(element, e->{}, "datetime-utc", r.getDatetime().atZone(UTC).format(dateTimeFormat));
         appendElementWithText(element, e->{}, "status-code", r.getStatusCode());
         appendElementWithText(element, e->{}, "exception-message", r.getExceptionMessage());
         appendElementWithText(element, e->{}, "incremental-id-per-endpoint", ids.getIncrementalIdPerEndpoint());
         appendElementWithText(element, e->{}, "random-id-per-application",
-            Optional.ofNullable(ids.getRandomIdPerApplication()).map(x -> x.getId()).orElse(null));
+            Optional.ofNullable(ids.getRandomIdPerApplication()).map(x -> x.id()).orElse(null));
         appendElementWithText(element, e->{}, "user-agent", r.getUserAgent());
         appendElementWithText(element, e->{}, "environment", ids.getEnvironment());
         appendElementWithText(element, e->{}, "http-request-failed-url", r.getHttpRequestFailedUrl());

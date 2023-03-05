@@ -22,7 +22,6 @@ import endpoints.datasource.TransformationFailedException;
 import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import endpoints.task.RequestLogExpressionCaptureTask;
-import endpoints.task.Task;
 import endpoints.task.Task.TaskExecutionFailedException;
 import endpoints.task.TaskId;
 import jakarta.activation.MimetypesFileTypeMap;
@@ -75,7 +74,7 @@ public class EndpointExecutor {
 
     @FunctionalInterface
     public interface Responder {
-        public void respond(@Nonnull BufferedHttpResponseDocumentGenerationDestination response);
+        void respond(@Nonnull BufferedHttpResponseDocumentGenerationDestination response);
     }
 
     public static class EndpointExecutionFailedException extends Exception {
@@ -106,7 +105,7 @@ public class EndpointExecutor {
         }
     }
     
-    protected class ParameterTransformationLogger {
+    protected static class ParameterTransformationLogger {
         public Element input, output;
     }
 
@@ -205,10 +204,10 @@ public class EndpointExecutor {
             databaseConfig == null ? null : databaseConfig.getDisplayName());
         if (debugAllowed) inputFromApplicationElement.appendChild(inputParametersDocument.createElement("debug-allowed"));
         if (application.getRevision() != null) 
-            appendTextElement(inputFromApplicationElement, "git-revision", application.getRevision().sha256Hex);
+            appendTextElement(inputFromApplicationElement, "git-revision", application.getRevision().sha256Hex());
         appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
         appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(requestAutoInc));
-        appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.getId()));
+        appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.id()));
         appendTextElement(inputFromApplicationElement, "base-url", DeploymentParameters.get().baseUrl.toExternalForm());
 
         // Schedule execution of e.g. <xml-from-application>
@@ -311,7 +310,7 @@ public class EndpointExecutor {
         @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         long requestAutoInc, @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
         @Nonnull RandomRequestId random, @Nonnull Consumer<Map<ParameterName, String>> consumeParameters
-    ) throws InvalidRequestException, TransformationFailedException, EndpointExecutionFailedException {
+    ) throws InvalidRequestException, TransformationFailedException {
         Consumer<Map<ParameterName, String>> validateThenConsumeParameters = (transformedParameters) -> {
             try {
                 // Apply <parameter> definition from endpoints.xml
@@ -336,7 +335,7 @@ public class EndpointExecutor {
         ));
         var parameterElements = ParametersCommand.createParametersElements(inputParameters, Map.of(), req.getUploadedFiles());
         
-        var contentType = Optional.ofNullable(req.getRequestBodyIfPost()).map(r -> r.contentType).orElse(null);
+        var contentType = Optional.ofNullable(req.getRequestBodyIfPost()).map(r -> r.contentType()).orElse(null);
         if (contentType == null 
                 || contentType.equals("application/x-www-form-urlencoded") 
                 || contentType.equals("multipart/form-data")) {
@@ -357,10 +356,10 @@ public class EndpointExecutor {
                 final @Nonnull Element requestDocument;
                 if (contentType.contains("xml"))
                     requestDocument = encloseElement("xml", 
-                        DomParser.from(new ByteArrayInputStream(req.getRequestBodyIfPost().body)));
+                        DomParser.from(new ByteArrayInputStream(req.getRequestBodyIfPost().body())));
                 else if (contentType.contains("json")) 
                     requestDocument = encloseElement("json", 
-                        convertJsonToXml(contentType, new ByteArrayInputStream(req.getRequestBodyIfPost().body)));
+                        convertJsonToXml(contentType, new ByteArrayInputStream(req.getRequestBodyIfPost().body())));
                 else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
@@ -389,7 +388,7 @@ public class EndpointExecutor {
     }
     
     @RequiredArgsConstructor
-    protected class Response implements Runnable {
+    protected static class Response implements Runnable {
         protected final @Nonnull TransformationContext context;
         protected final @Nonnull ResponseConfiguration config;
         protected final int contentStatusCode;
@@ -487,8 +486,7 @@ public class EndpointExecutor {
             this.random = random;
         }
 
-        @SneakyThrows({InvalidRequestException.class, TransformationFailedException.class, NodeNotFoundException.class,
-            EndpointExecutionFailedException.class})
+        @SneakyThrows({InvalidRequestException.class, TransformationFailedException.class, NodeNotFoundException.class})
         @Override public void runUnconditionally() {
             var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
 
@@ -550,15 +548,16 @@ public class EndpointExecutor {
         r.setParameterTransformationInput(parameterTransformationLogger.input);
         r.setParameterTransformationOutput(parameterTransformationLogger.output);
         r.setRequestContentType(Optional.ofNullable(req.getRequestBodyIfPost())
-            .filter(x -> debugAllowed && debugRequested).map(b -> b.contentType).orElse(null));
+            .filter(x -> debugAllowed && debugRequested).map(b -> b.contentType()).orElse(null));
         r.setRequestBody(Optional.ofNullable(req.getRequestBodyIfPost())
-            .filter(x -> debugAllowed && debugRequested).map(b -> b.body).orElse(null));
+            .filter(x -> debugAllowed && debugRequested).map(b -> b.body()).orElse(null));
         alterRequestLog.accept(r);
         tx.insert(r);
         
         RequestLogExpressionCaptureTask.writeToDb(tx, requestId, requestLogExpressionCaptures);
     }
     
+    @SuppressWarnings("UnusedReturnValue")
     protected @Nonnull Response scheduleTasksAndSuccess(
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName, @Nonnull ApplicationConfig appConfig,
         @Nonnull TransformationContext context, @Nonnull Endpoint endpoint,
@@ -567,8 +566,7 @@ public class EndpointExecutor {
     ) {
         var synchronizationPointForTaskId = new HashMap<TaskId, SynchronizationPoint>();
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
-        @SuppressWarnings("Convert2Diamond")  // IntelliJ Windows requires the <Task> here
-        var tasksToSchedule = new ArrayList<Task>(endpoint.tasks);
+        var tasksToSchedule = new ArrayList<>(endpoint.tasks);
         
         var infiniteLoopProtection = 0;
         while ( ! tasksToSchedule.isEmpty()) {
@@ -633,9 +631,9 @@ public class EndpointExecutor {
         @Nonnull Map<String, String> requestLogExpressionCaptures, @Nonnull RandomRequestId random,
         @CheckForNull String hashToCheck, @Nonnull RequestId requestId, @Nonnull Request req,
         @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
-    ) throws EndpointExecutionFailedException, InvalidRequestException, TransformationFailedException {
+    ) throws InvalidRequestException, TransformationFailedException {
         getParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
-            appConfig.debugAllowed, debugRequested, parameterTransformationLogger,
+            appConfig.debugAllowed(), debugRequested, parameterTransformationLogger,
             requestAutoInc, autoInc, random, parameters -> {
                 try {
                     if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
@@ -673,7 +671,7 @@ public class EndpointExecutor {
                 
                 var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);
                 
-                if (appConfig.locked) throw new InvalidRequestException("Application is locked");
+                if (appConfig.locked()) throw new InvalidRequestException("Application is locked");
 
                 try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name 
                         + "', environment '" + environment.name() + "'")) {
@@ -710,7 +708,7 @@ public class EndpointExecutor {
                 }
 
                 insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
-                    req, appConfig.debugAllowed, debugRequested, 
+                    req, appConfig.debugAllowed(), debugRequested, 
                     parameterTransformationLogger, autoInc, requestLogExpressionCaptures, successResponse.destination, r -> {
                         r.setIncrementalIdPerEndpoint(requestAutoInc);
                         r.setRandomIdPerApplication(random);
@@ -759,7 +757,7 @@ public class EndpointExecutor {
                     }
 
                     insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
-                        req, appConfig.debugAllowed, debugRequested, 
+                        req, appConfig.debugAllowed(), debugRequested, 
                         parameterTransformationLogger, autoInc, context.requestLogExpressionCaptures, 
                         errorResponse.destination, r -> {}, r -> {
                             r.setExceptionMessage(e.getMessage());

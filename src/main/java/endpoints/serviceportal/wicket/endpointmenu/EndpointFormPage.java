@@ -21,9 +21,7 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.wicket.AttributeModifier.append;
 
 public class EndpointFormPage extends EndpointPage {
     

@@ -2,7 +2,6 @@ package endpoints.task;
 
 import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.DeploymentParameters;
 import endpoints.TransformationContext;

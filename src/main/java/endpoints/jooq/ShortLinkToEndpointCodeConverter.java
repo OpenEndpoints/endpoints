@@ -5,7 +5,6 @@ import org.jooq.Converter;
 
 import javax.annotation.CheckForNull;
 
-@SuppressWarnings("serial")
 public class ShortLinkToEndpointCodeConverter implements Converter<String, ShortLinkToEndpointCode> {
 
     @Override public Class<String> fromType() { return String.class; }

@@ -12,7 +12,6 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.GitRevision;
 import endpoints.PublishEnvironment;
 import endpoints.datasource.DataSource;
-import lombok.AllArgsConstructor;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -23,16 +22,15 @@ import java.util.Map;
 
 public abstract class ApplicationFactory extends DocumentOutputDefinitionParser {
     
-    @SuppressWarnings("serial")
     public static class ApplicationNotFoundException extends Exception {
         public ApplicationNotFoundException(ApplicationName name) { super(name.name); }
         public ApplicationName getName() { return new ApplicationName(getMessage()); }
     }
     
-    @AllArgsConstructor
-    public static class ApplicationConfig {
-        public final boolean locked, debugAllowed;
-    }
+    public record ApplicationConfig(
+        boolean locked, 
+        boolean debugAllowed
+    ) { }
 
     protected static @Nonnull Transformer parseTransformer(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, DataSource> dataSources,

@@ -20,7 +20,7 @@ public class EndpointExecutionParticipantTest extends TestCase {
         public @CheckForNull TaskId id;
         public @Nonnull Set<IntermediateValueName> outputs;
         @Override public @CheckForNull TaskId getTaskIdOrNull() { return id; }
-        @Override protected @Nonnull String getHumanReadableId() { return id == null ? "unit test" : id.id; }
+        @Override protected @Nonnull String getHumanReadableId() { return id == null ? "unit test" : id.id(); }
         public Task(@Nonnull Element element) throws ConfigurationException { super(element); }
         @Override public @Nonnull Set<IntermediateValueName> getOutputIntermediateValues() { return outputs; }
     }
@@ -32,7 +32,7 @@ public class EndpointExecutionParticipantTest extends TestCase {
     ) {
         var xml = new StringBuilder();
         xml.append("<foo>");
-        for (var x : before) xml.append("<after task-id='").append(x.id).append("'/>");
+        for (var x : before) xml.append("<after task-id='").append(x.id()).append("'/>");
         for (var x : inputs) xml.append("<input-intermediate-value name='").append(x.name).append("'/>");
         xml.append("</foo>");
 

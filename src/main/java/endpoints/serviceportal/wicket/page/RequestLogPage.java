@@ -53,14 +53,13 @@ import static java.time.temporal.ChronoUnit.DAYS;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.*;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
 import static org.apache.wicket.util.time.Duration.seconds;
 import static org.jooq.impl.DSL.*;
 
 public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
-    protected final @Nonnull ApplicationName applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
+    protected final @Nonnull ApplicationName applicationName = getSession().getLoggedInApplicationDataOrThrow().application();
     protected @Getter @Setter @Nonnull PublishEnvironment filterEnvironment = live;
     protected @Getter @Setter @Nonnull DateRangeOption dateRange = DateRangeOption.getValues(now(UTC)).get(0);
     protected @Getter @Setter @CheckForNull NodeName filterEndpoint = null;
@@ -141,7 +140,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     }
     
     @AllArgsConstructor
-    protected class RequestLogEntry implements Serializable {
+    protected static class RequestLogEntry implements Serializable {
         public @Nonnull RequestLogIdsRecord ids;
         /** Doesn't have the XML and request body fields populated (they might be huge, don't store them in the session) */
         public @Nonnull RequestLogRecord record;
@@ -150,7 +149,6 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     }
 
     protected class ResultsModel extends CachingFutureModel<ArrayList<RequestLogEntry>> {
-        @SuppressWarnings("SimplifyStreamApiCallChains")
         @Override protected @Nonnull ArrayList<RequestLogEntry> populate() {
             try (
                 var tx = DeploymentParameters.get().newDbTransaction();
@@ -221,7 +219,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
             this.requestLogField = requestLogField;
         }
 
-        // By default these are cached, which is bad as they have e.g. link8 and if a new request turns up
+        // By default, these are cached, which is bad as they have e.g. link8 and if a new request turns up
         // then all the rows are pushed down and link8 might now refer to something else
         @Override protected void configureResponse(ResourceResponse response, Attributes attributes) {
             super.configureResponse(response, attributes);
@@ -230,7 +228,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
         protected T fetch() {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                LoggerFactory.getLogger(getClass()).info("Downloading " + requestLogField + " for request_log_id " + id.getId() + "...");
+                LoggerFactory.getLogger(getClass()).info("Downloading " + requestLogField + " for request_log_id " + id.id() + "...");
                 return tx.jooq().select(requestLogField)
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
@@ -264,143 +262,141 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
     public RequestLogPage() {
         super(NavigationItem.RequestLogPage, null);
 
-        try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var endpointsNamesModel = new EndpointNamesModel(this::getFilterEnvironment);
-            var resultsModel = new ResultsModel();
-            var resultsCountModel = new ResultsCountModel();
+        var endpointsNamesModel = new EndpointNamesModel(this::getFilterEnvironment);
+        var resultsModel = new ResultsModel();
+        var resultsCountModel = new ResultsCountModel();
 
-            var form = new Form<Void>("filter") {
-                @Override protected void onSubmit() {
-                    endpointsNamesModel.refresh(); // e.g. environment changed, different set of endpoints available
-                    resultsCountModel.refresh();   // e.g. filter changed
-                    resultsModel.refresh();
-                }
-            };
-            add(form);
-
-            form.add(new DropDownChoice<>("environment", LambdaModel.of(this::getFilterEnvironment, this::setFilterEnvironment),
-                asList(PublishEnvironment.values()), new EnumChoiceRenderer<>(this)));
-            form.add(new DropDownChoice<>("dateRange", LambdaModel.of(this::getDateRange, this::setDateRange),
-                () -> DateRangeOption.getValues(now(UTC)), new LambdaDisplayValueChoiceRenderer<>(r -> r.getDisplayName())));
-            form.add(new DropDownChoice<>("endpoint", LambdaModel.of(this::getFilterEndpoint, this::setFilterEndpoint),
-                endpointsNamesModel, new LambdaDisplayValueChoiceRenderer<>(e -> e.name)).setNullValid(true));
-            form.add(new DropDownChoice<>("errorType", LambdaModel.of(this::getFilterErrorType, this::setFilterErrorType),
-                asList(ErrorType.values()), new EnumChoiceRenderer<>(this)).setNullValid(true));
-            form.add(new TextField<>("text", LambdaModel.of(this::getFilterText, this::setFilterText)));
-            
-            var resultsTable = new WebMarkupContainer("results");
-            resultsTable.add(new ListView<>("row", resultsModel) {
-                @Override protected void populateItem(@Nonnull ListItem<RequestLogEntry> item) {
-                    var entry = item.getModelObject();
-                    var rec = entry.record;
-                    var id = rec.getRequestId();
-
-                    // We have to have this as UTC, because:
-                    // The top KPI numbers have to be UTC because they are used for billing, all users must see the same data
-                    // You want to select the KPI time range in the drop-down for verificaiton, so drop-down must also act on UTC
-                    // If you select "today" in the UTC drop-down, you don't want to see yesterday in the table, so table must also be UTC
-                    var tableRow = new WebMarkupContainer("tableRow");
-                    tableRow.setOutputMarkupId(true);
-                    tableRow.add(AttributeAppender.append("class", () -> expandedRows.contains(id) ? "open-row" : ""));
-                    tableRow.add(new Label("dateTimeShortUtc", DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
-                        .format(rec.getDatetime().atOffset(UTC))));
-                    tableRow.add(new SubstringHighlightLabel("endpoint", filterText, entry.ids.getEndpoint().name));
-                    tableRow.add(new SubstringHighlightLabel("statusCode", filterText, Integer.toString(rec.getStatusCode()))
-                        .add(AttributeAppender.append("class", rec.getStatusCode() >= 300 ? "status-error" : "")));
-                    tableRow.add(new SubstringHighlightLabel("incrementalIdPerEndpoint", filterText,
-                        Optional.ofNullable(entry.ids.getIncrementalIdPerEndpoint()).map(x -> Long.toString(x)).orElse(null)));
-                    tableRow.add(new SubstringHighlightLabel("randomIdPerApplication", filterText, 
-                        Optional.ofNullable(entry.ids.getRandomIdPerApplication()).map(x -> Long.toString(x.getId())).orElse(null)));
-                    item.add(tableRow);
-                    
-                    var detailsHighlightLabels = new ArrayList<SubstringHighlightLabel>();
-                    detailsHighlightLabels.add(
-                        new SubstringHighlightLabel("requestId", filterText, rec.getRequestId().getId().toString()));
-                    detailsHighlightLabels.add(
-                        new SubstringHighlightLabel("userAgent", filterText, rec.getUserAgent()));
-                    detailsHighlightLabels.add((SubstringHighlightLabel) 
-                        new SubstringHighlightLabel("exceptionMessage", filterText, rec.getExceptionMessage())
-                        .setVisible(rec.getExceptionMessage() != null));
-                    detailsHighlightLabels.add((SubstringHighlightLabel) 
-                        new SubstringHighlightLabel("httpRequestFailedUrl", filterText, rec.getHttpRequestFailedUrl())
-                        .setVisible(rec.getHttpRequestFailedUrl() != null));
-                    detailsHighlightLabels.add((SubstringHighlightLabel) 
-                        new SubstringHighlightLabel("httpRequestFailedStatusCode", filterText,
-                            Optional.ofNullable(rec.getHttpRequestFailedStatusCode()).map(x -> Integer.toString(x)).orElse(null))
-                        .setVisible(rec.getHttpRequestFailedStatusCode() != null));
-                    detailsHighlightLabels.add((SubstringHighlightLabel) 
-                        new SubstringHighlightLabel("xsltParameterErrorMessage", filterText, rec.getXsltParameterErrorMessage())
-                        .setVisible(rec.getXsltParameterErrorMessage() != null));
-                    
-                    var captures = new WebMarkupContainer("expressionCaptures");
-                    captures.add(new ListView<>("row", entry.expressionCaptures) {
-                        @Override protected void populateItem(ListItem<RequestLogExpressionCaptureRecord> item) {
-                            item.add(new Label("key", item.getModelObject().getKey()));
-                            item.add(new SubstringHighlightLabel("value", filterText, item.getModelObject().getValue()));
-                        }
-                    });
-                    captures.setVisible( ! entry.expressionCaptures.isEmpty());
-
-                    var details = new WebMarkupContainer("details");
-                    details.add(AttributeAppender.append("style", () -> expandedRows.contains(id) ? "" : "display:none;"));
-                    details.setOutputMarkupId(true);
-                    details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
-                        .format(rec.getDatetime().atZone(UTC))));
-                    details.add(new ResourceLink<>("downloadRequestBody",
-                        new BinaryDownloadResource(id, REQUEST_LOG.REQUEST_BODY, rec.getRequestContentType(),
-                            "request-body-"+id.id))
-                        .setVisible(rec.getRequestContentType() != null));
-                    details.add(new Label("requestContentType", rec.getRequestContentType())
-                        .setVisible(rec.getRequestContentType() != null));
-                    details.add(new WebMarkupContainer("noRequestContentType").setVisible(rec.getRequestContentType() == null));
-                    details.add(new ResourceLink<>("downloadInputXml",
-                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input-"+id.id+".xml"))
-                        .add(AttributeAppender.append("class",
-                            entry.parameterTransformationInput.matchesTextFilter ? "filter-highlight" : ""))
-                        .setVisible(entry.parameterTransformationInput.xmlIsAvailable));
-                    details.add(new ResourceLink<>("downloadOutputXml",
-                        new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output-"+id.id+".xml"))
-                        .add(AttributeAppender.append("class", 
-                            entry.parameterTransformationOutput.matchesTextFilter ? "filter-highlight" : ""))
-                        .setVisible(entry.parameterTransformationOutput.xmlIsAvailable));
-                    details.add(new WebMarkupContainer("outputXmlNotAvailable")
-                        .setVisible( ! entry.parameterTransformationOutput.xmlIsAvailable));
-                    for (var label : detailsHighlightLabels) details.add(label);
-                    details.add(captures);
-                    item.add(details);
-
-                    var expansionFilterTextMatches = detailsHighlightLabels.stream().anyMatch(label -> label.matches())
-                        || entry.parameterTransformationInput.matchesTextFilter
-                        || entry.parameterTransformationOutput.matchesTextFilter;
-                    
-                    // We implement the [+] opening of rows in Wicket, not Javascript
-                    // It would be possible to do this in Javascript on the client, that would be faster for the user.
-                    // However, it would be more difficult to remember which items were open across AJAX reloads
-                    // And would also have lower maintainability, due to more technologies, and generally more complex solution
-                    var toggle = new AjaxFallbackLink<Void>("toggle") {
-                        @Override public void onClick(Optional<AjaxRequestTarget> redrawTarget) {
-                            if (expandedRows.contains(id)) expandedRows.remove(id); else expandedRows.add(id);
-                            redrawTarget.ifPresent(t -> t.add(tableRow, details));
-                        }
-                    };
-                    toggle.add(new Label("text", () -> expandedRows.contains(id) ? "Hide" : "Show"));
-                    toggle.add(AttributeAppender.append("class", expansionFilterTextMatches ? "filter-highlight" : ""));
-                    tableRow.add(toggle);
-                }
-            });
-            resultsTable.add(new Label("extraRowCount",  // Lombok stack overflow if LabelWithThousandSeparator, don't know why
-                () -> String.format(getLocale(), "%,d", resultsCountModel.getObject() - resultsModel.getObject().size())) {
-                @Override public boolean isVisible() {
-                    return resultsCountModel.getObject() - resultsModel.getObject().size() > 0;
-                }
-            });
-            add(resultsTable.setOutputMarkupId(true));
-            
-            add(onTimer(seconds(5), (target) -> {
+        var form = new Form<Void>("filter") {
+            @Override protected void onSubmit() {
+                endpointsNamesModel.refresh(); // e.g. environment changed, different set of endpoints available
+                resultsCountModel.refresh();   // e.g. filter changed
                 resultsModel.refresh();
-                resultsCountModel.refresh();
-                target.add(resultsTable);
-            }));
-        }
+            }
+        };
+        add(form);
+
+        form.add(new DropDownChoice<>("environment", LambdaModel.of(this::getFilterEnvironment, this::setFilterEnvironment),
+            asList(PublishEnvironment.values()), new EnumChoiceRenderer<>(this)));
+        form.add(new DropDownChoice<>("dateRange", LambdaModel.of(this::getDateRange, this::setDateRange),
+            () -> DateRangeOption.getValues(now(UTC)), new LambdaDisplayValueChoiceRenderer<>(r -> r.getDisplayName())));
+        form.add(new DropDownChoice<>("endpoint", LambdaModel.of(this::getFilterEndpoint, this::setFilterEndpoint),
+            endpointsNamesModel, new LambdaDisplayValueChoiceRenderer<>(e -> e.name)).setNullValid(true));
+        form.add(new DropDownChoice<>("errorType", LambdaModel.of(this::getFilterErrorType, this::setFilterErrorType),
+            asList(ErrorType.values()), new EnumChoiceRenderer<>(this)).setNullValid(true));
+        form.add(new TextField<>("text", LambdaModel.of(this::getFilterText, this::setFilterText)));
+        
+        var resultsTable = new WebMarkupContainer("results");
+        resultsTable.add(new ListView<>("row", resultsModel) {
+            @Override protected void populateItem(@Nonnull ListItem<RequestLogEntry> item) {
+                var entry = item.getModelObject();
+                var rec = entry.record;
+                var id = rec.getRequestId();
+
+                // We have to have this as UTC, because:
+                // The top KPI numbers have to be UTC because they are used for billing, all users must see the same data
+                // You want to select the KPI time range in the drop-down for verification, so drop-down must also act on UTC
+                // If you select "today" in the UTC drop-down, you don't want to see yesterday in the table, so table must also be UTC
+                var tableRow = new WebMarkupContainer("tableRow");
+                tableRow.setOutputMarkupId(true);
+                tableRow.add(AttributeAppender.append("class", () -> expandedRows.contains(id) ? "open-row" : ""));
+                tableRow.add(new Label("dateTimeShortUtc", DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm")
+                    .format(rec.getDatetime().atOffset(UTC))));
+                tableRow.add(new SubstringHighlightLabel("endpoint", filterText, entry.ids.getEndpoint().name));
+                tableRow.add(new SubstringHighlightLabel("statusCode", filterText, Integer.toString(rec.getStatusCode()))
+                    .add(AttributeAppender.append("class", rec.getStatusCode() >= 300 ? "status-error" : "")));
+                tableRow.add(new SubstringHighlightLabel("incrementalIdPerEndpoint", filterText,
+                    Optional.ofNullable(entry.ids.getIncrementalIdPerEndpoint()).map(x -> Long.toString(x)).orElse(null)));
+                tableRow.add(new SubstringHighlightLabel("randomIdPerApplication", filterText, 
+                    Optional.ofNullable(entry.ids.getRandomIdPerApplication()).map(x -> Long.toString(x.id())).orElse(null)));
+                item.add(tableRow);
+                
+                var detailsHighlightLabels = new ArrayList<SubstringHighlightLabel>();
+                detailsHighlightLabels.add(
+                    new SubstringHighlightLabel("requestId", filterText, rec.getRequestId().id().toString()));
+                detailsHighlightLabels.add(
+                    new SubstringHighlightLabel("userAgent", filterText, rec.getUserAgent()));
+                detailsHighlightLabels.add((SubstringHighlightLabel) 
+                    new SubstringHighlightLabel("exceptionMessage", filterText, rec.getExceptionMessage())
+                    .setVisible(rec.getExceptionMessage() != null));
+                detailsHighlightLabels.add((SubstringHighlightLabel) 
+                    new SubstringHighlightLabel("httpRequestFailedUrl", filterText, rec.getHttpRequestFailedUrl())
+                    .setVisible(rec.getHttpRequestFailedUrl() != null));
+                detailsHighlightLabels.add((SubstringHighlightLabel) 
+                    new SubstringHighlightLabel("httpRequestFailedStatusCode", filterText,
+                        Optional.ofNullable(rec.getHttpRequestFailedStatusCode()).map(x -> Integer.toString(x)).orElse(null))
+                    .setVisible(rec.getHttpRequestFailedStatusCode() != null));
+                detailsHighlightLabels.add((SubstringHighlightLabel) 
+                    new SubstringHighlightLabel("xsltParameterErrorMessage", filterText, rec.getXsltParameterErrorMessage())
+                    .setVisible(rec.getXsltParameterErrorMessage() != null));
+                
+                var captures = new WebMarkupContainer("expressionCaptures");
+                captures.add(new ListView<>("row", entry.expressionCaptures) {
+                    @Override protected void populateItem(ListItem<RequestLogExpressionCaptureRecord> item) {
+                        item.add(new Label("key", item.getModelObject().getKey()));
+                        item.add(new SubstringHighlightLabel("value", filterText, item.getModelObject().getValue()));
+                    }
+                });
+                captures.setVisible( ! entry.expressionCaptures.isEmpty());
+
+                var details = new WebMarkupContainer("details");
+                details.add(AttributeAppender.append("style", () -> expandedRows.contains(id) ? "" : "display:none;"));
+                details.setOutputMarkupId(true);
+                details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
+                    .format(rec.getDatetime().atZone(UTC))));
+                details.add(new ResourceLink<>("downloadRequestBody",
+                    new BinaryDownloadResource(id, REQUEST_LOG.REQUEST_BODY, rec.getRequestContentType(),
+                        "request-body-"+id.id()))
+                    .setVisible(rec.getRequestContentType() != null));
+                details.add(new Label("requestContentType", rec.getRequestContentType())
+                    .setVisible(rec.getRequestContentType() != null));
+                details.add(new WebMarkupContainer("noRequestContentType").setVisible(rec.getRequestContentType() == null));
+                details.add(new ResourceLink<>("downloadInputXml",
+                    new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input-"+id.id()+".xml"))
+                    .add(AttributeAppender.append("class",
+                        entry.parameterTransformationInput.matchesTextFilter ? "filter-highlight" : ""))
+                    .setVisible(entry.parameterTransformationInput.xmlIsAvailable));
+                details.add(new ResourceLink<>("downloadOutputXml",
+                    new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output-"+id.id()+".xml"))
+                    .add(AttributeAppender.append("class", 
+                        entry.parameterTransformationOutput.matchesTextFilter ? "filter-highlight" : ""))
+                    .setVisible(entry.parameterTransformationOutput.xmlIsAvailable));
+                details.add(new WebMarkupContainer("outputXmlNotAvailable")
+                    .setVisible( ! entry.parameterTransformationOutput.xmlIsAvailable));
+                for (var label : detailsHighlightLabels) details.add(label);
+                details.add(captures);
+                item.add(details);
+
+                var expansionFilterTextMatches = detailsHighlightLabels.stream().anyMatch(label -> label.matches())
+                    || entry.parameterTransformationInput.matchesTextFilter
+                    || entry.parameterTransformationOutput.matchesTextFilter;
+                
+                // We implement the [+] opening of rows in Wicket, not Javascript
+                // It would be possible to do this in Javascript on the client, that would be faster for the user.
+                // However, it would be more difficult to remember which items were open across AJAX reloads
+                // And would also have lower maintainability, due to more technologies, and generally more complex solution
+                var toggle = new AjaxFallbackLink<Void>("toggle") {
+                    @Override public void onClick(Optional<AjaxRequestTarget> redrawTarget) {
+                        if (expandedRows.contains(id)) expandedRows.remove(id); else expandedRows.add(id);
+                        redrawTarget.ifPresent(t -> t.add(tableRow, details));
+                    }
+                };
+                toggle.add(new Label("text", () -> expandedRows.contains(id) ? "Hide" : "Show"));
+                toggle.add(AttributeAppender.append("class", expansionFilterTextMatches ? "filter-highlight" : ""));
+                tableRow.add(toggle);
+            }
+        });
+        resultsTable.add(new Label("extraRowCount",  // Lombok stack overflow if LabelWithThousandSeparator, don't know why
+            () -> String.format(getLocale(), "%,d", resultsCountModel.getObject() - resultsModel.getObject().size())) {
+            @Override public boolean isVisible() {
+                return resultsCountModel.getObject() - resultsModel.getObject().size() > 0;
+            }
+        });
+        add(resultsTable.setOutputMarkupId(true));
+        
+        add(onTimer(seconds(5), (target) -> {
+            resultsModel.refresh();
+            resultsCountModel.refresh();
+            target.add(resultsTable);
+        }));
     }
 }

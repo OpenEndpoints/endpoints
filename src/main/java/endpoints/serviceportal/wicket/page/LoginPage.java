@@ -9,15 +9,11 @@ import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.StatelessForm;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.PropertyModel;
-import org.jooq.Field;
 
 import javax.annotation.CheckForNull;
 
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN;
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN_APPLICATION;
-import static org.jooq.impl.DSL.count;
-import static org.jooq.impl.DSL.select;
-import static org.jooq.impl.DSL.selectCount;
 
 // Tests:
 //   - Initial page is the login page
@@ -42,13 +38,14 @@ import static org.jooq.impl.DSL.selectCount;
 //     - Log out, go to admin page, you're still logged out
 //   - Log out, Go to a particular application page, log in to one-app non-admin, you're at the page
 //   - Log out, Go to a particular application page, log in to multi-app non-admin, select app, you're at the page
-//   - Log out, GO to a paritulcar admin page, log in as admin, you're at the page
+//   - Log out, GO to a particular admin page, log in as admin, you're at the page
 
 public class LoginPage extends AbstractPage {
 
     protected ServicePortalUsername username = null;
     protected CleartextPassword password = null;
 
+    @SuppressWarnings("PropertyModel") 
     public LoginPage() {
         if (getSession().loggedInUserData != null) {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
@@ -57,7 +54,7 @@ public class LoginPage extends AbstractPage {
             }
         }
 
-        var form = new StatelessForm<Object>("form") { @Override public void onSubmit() { LoginPage.this.onSubmit(); } };
+        var form = new StatelessForm<>("form") { @Override public void onSubmit() { LoginPage.this.onSubmit(); } };
         add(form);
 
         form.add(new ServicePortalFeedbackPanel("feedback"));

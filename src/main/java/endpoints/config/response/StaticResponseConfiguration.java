@@ -1,11 +1,8 @@
 package endpoints.config.response;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
-import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.config.ParameterName;
-import endpoints.task.EmailTask;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 

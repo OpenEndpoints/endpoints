@@ -18,6 +18,6 @@ public class ServicePortalUsernameConverter implements IConverter<ServicePortalU
 
     @Override public @CheckForNull String convertToString(@CheckForNull ServicePortalUsername value, @Nonnull Locale locale) {
         if (value == null) return null;
-        return value.username;
+        return value.username();
     }
 }

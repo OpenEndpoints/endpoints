@@ -3,7 +3,6 @@ package endpoints;
 import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
 import endpoints.config.ParameterName;
-import lombok.Getter;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 
@@ -16,11 +15,10 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.util.*;
 
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 /**
- * Represents a HTTP request in the form of a {@link Request} which can be processed by {@link EndpointExecutor}.
+ * Represents an HTTP request in the form of a {@link Request} which can be processed by {@link EndpointExecutor}.
  */
 public class ServletRequest implements Request {
     

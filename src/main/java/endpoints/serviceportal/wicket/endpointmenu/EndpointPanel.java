@@ -86,7 +86,7 @@ public class EndpointPanel extends Panel {
             contentType = null;
             body = null;
 
-            var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
+            var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application();
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
             var endpoint = application.getEndpoints().findEndpointOrThrow(endpointName);
             var request = new Request() {

@@ -1,16 +1,13 @@
 package endpoints.serviceportal.wicket.page;
 
-import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.DeploymentParameters;
 import endpoints.GitApplicationRepository;
-import endpoints.generated.jooq.Tables;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.SneakyThrows;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
-import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.net.MalformedURLException;
@@ -30,7 +27,7 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
         super(NavigationItem.ApplicationHomePage, null);
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
+            var applicationName = getSession().getLoggedInApplicationDataOrThrow().application();
             var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/");
             var applicationRepo = GitApplicationRepository.fetch(tx, applicationName);
 
@@ -59,7 +56,7 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
 
     public void clearDebugLog() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            var applicationName = getSession().getLoggedInApplicationDataOrThrow().application;
+            var applicationName = getSession().getLoggedInApplicationDataOrThrow().application();
             
             tx.jooq()
                 .update(REQUEST_LOG)

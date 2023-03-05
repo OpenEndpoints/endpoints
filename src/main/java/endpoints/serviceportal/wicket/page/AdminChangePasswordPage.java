@@ -5,11 +5,9 @@ import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.wicket.markup.html.form.Button;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.annotation.Nonnull;
@@ -19,6 +17,7 @@ public class AdminChangePasswordPage extends AbstractLoggedInAdminPage {
     boolean checkOldPassword = true;
     @Getter @Setter CleartextPassword oldPasswordField, newPassword1Field, newPassword2Field;
     
+    @SuppressWarnings("PropertyModel")
     public AdminChangePasswordPage() {
         add(new ServicePortalFeedbackPanel("feedback"));
         

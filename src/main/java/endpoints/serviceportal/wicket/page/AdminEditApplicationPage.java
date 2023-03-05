@@ -14,7 +14,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -46,7 +45,7 @@ import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 //    - Use SSH URL with no auth, see it fail
 //    - Use SSH URL with u/p, see it fail
 //    - Use HTTPS URL with no auth, see it fail
-//    - Use HTTPS URL with priv key, see it fail
+//    - Use HTTPS URL with private key, see it fail
 //    - Cancel
 
 public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {

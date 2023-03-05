@@ -15,7 +15,7 @@ import java.util.ArrayList;
 @RequiredArgsConstructor
 public class ParametersModel extends CachingFutureModel<ArrayList<ParameterName>> {
 
-    protected final @Nonnull ApplicationName applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
+    protected final @Nonnull ApplicationName applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application();
     protected final @Nonnull SerializableSupplier<PublishEnvironment> environment;
     protected final @Nonnull SerializableSupplier<NodeName> endpoint;
     

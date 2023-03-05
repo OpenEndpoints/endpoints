@@ -3,7 +3,6 @@ package endpoints.datasource;
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.MD5Hex;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;

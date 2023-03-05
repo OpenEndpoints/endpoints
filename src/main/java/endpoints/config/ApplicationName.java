@@ -6,7 +6,6 @@ import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.UUID;
 
-@SuppressWarnings("serial")
 @Value
 public class ApplicationName implements Serializable, Comparable<ApplicationName> {
     

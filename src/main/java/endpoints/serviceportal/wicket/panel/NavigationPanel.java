@@ -43,7 +43,7 @@ public class NavigationPanel extends WebMarkupContainer {
         super(wicketId);
 
         add(new Label("applicationName",
-            ServicePortalSession.get().getLoggedInApplicationDataOrThrow().applicationDisplayName).setVisible(isMobile == false));
+            ServicePortalSession.get().getLoggedInApplicationDataOrThrow().applicationDisplayName()).setVisible( ! isMobile));
         
         for (var item : NavigationItem.values()) {
             if ( ! item.mobileOnly || isMobile) {

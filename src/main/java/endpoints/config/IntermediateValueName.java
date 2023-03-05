@@ -5,7 +5,6 @@ import lombok.Value;
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 
-@SuppressWarnings("serial")
 @Value
 public class IntermediateValueName implements Serializable, Comparable<IntermediateValueName> {
     

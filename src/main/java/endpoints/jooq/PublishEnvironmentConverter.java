@@ -5,7 +5,6 @@ import org.jooq.Converter;
 
 import javax.annotation.CheckForNull;
 
-@SuppressWarnings("serial")
 public class PublishEnvironmentConverter implements Converter<String, PublishEnvironment> {
 
     @Override public Class<String> fromType() { return String.class; }

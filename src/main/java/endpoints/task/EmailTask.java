@@ -24,7 +24,6 @@ import jakarta.mail.Part;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMultipart;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 
@@ -61,7 +60,7 @@ public class EmailTask extends Task {
         public @Nonnull String filenamePattern;
         public @Nonnull Transformer contents;
         
-        public @Override void assertParametersSuffice(
+        @Override public void assertParametersSuffice(
             @Nonnull Set<ParameterName> params,
             @Nonnull Set<IntermediateValueName> visibleIntermediateValues
         ) throws ConfigurationException {
@@ -70,7 +69,7 @@ public class EmailTask extends Task {
             contents.assertParametersSuffice(params, visibleIntermediateValues);
         }
         
-        public @Override void assertTemplatesValid() throws DocumentTemplateInvalidException {
+        @Override public void assertTemplatesValid() throws DocumentTemplateInvalidException {
             super.assertTemplatesValid();
             contents.assertTemplatesValid();
         }
@@ -79,7 +78,7 @@ public class EmailTask extends Task {
     protected static class AttachmentOoxmlParameterExpansion extends Attachment {
         protected @Nonnull OoxmlParameterExpander expander;
         
-        public @Override void assertParametersSuffice(
+        @Override public void assertParametersSuffice(
             @Nonnull Set<ParameterName> params,
             @Nonnull Set<IntermediateValueName> visibleIntermediateValues
         ) throws ConfigurationException {
@@ -90,21 +89,14 @@ public class EmailTask extends Task {
     protected static class AttachmentsFromRequestFileUploads extends Attachment {
     }
 
-    @RequiredArgsConstructor
-    protected static class UploadedFileDataSource implements DataSource {
-        protected final UploadedFile part;
-
-        @Override public String getContentType() {
-            synchronized (part) { return part.getContentType(); }
-        }
+    protected record UploadedFileDataSource(
+        UploadedFile part
+    ) implements DataSource {
+        @Override public String getContentType() { synchronized (part) { return part.getContentType(); } }
         @Override public InputStream getInputStream() { synchronized (part) { return part.getInputStream(); } }
-        @Override public @CheckForNull String getName() {
-            synchronized (part) { return part.getSubmittedFileName(); }
-        }
-        @Override public OutputStream getOutputStream() {
-            throw new RuntimeException("unreachable");
-        }
-    };
+        @Override public @CheckForNull String getName() { synchronized (part) { return part.getSubmittedFileName(); } }
+        @Override public OutputStream getOutputStream() { throw new RuntimeException("unreachable"); }
+    }
 
     protected @Nonnull File staticDir;
     protected @Nonnull String fromPattern, subjectPattern;

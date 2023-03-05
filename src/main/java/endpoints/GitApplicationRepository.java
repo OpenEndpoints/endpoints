@@ -141,12 +141,14 @@ public class GitApplicationRepository {
                 .setDirectory(tmpDir)
                 .setCredentialsProvider(getCredentialsProvider())
                 .setTransportConfigCallback(getTransportConfigCallback())
-                .call();
+                .call()
+                .close();
 
-            Git.open(tmpDir)
-                .checkout()
-                .setName(revision.sha256Hex)
-                .call();
+            try (var open = Git.open(tmpDir)) {
+                open.checkout()
+                    .setName(revision.sha256Hex())
+                    .call();
+            }
 
             try {
                 Files.move(tmpDir.toPath(), destination.toPath(), ATOMIC_MOVE);
@@ -173,11 +175,11 @@ public class GitApplicationRepository {
         }
     }
 
+    @SuppressWarnings("unused") // Used to be used when updating secret key, maybe useful in the future?
     @SneakyThrows(IOException.class)
     public void checkoutAlterAndCommit(
         @Nonnull String gitUsername, @Nonnull String commitMessage, @Nonnull Consumer<File> alteration
-    )
-    throws RepositoryCommandFailedException {
+    ) throws RepositoryCommandFailedException {
         var tmpDir = File.createTempFile("git", "");
         if (!tmpDir.delete()) throw new RepositoryCommandFailedException("Cannot delete tmp file");
 
@@ -187,18 +189,19 @@ public class GitApplicationRepository {
                 .setDirectory(tmpDir)
                 .setCredentialsProvider(getCredentialsProvider())
                 .setTransportConfigCallback(getTransportConfigCallback())
-                .call();
+                .call()
+                .close();
 
             alteration.accept(tmpDir);
 
-            var checkout = Git.open(tmpDir);
-
-            checkout.add().addFilepattern(".").call();
-            checkout.commit().setAuthor(gitUsername, "").setMessage(commitMessage).call();
-            checkout.push()
-                .setCredentialsProvider(getCredentialsProvider())
-                .setTransportConfigCallback(getTransportConfigCallback())
-                .call();
+            try (var checkout = Git.open(tmpDir)) {
+                checkout.add().addFilepattern(".").call();
+                checkout.commit().setAuthor(gitUsername, "").setMessage(commitMessage).call();
+                checkout.push()
+                    .setCredentialsProvider(getCredentialsProvider())
+                    .setTransportConfigCallback(getTransportConfigCallback())
+                    .call();
+            }
         }
         catch (GitAPIException e) { throw new RepositoryCommandFailedException(e); }
         finally { asyncDeleteDirectory(tmpDir); }

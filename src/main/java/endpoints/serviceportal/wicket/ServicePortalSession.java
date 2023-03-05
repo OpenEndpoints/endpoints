@@ -3,7 +3,6 @@ package endpoints.serviceportal.wicket;
 import endpoints.config.ApplicationName;
 import endpoints.serviceportal.ServicePortalUsername;
 import lombok.AllArgsConstructor;
-import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.protocol.http.WebSession;
 import org.apache.wicket.request.Request;
 
@@ -22,11 +21,10 @@ public class ServicePortalSession extends WebSession {
         public boolean moreThanOneApplication;
     }
 
-    @AllArgsConstructor
-    public static final class LoggedInApplicationData implements Serializable {
-        public final @Nonnull ApplicationName application;
-        public final @Nonnull String applicationDisplayName;
-    }
+    public record LoggedInApplicationData(
+        @Nonnull ApplicationName application,
+        @Nonnull String applicationDisplayName
+    ) implements Serializable { }
 
     public @CheckForNull LoggedInUserData loggedInUserData;
     public @CheckForNull LoggedInApplicationData loggedInApplicationData;

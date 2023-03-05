@@ -7,7 +7,6 @@ import endpoints.config.ParameterName;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -20,7 +19,7 @@ public class PlaintextParameterReplacer {
         @Nonnull Set<String> params, @CheckForNull CharSequence template, @Nonnull String msg
     ) throws ConfigurationException {
         if (template == null) return;
-        var m = Pattern.compile("\\$\\{([\\w-]+)\\}").matcher(template);
+        var m = Pattern.compile("\\$\\{([\\w-]+)}").matcher(template);
         while (m.find())
             if ( ! params.contains(m.group(1))) {
                 var availableParameters = params.isEmpty() ? "no parameters are available" : "available parameters are " +

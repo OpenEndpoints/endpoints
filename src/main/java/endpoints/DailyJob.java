@@ -32,7 +32,7 @@ public abstract class DailyJob {
     
     protected abstract void performJob();
     
-    @SuppressWarnings("InfiniteLoopStatement") 
+    @SuppressWarnings({"InfiniteLoopStatement", "BusyWait"}) 
     protected void runThread() {
         LoggerFactory.getLogger(getClass()).info("Scheduling " + getClass().getSimpleName()
             + " daily at " + scheduleUtc.format(DateTimeFormatter.ofPattern("HH:mm")) + " UTC");
@@ -52,7 +52,7 @@ public abstract class DailyJob {
                 performJob(); 
             }
             catch (Throwable e) {
-                LoggerFactory.getLogger(getClass()).error(getClass().getSimpleName() + " threw excpetion", e);
+                LoggerFactory.getLogger(getClass()).error(getClass().getSimpleName() + " threw exception", e);
             }
         }
     }

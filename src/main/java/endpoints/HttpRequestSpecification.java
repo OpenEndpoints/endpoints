@@ -59,14 +59,13 @@ import static endpoints.EndpointExecutor.logXmlForDebugging;
 import static endpoints.datasource.ParametersCommand.createParametersElement;
 import static java.lang.Boolean.parseBoolean;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.jsoup.nodes.Document.OutputSettings.Syntax.xml;
 
 public class HttpRequestSpecification {
 
     public enum HttpMethod {
-        GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE;
+        GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS, TRACE
     }
 
     public final boolean ignoreIfError;
@@ -126,10 +125,10 @@ public class HttpRequestSpecification {
     ) {
         return DomVariableExpander.expand(doc, x -> new IdentityForwardingSaxHandler(x) {
             @SneakyThrows({ConfigurationException.class, InvalidRequestException.class})
-            @Override public void startElement(String uri, String localName, String qName, Attributes atts) throws SAXException {
-                var uploadFieldName = atts.getValue("upload-field-name");
+            @Override public void startElement(String uri, String localName, String qName, Attributes attrs) throws SAXException {
+                var uploadFieldName = attrs.getValue("upload-field-name");
                 if (uploadFieldName != null) {
-                    var encoding = atts.getValue("encoding");
+                    var encoding = attrs.getValue("encoding");
                     if ( ! "base64".equals(encoding)) throw new ConfigurationException("<"+localName+" upload-field-name='"
                         + uploadFieldName + "' encoding='"+encoding+"'> must have encoding='base64'");
                     
@@ -142,10 +141,10 @@ public class HttpRequestSpecification {
                         "<input type='file' name='" + uploadFieldName + "'> not found in request");
                     var file = fileList.iterator().next();
 
-                    var uploadAtts = new AttributesImpl(atts);
+                    var uploadAttrs = new AttributesImpl(attrs);
                     if (file.getSubmittedFileName() != null)
-                        uploadAtts.addAttribute("", "filename", "filename", "", file.getSubmittedFileName());
-                    super.startElement(uri, localName, qName, uploadAtts);
+                        uploadAttrs.addAttribute("", "filename", "filename", "", file.getSubmittedFileName());
+                    super.startElement(uri, localName, qName, uploadAttrs);
                     
                     // Deliberately don't set these intermediate results e.g. file.toByteArray() in variables.
                     // Java GC cannot release objects as long as they're bound to a local variable in a running block.
@@ -158,7 +157,7 @@ public class HttpRequestSpecification {
 
                     // endElement will be called by the corresponding source element's endElement
                 } else {
-                    super.startElement(uri, localName, qName, atts);
+                    super.startElement(uri, localName, qName, attrs);
                 }
             }
         });
@@ -400,7 +399,7 @@ public class HttpRequestSpecification {
                             requestBodyJsonTransformer.newTransformer().transform(
                                 new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
                             if (DeploymentParameters.get().xsltDebugLog)
-                                LoggerFactory.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json.toString());
+                                LoggerFactory.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json);
                             IOUtils.write(json.toString(), o, UTF_8.name());
                         } else {
                             throw new RuntimeException("Unreachable");
@@ -424,7 +423,7 @@ public class HttpRequestSpecification {
                             try (var errorStream = urlConnection.getErrorStream()) {
                                 if (errorStream != null) {
                                     var responseCharset = MediaType.parse(urlConnection.getContentType()).charset().or(UTF_8);
-                                    body = IOUtils.toString(errorStream, responseCharset.name());
+                                    body = IOUtils.toString(errorStream, responseCharset);
                                 }
                             }
                         }

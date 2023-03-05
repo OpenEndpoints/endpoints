@@ -1,7 +1,6 @@
 package endpoints;
 
 import endpoints.config.ParameterName;
-import lombok.Value;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -17,12 +16,8 @@ import java.util.Map;
  * with the short link, it does not represent the parameterless request which was made to the shortlink servlet.
  */
 public interface Request {
-    
-    @Value
-    public static class RequestBody {
-        public @Nonnull String contentType;
-        public @Nonnull byte[] body;
-    }
+
+    record RequestBody(@Nonnull String contentType, @Nonnull byte[] body) { }
     
     @CheckForNull InetAddress getClientIpAddress();
     
@@ -41,15 +36,15 @@ public interface Request {
     
     @Nonnull List<? extends UploadedFile> getUploadedFiles();
     
-    public static @Nonnull Request newForTesting() {
+    static @Nonnull Request newForTesting() {
         return new Request() {
             @Override public InetAddress getClientIpAddress() { return null; }
-            @Override public Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() { return Map.of(); }
-            @Override public List<Cookie> getCookies() { return List.of(); }
-            @Override public String getUserAgent() { return ""; }
-            @Override public Map<ParameterName, List<String>> getParameters() { return Map.of(); }
+            @Override public @Nonnull Map<String, List<String>> getLowercaseHttpHeadersWithoutCookies() { return Map.of(); }
+            @Override public @Nonnull List<Cookie> getCookies() { return List.of(); }
+            @Override public @Nonnull String getUserAgent() { return ""; }
+            @Override public @Nonnull Map<ParameterName, List<String>> getParameters() { return Map.of(); }
             @Override public RequestBody getRequestBodyIfPost() { return null; }
-            @Override public List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
+            @Override public @Nonnull List<? extends UploadedFile> getUploadedFiles() { return List.of(); }
         };
     }
 }

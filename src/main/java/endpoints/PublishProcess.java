@@ -27,7 +27,7 @@ public class PublishProcess {
 
     @FunctionalInterface
     public interface PublishLogger {
-        public void println(String line);
+        void println(String line);
     }
 
     public static class ApplicationInvalidException extends Exception {

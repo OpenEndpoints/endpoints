@@ -1,9 +1,9 @@
 package endpoints.task;
 
-import lombok.Value;
+import javax.annotation.Nonnull;
 
-@Value
-public class TaskId {
-    
-    public String id;
+public record TaskId(
+    @Nonnull String id
+) {
+
 }

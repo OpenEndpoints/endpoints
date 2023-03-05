@@ -8,7 +8,6 @@ import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.ParameterName;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +21,6 @@ import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT_PARAMETER;
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toMap;
 
-@SuppressWarnings("serial")
 public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
     
     @Override

@@ -4,12 +4,10 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import endpoints.DeploymentParameters;
 import endpoints.GitApplicationRepository;
 import endpoints.GitApplicationRepository.RepositoryCommandFailedException;
 import endpoints.PublishEnvironment;
 import endpoints.GitRevision;
-import lombok.*;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
@@ -26,11 +24,10 @@ import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
  */
 public class PublishedApplicationFactory extends ApplicationFactory {
 
-    @Value
-    protected static class ApplicationDefn {
-        @Nonnull ApplicationName name;
-        @Nonnull PublishEnvironment env;
-    }
+    protected record ApplicationDefn(
+        @Nonnull ApplicationName name,
+        @Nonnull PublishEnvironment env
+    ) { }
 
     protected @Nonnull File applicationCheckoutContainerDir;
     protected final @Nonnull Map<ApplicationDefn, Application> cache = new HashMap<>();
@@ -96,7 +93,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
     }
 
     public @Nonnull File getApplicationDirectory(@Nonnull ApplicationName a, @Nonnull GitRevision r) {
-        return new File(applicationCheckoutContainerDir, a.name + "-" + r.getSha256Hex());
+        return new File(applicationCheckoutContainerDir, a.name + "-" + r.sha256Hex());
     }
 
     /** This fetches previously published applications, therefore they are assumed to be valid */

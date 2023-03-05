@@ -23,10 +23,8 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import static java.util.stream.Collectors.toMap;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-@SuppressWarnings("serial")
 public class EndpointExecutorServlet extends AbstractEndpointsServlet {
     
     @RequiredArgsConstructor
@@ -71,7 +69,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
             }
 
             log.info(String.format(Locale.ENGLISH, "Uploaded file: field='%s', size %,d bytes, first bytes (hex) = %s",
-                e.getFieldName(), bytes.length, hexString.toString()));
+                e.getFieldName(), bytes.length, hexString));
         }
     }
 

@@ -22,7 +22,7 @@ import java.util.List;
  *    <p>
  * When the transaction is committed, all databases are committed and emails are sent.
  * When the transaction is rolled back, all databases are rolled back and emails are discarded.
- * This is a simplifed version of the concept of "distributed transactions" found e.g. in J2EE or CORBA.
+ * This is a simplified version of the concept of "distributed transactions" found e.g. in J2EE or CORBA.
  *    <p>
  * The email server is defined per application, so this transaction is application-specific.
  */
@@ -37,6 +37,7 @@ public class ApplicationTransaction implements AutoCloseable {
         else email = new EmailTransaction(a.getEmailServerOrNull());
     }
 
+    @SuppressWarnings("unused") // Used to be used when tasks could specify arbitrary DB connections, maybe useful in the future?
     public synchronized void addDatabaseConnection(@Nonnull DbTransaction db) {
         additionalDbs.add(db);
     }

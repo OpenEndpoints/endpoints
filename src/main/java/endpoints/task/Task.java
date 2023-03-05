@@ -55,7 +55,7 @@ public abstract class Task extends EndpointExecutionParticipant {
 
     protected @Nonnull String getHumanReadableId() {
         if (id == null) return ordinal(taskIndexFromZero+1) + " <task>";
-        else return "<task id='" + id.id + "'/>";
+        else return "<task id='" + id.id() + "'/>";
     }
 
     public static class TaskExecutionFailedException extends Exception {

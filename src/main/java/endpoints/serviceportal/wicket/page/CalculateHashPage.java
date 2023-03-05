@@ -61,7 +61,7 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
         }});
         form.add(new Button("calculate") { @Override public void onSubmit() { computeOutput(); }});
 
-        form.add(new ListView<ParameterName>("row", parametersModel) {
+        form.add(new ListView<>("row", parametersModel) {
             @Override protected void populateItem(@Nonnull ListItem<ParameterName> item) {
                 var param = item.getModelObject();
                 item.add(new Label("label", param.name));
@@ -88,7 +88,7 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
         if (endpoint == null) { error("Please select an endpoint"); return; }
 
         try (var tx = DeploymentParameters.get().newDbTransaction(); var ignored = new Timer("computeOutput")) {
-            var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application;
+            var applicationName = ServicePortalSession.get().getLoggedInApplicationDataOrThrow().application();
             var application = DeploymentParameters.get().getApplications(tx).getApplication(tx, applicationName, environment);
             var endpointDefn = application.getEndpoints().findEndpointOrThrow(endpoint);
             var hashDefn = endpointDefn.parametersForHash;

@@ -4,7 +4,6 @@ import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
 import com.databasesandlife.util.DomVariableExpander.VariableSyntax;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;

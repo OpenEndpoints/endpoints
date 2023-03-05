@@ -7,7 +7,6 @@ import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
-@SuppressWarnings("serial")
 public abstract class EndpointHierarchyNode {
     
     public @CheckForNull EndpointHierarchyNode parentOrNull;

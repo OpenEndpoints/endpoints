@@ -20,12 +20,13 @@ public class ChangePasswordPage extends AbstractLoggedInApplicationPage {
 
     @Getter @Setter CleartextPassword oldPasswordField, newPassword1Field, newPassword2Field;
 
+    @SuppressWarnings("PropertyModel")
     public ChangePasswordPage() {
         super(NavigationItem.ChangePasswordPage, null);
 
         add(new ServicePortalFeedbackPanel("feedback"));
 
-        Form form = new Form<Void>("form") {
+        var form = new Form<Void>("form") {
             @Override protected void onSubmit() {
                 onChangePassword(true, oldPasswordField, newPassword1Field, newPassword2Field);
             }

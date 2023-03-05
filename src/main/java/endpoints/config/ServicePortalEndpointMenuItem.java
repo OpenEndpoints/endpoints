@@ -2,12 +2,9 @@ package endpoints.config;
 
 import endpoints.PublishEnvironment;
 import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 

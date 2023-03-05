@@ -3,7 +3,6 @@ package endpoints.config;
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.task.TaskId;
-import lombok.Value;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -12,8 +11,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Either a Task or &lt;success&gt; or &lt;error&gt;.
@@ -45,11 +42,10 @@ public abstract class EndpointExecutionParticipant {
         return Set.of();
     }
 
-    @Value
-    protected static class ElementAndRelationship {
-        public final @Nonnull EndpointExecutionParticipant from;
-        public final @Nonnull String relationship;
-    }
+    protected record ElementAndRelationship(
+        @Nonnull EndpointExecutionParticipant from,
+        @Nonnull String relationship
+    ) { }
     
     protected static void assertNoCircularDependenciesStartingFrom(
         @Nonnull List<EndpointExecutionParticipant> nodes, 
@@ -65,10 +61,10 @@ public abstract class EndpointExecutionParticipant {
         for (var after : toVisit.predecessors) {
             var sources = nodes.stream().filter(n -> after.equals(n.getTaskIdOrNull())).toList();
             if (sources.size() == 0) throw new ConfigurationException(
-                toVisit.getHumanReadableId() + ": <after task-id='" + after.id + "'/> but no task found with this ID");
+                toVisit.getHumanReadableId() + ": <after task-id='" + after.id() + "'/> but no task found with this ID");
             if (sources.size() > 1) throw new ConfigurationException(
-                "Multiple tasks with same ID '" + after.id + "'");
-            var relationship = "has <after task-id='" + after.id + "'/>";
+                "Multiple tasks with same ID '" + after.id() + "'");
+            var relationship = "has <after task-id='" + after.id() + "'/>";
             var pathSoFarInclUs = Stream.concat(pathSoFar.stream(), Stream.of(new ElementAndRelationship(toVisit, relationship)));
             assertNoCircularDependenciesStartingFrom(nodes, pathSoFarInclUs.toList(), sources.get(0));
         }

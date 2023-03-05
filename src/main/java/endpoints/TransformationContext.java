@@ -16,7 +16,7 @@ import static java.util.Collections.synchronizedMap;
 /**
  * Represents certain things that the execution of transformations and data sources need.
  *   <p>
- * There are (at the time of writing) three times in the endpoints's execution where one is created:
+ * There are (at the time of writing) three times in the endpoint's execution where one is created:
  * During parameter transformation, during success flow, and during error flow.
  * If a success flow forwards to another endpoint then its success flow gets its own object.
  *   <p>
@@ -26,7 +26,7 @@ import static java.util.Collections.synchronizedMap;
 @RequiredArgsConstructor
 public class TransformationContext {
 
-    public enum ParameterNotFoundPolicy { error, emptyString };
+    public enum ParameterNotFoundPolicy { error, emptyString }
 
     public final @Nonnull PublishEnvironment environment;
     public final @Nonnull ApplicationName applicationName;
@@ -60,7 +60,7 @@ public class TransformationContext {
 
     public @Nonnull Map<ParameterName, String> getParametersIncludingSystemParameters() {
         var result = new HashMap<>(params);
-        result.put(new ParameterName("request-id"), requestId.id.toString());
+        result.put(new ParameterName("request-id"), requestId.id().toString());
         return result;
     }
     

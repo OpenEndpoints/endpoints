@@ -2,7 +2,6 @@ package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import endpoints.DeploymentParameters;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;

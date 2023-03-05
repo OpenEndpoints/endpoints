@@ -1,7 +1,6 @@
 package endpoints.config;
 
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
-import endpoints.config.response.ForwardToEndpointResponseConfiguration;
 import endpoints.config.response.ResponseConfiguration;
 import endpoints.task.Task;
 
