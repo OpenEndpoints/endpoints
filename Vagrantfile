@@ -141,6 +141,8 @@ Vagrant.configure(2) do |config|
     echo '    Then surf to: '
     echo '       http://localhost:9758/example-application/json?param-in-hash=x&email-address=y&email-address=email-address&hash=95be18ae19a5ac3c67d1db62826eed239615563d28e46f87c61bd609b12a1f5f&debug=true '
     echo '       http://localhost:9758/service-portal (admin/admin)'
+    echo '    Or, after configuring a mail server on port 25 in the Vagrant VM: '
+    echo '       http://localhost:9758/example-application/pdf?param-in-hash=x&email-address=adrian.m.smith@gmail.com&hash=f4eb5eab9373d389985279e4e6f9b737fe760d6c40b53aedf72cc00e36886629&debug=true '
     echo '    Or open send-email-test.html '
     echo '    Or execute: '
     echo '       curl -d "<parameter name=\"param-in-hash\" value=\"x\"/>" \'
