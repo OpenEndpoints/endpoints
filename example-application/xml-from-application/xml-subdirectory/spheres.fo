@@ -14,7 +14,7 @@
      <fo:page-sequence master-reference="A4">
          <fo:flow flow-name="xsl-region-body">
 
-        <fo:block>
+        <fo:block font-family="Liberation Mono">
            <fo:wrapper>
              Here are some raytraced spheres:
             <fo:external-graphic src="static-subdirectory/spheres.png"/>
