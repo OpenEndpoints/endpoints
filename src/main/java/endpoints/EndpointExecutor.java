@@ -571,7 +571,7 @@ public class EndpointExecutor {
         var tasksToSchedule = new ArrayList<Task>(endpoint.tasks);
         
         var infiniteLoopProtection = 0;
-        while ( ! tasksToSchedule.isEmpty())
+        while ( ! tasksToSchedule.isEmpty()) {
             tasks: for (var tasksToScheduleIter = tasksToSchedule.iterator(); tasksToScheduleIter.hasNext(); ) {
                 var task = tasksToScheduleIter.next();
                 var dependencies = new ArrayList<SynchronizationPoint>();
@@ -599,8 +599,7 @@ public class EndpointExecutor {
                     synchronizationPointForOutputValue.put(outputValue, taskRunnable);
             }
 
-            infiniteLoopProtection++;
-            if (infiniteLoopProtection >= 1_000) {
+            if (infiniteLoopProtection++ >= 1_000)
                 throw new RuntimeException("Unreachable: Probably circular dependency of task intermediate variables");
         }
 
