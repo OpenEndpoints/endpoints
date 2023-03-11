@@ -7,13 +7,14 @@ Vagrant.configure(2) do |config|
   config.vm.network "forwarded_port", guest: 8080, host: 9758   # jetty or docker
   config.vm.network "forwarded_port", guest: 9999, host: 9759   # Java debugging
   config.vm.network "forwarded_port", guest: 5432, host: 9760   # PostgreSQL
+  config.vm.network "forwarded_port", guest: 4566, host: 4566   # AWS S3 emulation
 
   if not Vagrant::Util::Platform.windows? then
     config.vm.synced_folder "~/.m2", "/home/vagrant/.m2"
   end
 
   config.vm.provider "virtualbox" do |vb|
-    vb.memory = 2000      # On Adrian's iMac Pro, increasing memory had little effect on speed
+    vb.memory = 4000
     vb.cpus = 2           # On Adrian's MacBook Pro 13" 2015, Git 394be, 1m30s with 2c, 1m50s with 4c, and 2c uses less battery
   end
   
@@ -81,6 +82,20 @@ Vagrant.configure(2) do |config|
     echo --- Install Maven
     apt-get -qy install maven
     echo 'export MAVEN_OPTS="-ea -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=0.0.0.0:9999"' >> /etc/environment
+    
+    echo --- Install docker
+    apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    apt-get update
+    apt-get install -qy docker-ce
+
+    echo --- Install "localstack", which simulates a lot of AWS services including S3
+    docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack
+    
+    echo --- Create our S3 bucket for testing in "localstack"
+    sleep 10    # Wait for localstack to start
+    curl -X PUT 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/'
 
     echo --- Build software
     sudo -u vagrant /bin/bash -c 'source /etc/environment && mvn -f /vagrant/pom.xml clean test'
@@ -119,15 +134,8 @@ Vagrant.configure(2) do |config|
        git push origin master:master)
     chmod -R a+rwX /var/endpoints/application-git-repositories
 
-    echo --- Install docker
-    apt-get install -qy apt-transport-https ca-certificates curl gnupg2 software-properties-common
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-    apt-get update
-    apt-get install -qy docker-ce
-
     echo --- Install HTTP listener to test certain requests
-    docker run -p 8081:80 -d --name=http-server --restart unless-stopped -t mendhak/http-https-echo
+    docker run -p 8081:80 -d --name=http-server --restart unless-stopped mendhak/http-https-echo
   }
   
   config.vm.provision "shell", run: "always", inline: %q{
@@ -154,6 +162,7 @@ Vagrant.configure(2) do |config|
     echo '  psql -hlocalhost endpoints postgres '
     echo '  psql -hlocalhost example_application postgres '
     echo '  mysql -uroot -proot example_application'
+    echo '  curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/   # List S3 files '
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'
