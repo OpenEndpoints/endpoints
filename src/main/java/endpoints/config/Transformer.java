@@ -50,7 +50,7 @@ public class Transformer {
 
         var threads = new WeaklyCachedXsltTransformer.XsltCompilationThreads();
         var result = new Transformer();
-        result.source = new DataSource();
+        result.source = DataSource.newEmptyForTesting();
         result.generator = new DocumentGenerator(threads, defn);
         threads.execute();
 

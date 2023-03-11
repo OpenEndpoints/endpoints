@@ -6,6 +6,8 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -19,14 +21,14 @@ import java.util.function.Consumer;
 
 import static com.databasesandlife.util.DomParser.getSubElements;
 
+@RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DataSource {
     
     protected final @Nonnull List<DataSourceCommand> commands;
     protected final @Nonnull List<DataSourcePostProcessor> postProcessors;
 
-    public DataSource() { 
-        commands = List.of();
-        postProcessors = List.of();
+    public static @Nonnull DataSource newEmptyForTesting() {
+        return new DataSource(List.of(), List.of());
     }
 
     public DataSource(
