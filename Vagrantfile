@@ -49,6 +49,7 @@ Vagrant.configure(2) do |config|
     echo --- Set DeploymentParameters
     echo 'export ENDPOINTS_BASE_URL=http://localhost:9758/' >> /etc/environment
     echo 'export ENDPOINTS_JDBC_URL='"'"'jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres'"'" >> /etc/environment
+    echo 'export ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /etc/environment
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
     echo 'export ENDPOINTS_XSLT_DEBUG_LOG=true' >> /etc/environment
@@ -62,6 +63,7 @@ Vagrant.configure(2) do |config|
     echo --- Set DeploymentParameters for Docker
     echo 'ENDPOINTS_BASE_URL=http://localhost:9758/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=Docker in Vagrant' >> /home/vagrant/docker-env

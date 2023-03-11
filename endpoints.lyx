@@ -4574,6 +4574,17 @@ https://www.databasesandlife.com/java-docker-aws-ecs-multicore/
 \end_layout
 
 \end_deeper
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE
+\family default
+ Optional.
+ If present it uses a different URL for AWS S3 access.
+ This is useful in test enviroments with a simulated local S3.
+ It is not intended to be used when deploying the application for real.
+\end_layout
+
 \begin_layout Subsection
 Memory
 \end_layout

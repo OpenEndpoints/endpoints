@@ -1,0 +1,3 @@
+<aws-s3-configuration>
+    <bucket>vagrantbucket</bucket>
+</aws-s3-configuration>

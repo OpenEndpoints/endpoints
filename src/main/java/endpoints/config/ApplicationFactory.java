@@ -108,6 +108,9 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             var emailServer = emailConfig.exists() ? EmailSendingConfigurationParser.parse(emailConfig) : null;
             if (new File(directory, "smtp.xml").exists())
                 throw new ConfigurationException("Legacy 'smtp.xml' exists, rename to 'email-sending-configuration.xml'");
+            
+            var awsS3ConfigFile = new File(directory, "aws-s3-configuration.xml");
+            var awsS3Config = awsS3ConfigFile.exists() ? AwsS3Configuration.parse(awsS3ConfigFile) : null;
 
             var result = new Application();
             result.revision = revision;
@@ -118,6 +121,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
                 dataSourcePostProcessingXsltDir, new File(directory, "endpoints.xml"));
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));
             result.emailServerOrNull = emailServer;
+            result.awsS3ConfigurationOrNull = awsS3Config;
             result.servicePortalEndpointMenuItems = new ServicePortalEndpointMenuItemsParser().parse(result.endpoints,
                 new File(directory, "service-portal-endpoint-menu-items.xml"));
             

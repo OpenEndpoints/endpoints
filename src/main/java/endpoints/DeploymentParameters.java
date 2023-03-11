@@ -8,14 +8,20 @@ import endpoints.config.FixedPathApplicationFactory;
 import endpoints.config.PublishedApplicationFactory;
 import lombok.SneakyThrows;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.s3.S3Client;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.time.ZoneId;
 import java.util.Optional;
+
+import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 
 /**
  * Represents those parameters which can change from one deployment to another. 
@@ -33,6 +39,7 @@ public class DeploymentParameters {
 
     /** Has trailing slash */ public final @Nonnull URL baseUrl;
     public final @Nonnull String jdbcUrl;
+    public final @CheckForNull URI awsS3EndpointOverride;
     public final @Nonnull File publishedApplicationsDirectory;
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
@@ -68,6 +75,8 @@ public class DeploymentParameters {
     protected DeploymentParameters() {
         baseUrl = new URL(getMandatoryParameter("ENDPOINTS_BASE_URL"));
         jdbcUrl = getMandatoryParameter("ENDPOINTS_JDBC_URL");
+        awsS3EndpointOverride = getOptionalParameter("ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE")
+            .map(x -> URI.create(x)).orElse(null);
         publishedApplicationsDirectory = 
             getOptionalParameter("ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY").map(s -> new File(s)).orElse(new File("/tmp"));
         checkHash =
@@ -102,5 +111,22 @@ public class DeploymentParameters {
 
     public DbTransaction newDbTransaction() throws CannotConnectToDatabaseException {
         return new DbTransaction(jdbcUrl);
+    }
+
+    public @Nonnull S3Client newAwsS3Client() {
+        var builder = S3Client.builder();
+
+        // If awsS3EndpointOverride is set, assume we're using "localstack" which ignores credentials,
+        //     but the AWS client library still throws an error if they're not set so we must set some values here.
+        // Otherwise, assume we're using real AWS, so take credentials from the usual places.
+        //     i.e. environment variables or ECS containers.
+        if (awsS3EndpointOverride != null) {
+            builder.region(AWS_GLOBAL);
+            builder.credentialsProvider(StaticCredentialsProvider.create(
+                AwsBasicCredentials.create("ignored-by-localstack", "ignored-by-localstack")));
+            builder.endpointOverride(awsS3EndpointOverride);
+        }
+
+        return builder.build();
     }
 }
