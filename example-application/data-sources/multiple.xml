@@ -95,5 +95,6 @@
     <url>https://httpbin.org/response-headers?key=Unexpanded:%20%24%7Bparam-in-hash%7D</url>
   </xml-from-url>
   <request-log/>
+  <aws-s3-keys limit="100"/>
   <post-process xslt="values.xslt"/>
 </data-source>

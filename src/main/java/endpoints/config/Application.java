@@ -30,15 +30,15 @@ public class Application {
     protected @Getter @CheckForNull AwsS3Configuration awsS3ConfigurationOrNull;
     protected @Getter @Nonnull ServicePortalEndpointMenuFolder servicePortalEndpointMenuItems;
     
-    Application() { } 
-    
-    public static @Nonnull Application newForTesting(@Nonnull Map<String, Transformer> transformers) {
-        var result = new Application();
-        result.transformers = transformers;
-        return result;
-    }
+    protected Application() { } 
     
     public static @Nonnull Application newForTesting() {
-        return newForTesting(Map.of());
+        return new Application();
+    }
+
+    public static @Nonnull Application newForTesting(@Nonnull Map<String, Transformer> transformers) {
+        var result = newForTesting();
+        result.transformers = transformers;
+        return result;
     }
 }

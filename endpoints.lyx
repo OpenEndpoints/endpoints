@@ -3150,6 +3150,71 @@ RequestLogCommand
 \begin_layout Description
 
 \family typewriter
+<aws-s3-keys>
+\family default
+ This lists the most recent object keys (filenames) out of the AWS S3 bucket
+ specified in the 
+\family typewriter
+aws-s3-configuration.xml
+\family default
+ file (see example-customer for example format.).
+ 
+\begin_inset Quotes eld
+\end_inset
+
+Most recent
+\begin_inset Quotes erd
+\end_inset
+
+ means the keys of the objects with the most recent last modified timestamp.
+ The command looks like:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<aws-s3-keys limit="100">
+\end_layout
+
+\begin_layout LyX-Code
+  <folder>foo/bar</folder> <!-- optional -->
+\end_layout
+
+\begin_layout LyX-Code
+  <match-tag name="foo">bar</match-tag> 
+\end_layout
+
+\begin_layout LyX-Code
+  <match-tag name="abc">def</match-tag> 
+\end_layout
+
+\begin_layout LyX-Code
+</aws-s3-keys>
+\end_layout
+
+\begin_layout Standard
+and the results look like:
+\end_layout
+
+\begin_layout LyX-Code
+<aws-s3-keys>
+\end_layout
+
+\begin_layout LyX-Code
+   <object key="xyz.xml"/>
+\end_layout
+
+\begin_layout LyX-Code
+   ...
+\end_layout
+
+\begin_layout LyX-Code
+</aws-s3-keys>
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
 <command
 \begin_inset space ~
 \end_inset

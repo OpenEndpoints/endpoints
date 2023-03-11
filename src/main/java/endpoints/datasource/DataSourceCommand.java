@@ -38,6 +38,7 @@ public abstract class DataSourceCommand {
                 case "xml-from-database" -> XmlFromDatabaseCommand.class.getName();
                 case "md5" -> MD5Command.class.getName();
                 case "request-log" -> RequestLogCommand.class.getName();
+                case "aws-s3-keys" -> AwsS3KeysCommand.class.getName();
                 case "command" -> getMandatoryAttribute(command, "class");
                 default -> throw new ConfigurationException("Command tag <" + command.getTagName() + "> unrecognized");
             };
@@ -62,6 +63,8 @@ public abstract class DataSourceCommand {
     ) throws ConfigurationException {
         this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, config);
     }
+
+    public boolean requiresAwsS3Configuration() { return false; }
     
     /** Checks that no variables other than those supplied are necessary to execute this command */
     public void assertParametersSuffice(

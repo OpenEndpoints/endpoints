@@ -45,6 +45,10 @@ public class DataSource {
         this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, script);
     }
 
+    public boolean requiresAwsS3Configuration() {
+        return commands.stream().anyMatch(c -> c.requiresAwsS3Configuration());
+    }
+
     public void assertParametersSuffice(
         @Nonnull Set<ParameterName> params,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues

@@ -56,23 +56,43 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         return result;
     }
     
-    protected static void assertEmailServerConfiguredIfEmailTasks(@Nonnull Application result, @Nonnull EndpointHierarchyFolderNode node)
+    protected static void assertNoEmailConfigurationNeeded(@Nonnull EndpointHierarchyFolderNode node)
     throws ConfigurationException {
         for (var child : node.children) {
             if (child instanceof Endpoint e) {
                 for (var t : e.tasks)
                     if (t.requiresEmailServer())
-                        if (result.emailServerOrNull == null)
-                            throw new ConfigurationException("Application has one or more email tasks, " +
-                                "but 'email-sending-configuration.xml' missing");
+                        throw new ConfigurationException("Application has one or more email tasks, " +
+                            "but 'email-sending-configuration.xml' missing");
             }
-            else if (child instanceof EndpointHierarchyFolderNode f) {
-                assertEmailServerConfiguredIfEmailTasks(result, f);
-            }
+            else if (child instanceof EndpointHierarchyFolderNode f) assertNoEmailConfigurationNeeded(f);
             else throw new RuntimeException("Unexpected child: "+child.getClass()); 
         }
     }
+
+    protected static void assertNoAwsS3ConfigurationNeeded(@Nonnull Map<String, DataSource> dataSources) 
+    throws ConfigurationException {
+        for (var ds : dataSources.entrySet())
+            if (ds.getValue().requiresAwsS3Configuration())
+                throw new ConfigurationException("Data source '" + ds.getKey() + "' " +
+                    "requires 'aws-s3-configuration.xml' but no such configuration was found");
+    }
     
+    protected static void assertNoAwsS3ConfigurationNeeded(@Nonnull EndpointHierarchyFolderNode node) 
+    throws ConfigurationException {
+        for (var child : node.children) {
+            if (child instanceof Endpoint e) {
+                if (e.parameterTransformation != null)
+                    for (var ds : e.parameterTransformation.dataSourceCommands)
+                        if (ds.requiresAwsS3Configuration())
+                            throw new ConfigurationException("A data source for parameter transformation for endpoint " +
+                                "'" + e.name + "' requires 'aws-s3-configuration.xml' but no such configuration was found");
+            }
+            else if (child instanceof EndpointHierarchyFolderNode f) assertNoAwsS3ConfigurationNeeded(f);
+            else throw new RuntimeException("Unexpected child: "+child.getClass());
+        }
+    }
+
     /** @throws ConfigurationException This loads an application from disk, which might be invalid */
     public static @Nonnull Application loadApplication(
         @Nonnull XsltCompilationThreads threads, @CheckForNull GitRevision revision, @Nonnull File directory
@@ -125,7 +145,11 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             result.servicePortalEndpointMenuItems = new ServicePortalEndpointMenuItemsParser().parse(result.endpoints,
                 new File(directory, "service-portal-endpoint-menu-items.xml"));
             
-            assertEmailServerConfiguredIfEmailTasks(result, result.endpoints);
+            if (emailServer == null) assertNoEmailConfigurationNeeded(result.endpoints);
+            if (awsS3Config == null) {
+                assertNoAwsS3ConfigurationNeeded(dataSources);
+                assertNoAwsS3ConfigurationNeeded(result.endpoints);
+            }
             
             return result;
         }
