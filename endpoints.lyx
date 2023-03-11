@@ -3215,6 +3215,39 @@ and the results look like:
 \begin_layout Description
 
 \family typewriter
+<aws-s3-object>
+\family default
+ This reads a particular object (file) from AWS S3.
+ It is assumed that this file contains XML data.
+ The command looks like:
+\end_layout
+
+\begin_deeper
+\begin_layout LyX-Code
+<aws-s3-object key="folder/foo.xml"/>
+\end_layout
+
+\begin_layout Standard
+and the results look like:
+\end_layout
+
+\begin_layout LyX-Code
+<aws-s3-object key="folder/foo.xml">
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+ file contents (XML) ...
+\end_layout
+
+\begin_layout LyX-Code
+</aws-s3-object>
+\end_layout
+
+\end_deeper
+\begin_layout Description
+
+\family typewriter
 <command
 \begin_inset space ~
 \end_inset

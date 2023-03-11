@@ -58,6 +58,7 @@
   * [Load Data from any REST-API](configuration/data-source-transformation/load-data-from-any-rest-api.md)
   * [Load Data From Databases](configuration/data-source-transformation/load-data-from-databases.md)
   * [List AWS S3 keys](configuration/data-source-transformation/list-aws-s3-keys.md)
+  * [Load AWS S3 object](configuration/data-source-transformation/load-aws-s3-object.md)
   * [Additional Useful Data Source Types](configuration/data-source-transformation/additional-useful-data-source-types.md)
   * [Transformation Options](configuration/data-source-transformation/transformation-options.md)
   * [Data Source Post-Processing](configuration/data-source-transformation/data-source-post-processing.md)

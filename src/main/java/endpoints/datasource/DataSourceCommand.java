@@ -39,6 +39,7 @@ public abstract class DataSourceCommand {
                 case "md5" -> MD5Command.class.getName();
                 case "request-log" -> RequestLogCommand.class.getName();
                 case "aws-s3-keys" -> AwsS3KeysCommand.class.getName();
+                case "aws-s3-object" -> AwsS3ObjectCommand.class.getName();
                 case "command" -> getMandatoryAttribute(command, "class");
                 default -> throw new ConfigurationException("Command tag <" + command.getTagName() + "> unrecognized");
             };

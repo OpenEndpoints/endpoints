@@ -95,9 +95,10 @@ Vagrant.configure(2) do |config|
     echo --- Install "localstack", which simulates a lot of AWS services including S3
     docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack
     
-    echo --- Create our S3 bucket for testing in "localstack"
+    echo --- Create our S3 data in "localstack" for testing
     sleep 10    # Wait for localstack to start
     curl -X PUT 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/'
+    echo '<data-in-s3/>' | curl -X PUT -T - 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/file-in-s3.xml'
 
     echo --- Build software
     sudo -u vagrant /bin/bash -c 'source /etc/environment && mvn -f /vagrant/pom.xml clean test'
