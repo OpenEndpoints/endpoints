@@ -2505,6 +2505,76 @@ https://github.com/OpenEndpoints/xslt-library
 .
 \end_layout
 
+\begin_layout Subsubsection
+Writing Transformation Input/Output to AWS S3
+\end_layout
+
+\begin_layout Standard
+In addition, there is the possibility of adding instructions to output the
+ input/output of the transformation to AWS S3.
+\end_layout
+
+\begin_layout LyX-Code
+<transformer data-source="spheres-fo">
+\end_layout
+
+\begin_layout LyX-Code
+  <write-input-to-aws-s3>
+\end_layout
+
+\begin_layout LyX-Code
+    <folder>foo/bar</folder> <!-- optional -->
+\end_layout
+
+\begin_layout LyX-Code
+    <tag name="foo">bar</tag> 
+\end_layout
+
+\begin_layout LyX-Code
+    <tag name="abc">def</tag> 
+\end_layout
+
+\begin_layout LyX-Code
+  </write-input-to-aws-s3>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
+  <write-output-to-aws-s3> 
+\end_layout
+
+\begin_layout LyX-Code
+    ...
+\end_layout
+
+\begin_layout LyX-Code
+  </write-output-to-aws-s3>
+\end_layout
+
+\begin_layout LyX-Code
+</transformer>
+\end_layout
+
+\begin_layout Standard
+This creates objects in the S3 bucket which have the tags as specified,
+ the correct Content-Type, and in addition a tag called 
+\family typewriter
+environment
+\family default
+ which is either 
+\family typewriter
+preview
+\family default
+ or 
+\family typewriter
+live
+\family default
+.
+\end_layout
+
 \begin_layout Subsection
 Data Sources
 \end_layout

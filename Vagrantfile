@@ -26,7 +26,7 @@ Vagrant.configure(2) do |config|
     echo --- General OS installation
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qy    # grub upgrade warnings mess with the terminal
-    apt-get -qy install vim ntp unattended-upgrades less openjdk-17-jdk
+    apt-get -qy install vim ntp unattended-upgrades less openjdk-17-jdk libxml2-utils
 
     echo -- PostgreSQL
     apt-get -qy install postgresql-14
@@ -165,7 +165,7 @@ Vagrant.configure(2) do |config|
     echo '  psql -hlocalhost endpoints postgres '
     echo '  psql -hlocalhost example_application postgres '
     echo '  mysql -uroot -proot example_application'
-    echo '  curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/   # List S3 files '
+    echo '  curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/ | xmllint --format -   # List S3 files '
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'

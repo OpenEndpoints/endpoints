@@ -2,7 +2,7 @@ package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
+import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -32,16 +32,16 @@ public class DataSource {
     }
 
     public DataSource(
-        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
+        @Nonnull XsltCompilationThreads threads,
         @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
         @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element script
     ) throws ConfigurationException {
         if ( ! script.getTagName().equals("data-source")) throw new ConfigurationException("Data source should have root tag " +
             "<data-source> but instead has <"+script.getTagName()+">");
-        commands = new ArrayList<>();
+        this.commands = new ArrayList<>();
         for (var command : getSubElements(script, "*")) {
             if (command.getNodeName().equals("post-process")) continue;
-            commands.add(DataSourceCommand.newForConfig(threads,
+            this.commands.add(DataSourceCommand.newForConfig(threads,
                 applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
         }
         this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, script);

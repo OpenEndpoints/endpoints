@@ -72,3 +72,5 @@ In the transformers directory under the application, there are zero or more file
 ```
 
 [Transformation Options](transformation-options.md) for post-processing the result enable flexible application for various practical use cases.
+
+If you wish to capture the input/output of a transformation see [Writing Transformation Input/Output to AWS S3](writing-transformation-input-output-to-aws-s3.md).

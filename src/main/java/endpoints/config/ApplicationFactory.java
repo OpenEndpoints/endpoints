@@ -38,10 +38,17 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     ) throws ConfigurationException {
         var result = new Transformer();
         
-        result.source = dataSources.get(getMandatoryAttribute(element, "data-source"));
+        result.sourceName = getMandatoryAttribute(element, "data-source");
+        result.source = dataSources.get(result.sourceName);
         if (result.source == null) throw new ConfigurationException("Transformer references data source '"
             +getMandatoryAttribute(element, "data-source")+"' but it cannot be found");
         
+        var writeInputToAwsS3 = getOptionalSingleSubElement(element, "write-input-to-aws-s3");
+        if (writeInputToAwsS3 != null) result.writeInputToAwsS3 = new WriteTransformationDataToAwsS3Command(writeInputToAwsS3);
+
+        var writeOutputToAwsS3 = getOptionalSingleSubElement(element, "write-output-to-aws-s3");
+        if (writeOutputToAwsS3 != null) result.writeOutputToAwsS3 = new WriteTransformationDataToAwsS3Command(writeOutputToAwsS3);
+
         result.defn = parseDocumentOutputDefinition(new File(application, "data-source-xslt"), element);
         result.generator = new DocumentGenerator(threads, result.defn);
 
@@ -70,7 +77,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         }
     }
 
-    protected static void assertNoAwsS3ConfigurationNeeded(@Nonnull Map<String, DataSource> dataSources) 
+    protected static void assertNoDataSourceAwsS3ConfigurationNeeded(@Nonnull Map<String, DataSource> dataSources) 
     throws ConfigurationException {
         for (var ds : dataSources.entrySet())
             if (ds.getValue().requiresAwsS3Configuration())
@@ -78,7 +85,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
                     "requires 'aws-s3-configuration.xml' but no such configuration was found");
     }
     
-    protected static void assertNoAwsS3ConfigurationNeeded(@Nonnull EndpointHierarchyFolderNode node) 
+    protected static void assertNoEndpointAwsS3ConfigurationNeeded(@Nonnull EndpointHierarchyFolderNode node) 
     throws ConfigurationException {
         for (var child : node.children) {
             if (child instanceof Endpoint e) {
@@ -88,9 +95,17 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
                             throw new ConfigurationException("A data source for parameter transformation for endpoint " +
                                 "'" + e.name + "' requires 'aws-s3-configuration.xml' but no such configuration was found");
             }
-            else if (child instanceof EndpointHierarchyFolderNode f) assertNoAwsS3ConfigurationNeeded(f);
+            else if (child instanceof EndpointHierarchyFolderNode f) assertNoEndpointAwsS3ConfigurationNeeded(f);
             else throw new RuntimeException("Unexpected child: "+child.getClass());
         }
+    }
+
+    protected static void assertNoTransformerAwsS3ConfigurationNeeded(@Nonnull Map<String, Transformer> transformers)
+    throws ConfigurationException {
+        for (var t : transformers.entrySet())
+            if (t.getValue().requiresAwsS3Configuration())
+                throw new ConfigurationException("Transformer '" + t.getKey() + "' needs AWS S3 configuration, " +
+                    "yet none was supplied");
     }
 
     /** @throws ConfigurationException This loads an application from disk, which might be invalid */
@@ -147,8 +162,9 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             
             if (emailServer == null) assertNoEmailConfigurationNeeded(result.endpoints);
             if (awsS3Config == null) {
-                assertNoAwsS3ConfigurationNeeded(dataSources);
-                assertNoAwsS3ConfigurationNeeded(result.endpoints);
+                assertNoDataSourceAwsS3ConfigurationNeeded(dataSources);
+                assertNoTransformerAwsS3ConfigurationNeeded(transformers);
+                assertNoEndpointAwsS3ConfigurationNeeded(result.endpoints);
             }
             
             return result;

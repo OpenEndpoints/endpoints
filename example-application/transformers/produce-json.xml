@@ -1,4 +1,12 @@
-  <transformer data-source="multiple">
+<transformer data-source="multiple">
+    <write-input-to-aws-s3>
+        <folder>my-folder</folder>
+        <tag name="from">vagrant</tag>
+    </write-input-to-aws-s3>
     <xslt-file name="add-values-via-java-functions.xslt"/>
     <convert-output-xml-to-json/>
-  </transformer>
+    <write-output-to-aws-s3>
+        <folder>my-folder</folder>
+        <tag name="from">vagrant</tag>
+    </write-output-to-aws-s3>
+</transformer>

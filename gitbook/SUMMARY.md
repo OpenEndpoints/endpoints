@@ -64,6 +64,7 @@
   * [Data Source Post-Processing](configuration/data-source-transformation/data-source-post-processing.md)
   * [Using Parameter Placeholders in Data Sources](configuration/data-source-transformation/using-parameter-placeholders-in-data-sources.md)
   * [On-Demand Incrementing Number](configuration/data-source-transformation/on-demand-incrementing-number.md)
+  * [Writing Transformation Input/Output to AWS S3](configuration/data-source-transformation/writing-transformation-input-output-to-aws-s3.md)
 * [Parameter Transformation](configuration/parameter-transformation/README.md)
   * [Parameter Transformation Input](configuration/parameter-transformation/parameter-transformation-input.md)
   * [Parameter Transformation Output](configuration/parameter-transformation/parameter-transformation-output.md)

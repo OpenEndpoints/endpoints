@@ -190,7 +190,7 @@
         <dependency>
             <groupId>com.offerready</groupId>
             <artifactId>xslt-library</artifactId>
-            <version>8.1.0</version>
+            <version>8.2.0</version>
             <exclusions>
                 <exclusion>
                     <groupId>net.sf.saxon</groupId>
