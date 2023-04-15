@@ -58,7 +58,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             if ( ! xsltDir.file.delete()) throw new RuntimeException();
             if ( ! xsltDir.file.mkdir()) throw new RuntimeException();
             var xsltFile = new File(xsltDir.file, "unit-test.xslt");
-            FileUtils.writeStringToFile(xsltFile, httpXslt, StandardCharsets.UTF_8.name());
+            FileUtils.writeStringToFile(xsltFile, httpXslt, UTF_8);
 
             var config =
                 "<task class='endpoints.task.HttpRequestTask' "+(ignoreErrors?"ignore-if-error='true'":"")+">" +
@@ -119,13 +119,13 @@ public class HttpRequestSpecificationTest extends TestCase {
     public void testReplaceXmlElementWithFileUploads() throws Exception {
         var uploadedFile = new UploadedFile() {
             @Nonnull @Override public String getFieldName() { return "foo"; }
-            @Nonnull @Override public InputStream getInputStream() { return IOUtils.toInputStream("wt", UTF_8.name()); }
+            @Nonnull @Override public InputStream getInputStream() { return IOUtils.toInputStream("wt", UTF_8); }
             @Nonnull @Override public String getContentType() { return "text/plain"; } 
             @Nonnull @Override public String getSubmittedFileName() { return "password.txt"; }
         };
         
         var sourceXml = DomParser.from(IOUtils.toInputStream("<foo><upload upload-field-name='foo' encoding='base64'/></foo>", 
-            UTF_8.name()));
+            UTF_8));
         
         var destXml = HttpRequestSpecification.replaceXmlElementWithFileUploads(
             List.of(uploadedFile), sourceXml.getOwnerDocument());
@@ -184,7 +184,7 @@ public class HttpRequestSpecificationTest extends TestCase {
 
         // Test XML request body (fixed) incl parameter expansion
         runTestInclVariousHttpFails("<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
-            if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<your-tag>bar</your-tag>"))
+            if ( ! IOUtils.toString(req.getInputStream(), UTF_8).contains("<your-tag>bar</your-tag>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
@@ -200,13 +200,13 @@ public class HttpRequestSpecificationTest extends TestCase {
 
         // Test XML request body (xslt)
         runTestInclVariousHttpFails("<xml-body xslt-file='unit-test.xslt'/>", (req, resp) -> {
-            if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("<xml-from-xslt/>"))
+            if ( ! IOUtils.toString(req.getInputStream(), UTF_8).contains("<xml-from-xslt/>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test JSON request body incl parameter expansion
         runTestInclVariousHttpFails("<json-body>{ \"key\": \"${foo}\" }</json-body>", (req, resp) -> {
-            if ( ! IOUtils.toString(req.getInputStream(), UTF_8.name()).contains("\"key\":\"bar\""))
+            if ( ! IOUtils.toString(req.getInputStream(), UTF_8).contains("\"key\":\"bar\""))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
@@ -215,31 +215,31 @@ public class HttpRequestSpecificationTest extends TestCase {
         // Test non-XML/JSON case
         runTestFail("", (req, resp) -> {
             resp.setContentType("text/plain");
-            IOUtils.write("some-text", resp.getOutputStream());
+            IOUtils.write("some-text", resp.getOutputStream(), UTF_8);
         });
 
         // Test invalid XML
         runTestFail("", (req, resp) -> {
             resp.setContentType("application/xml");
-            IOUtils.write("not-valid-xml", resp.getOutputStream());
+            IOUtils.write("not-valid-xml", resp.getOutputStream(), UTF_8);
         });
 
         // Test XML response body
         assertEquals("output", runTest(false, "", (req, resp) -> {
             resp.setContentType("application/xml");
-            IOUtils.write("<output>stuff</output>", resp.getOutputStream());
+            IOUtils.write("<output>stuff</output>", resp.getOutputStream(), UTF_8);
         }).getTagName());
 
         // Test invalid JSON
         runTestFail("", (req, resp) -> {
             resp.setContentType("application/json");
-            IOUtils.write("{'foo'", resp.getOutputStream());
+            IOUtils.write("{'foo'", resp.getOutputStream(), UTF_8);
         });
 
         // Test JSON response body
         var jsonResponse = runTest(false, "", (req, resp) -> {
             resp.setContentType("application/json");
-            IOUtils.write("{ \"output\": \"stuff\" }", resp.getOutputStream());
+            IOUtils.write("{ \"output\": \"stuff\" }", resp.getOutputStream(), UTF_8);
         });
         assertEquals("response", jsonResponse.getTagName());   // HttpRequestSpecification adds this wrapper XML element
         assertEquals("output", DomParser.getSubElements(jsonResponse, "*").get(0).getTagName());
@@ -247,7 +247,7 @@ public class HttpRequestSpecificationTest extends TestCase {
         // Test HTML response body
         var htmlResponse = runTest(false, "", (req, resp) -> {
             resp.setContentType("text/html");
-            IOUtils.write("<html><body><b>I am bold text!</b></body></html>", resp.getOutputStream());
+            IOUtils.write("<html><body><b>I am bold text!</b></body></html>", resp.getOutputStream(), UTF_8);
         });
         assertEquals("html", htmlResponse.getTagName());
 

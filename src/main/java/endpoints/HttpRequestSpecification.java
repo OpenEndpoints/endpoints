@@ -400,7 +400,7 @@ public class HttpRequestSpecification {
                                 new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
                             if (DeploymentParameters.get().xsltDebugLog)
                                 LoggerFactory.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json);
-                            IOUtils.write(json.toString(), o, UTF_8.name());
+                            IOUtils.write(json.toString(), o, UTF_8);
                         } else {
                             throw new RuntimeException("Unreachable");
                         }
