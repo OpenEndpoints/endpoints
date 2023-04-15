@@ -1276,71 +1276,18 @@ A
 \family typewriter
 <task>
 \family default
- may have the optional attributes 
-\family typewriter
-if
-\family default
- and 
-\family typewriter
-equals
-\family default
-, or 
-\family typewriter
-if
-\family default
- and 
-\family typewriter
-notequals
-\family default
-.
- If present, these attributes have their parameters expanded, and are compared.
- Only if they are equal (or not equal) does the task get executed.
-\end_layout
-
-\begin_layout Standard
-For example 
+ may have the optional attributes such as 
 \family typewriter
 <task ...
  if="${foo}" equals="bar">
 \family default
- gets executed only if the 
-\family typewriter
-foo
-\family default
- parameter is equal to the value 
-\family typewriter
-bar
-\family default
 .
-\end_layout
-
-\begin_layout Standard
-If the parameter has a value like 
+ The task only gets executed only if the condition is satisfied.
+ See 
 \family typewriter
-foo||bar
+conditional-tasks.md
 \family default
- i.e.
- created as a result of a request such as 
-\family typewriter
-?param=foo&param=bar
-\family default
- then the 
-\family typewriter
-equals=".."
-\family default
- will check if 
-\emph on
-any
-\emph default
- of the values match, and 
-\family typewriter
-notequals=".."
-\family default
- will check that 
-\emph on
-none
-\emph default
- of the values match the value.
+ for more information.
 \end_layout
 
 \begin_layout Subsubsection
