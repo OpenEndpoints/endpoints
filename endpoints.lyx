@@ -4119,6 +4119,30 @@ value
 \begin_layout Subsection
 
 \family typewriter
+aws-s3-configuration.xml
+\end_layout
+
+\begin_layout Standard
+This file is optional, unless any AWS S3 features are used in which case
+ it's mandatory.
+ It looks like:
+\end_layout
+
+\begin_layout LyX-Code
+<aws-s3-configuration>
+\end_layout
+
+\begin_layout LyX-Code
+    <bucket>bucketname</bucket>
+\end_layout
+
+\begin_layout LyX-Code
+</aws-s3-configuration>
+\end_layout
+
+\begin_layout Subsection
+
+\family typewriter
 service-portal-endpoint-menu-items.xml
 \end_layout
 
