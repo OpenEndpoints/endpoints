@@ -97,5 +97,6 @@
   <request-log/>
   <aws-s3-keys limit="100"/>
   <aws-s3-object key="file-in-s3.xml"/>
+  <data-driven-cms/>
   <post-process xslt="values.xslt"/>
 </data-source>

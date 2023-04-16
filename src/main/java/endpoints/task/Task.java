@@ -5,6 +5,7 @@ import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.condition.Condition;
 import endpoints.TransformationContext;
 import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
@@ -24,7 +25,7 @@ public abstract class Task extends EndpointExecutionParticipant {
     protected final @CheckForNull TaskId id;
     
     /** Note the condition cannot reference "intermediate values" */
-    public final @Nonnull TaskCondition condition;
+    public final @Nonnull Condition condition;
     
     // Subclass must implement this constructor, as it is called by reflection
     @SuppressWarnings("unused") 
@@ -36,7 +37,7 @@ public abstract class Task extends EndpointExecutionParticipant {
         
         this.taskIndexFromZero = indexFromZero;
         this.id = Optional.ofNullable(getOptionalAttribute(config, "id")).map(x -> new TaskId(x)).orElse(null);
-        this.condition = new TaskCondition(config);
+        this.condition = new Condition(config);
     }
 
     public @CheckForNull TaskId getTaskIdOrNull() {

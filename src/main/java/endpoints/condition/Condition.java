@@ -1,4 +1,4 @@
-package endpoints.task;
+package endpoints.condition;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.PlaintextParameterReplacer;
@@ -21,14 +21,14 @@ import static java.util.Arrays.stream;
 
 /** Represents the <code>if="${foo}" equals="xyz"</code> conditions that tasks may have */
 @AllArgsConstructor // For testing
-public class TaskCondition {
+public class Condition {
     
     public enum Operator { equals, notequals, isempty, hasmultiple, gt, ge, lt, le }
     
     protected final @Nonnull Operator operator;
     protected final @Nonnull String lhsPattern, rhsPattern;
     
-    public TaskCondition(@Nonnull Element element) throws ConfigurationException {
+    public Condition(@Nonnull Element element) throws ConfigurationException {
         if (element.hasAttribute("if")) {
             this.lhsPattern = element.getAttribute("if");
             for (var op : Operator.values()) {

@@ -1,0 +1,13 @@
+<data-driven-cms>
+    <content id="abc">
+        <instance priority="5">
+            <copy>
+                <formattedText>This is a <b>bold</b> statement with a <a href="https://offerready.com">link</a> to our website.</formattedText>
+                <formattedText>It should be Martin older than 50 or younger than 10.</formattedText>
+            </copy>
+        </instance>
+    </content>
+    <property id="bg-color">
+        <instance priority="2" value="black"/>
+    </property>
+</data-driven-cms>

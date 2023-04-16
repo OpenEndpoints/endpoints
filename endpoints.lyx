@@ -3265,6 +3265,19 @@ and the results look like:
 \begin_layout Description
 
 \family typewriter
+<data-driven-cms>
+\family default
+ Inserts Data Driven CMS content.
+ See the Java class 
+\family typewriter
+DataDrivenCmsFileTest
+\family default
+ for an example of how this works.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 <command
 \begin_inset space ~
 \end_inset

@@ -5,6 +5,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
+import endpoints.datadrivencms.DataDrivenCmsDataSourceCommand;
 import lombok.SneakyThrows;
 import org.w3c.dom.Element;
 
@@ -17,6 +18,14 @@ import java.util.Set;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 import static endpoints.config.ApplicationFactory.dataSourcePostProcessingXsltDir;
 
+/**
+ * Fetches and provides XML from a source, for example database or URL.
+ * <p>
+ * A lot of work of a data source is to fit into the way Endpoints processes data, with the context of the processing,
+ * the multi-threaded approach, etc. Therefore if the data produced is the result some complex processing,
+ * it is often better to use a separate class concerned just with that, as it's easier to test in isolation,
+ * and to see the DataSourceCommand as an "adaptor" (GoF pattern). 
+ */
 public abstract class DataSourceCommand {
 
     protected final @Nonnull List<DataSourcePostProcessor> postProcessors;
@@ -39,6 +48,7 @@ public abstract class DataSourceCommand {
                 case "request-log" -> RequestLogCommand.class.getName();
                 case "aws-s3-keys" -> AwsS3KeysCommand.class.getName();
                 case "aws-s3-object" -> AwsS3ObjectCommand.class.getName();
+                case "data-driven-cms" -> DataDrivenCmsDataSourceCommand.class.getName();
                 case "command" -> getMandatoryAttribute(command, "class");
                 default -> throw new ConfigurationException("Command tag <" + command.getTagName() + "> unrecognized");
             };

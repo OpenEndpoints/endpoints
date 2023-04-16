@@ -39,6 +39,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     public static final String httpXsltDir = "http-xslt";
     public static final String xmlFromApplicationDir = "xml-from-application";
     public static final String dataSourcePostProcessingXsltDir = "data-source-post-processing-xslt";
+    public static final String dataDrivenCmsDir = "data-driven-cms";
 
     protected static @Nonnull Transformer parseTransformer(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, DataSource> dataSources,

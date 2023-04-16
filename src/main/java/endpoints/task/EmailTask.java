@@ -9,6 +9,7 @@ import endpoints.OoxmlParameterExpander;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.UploadedFile;
+import endpoints.condition.Condition;
 import endpoints.config.ApplicationFactory;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -43,7 +44,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class EmailTask extends Task {
     
     protected static abstract class Attachment {
-        public @Nonnull TaskCondition condition;
+        public @Nonnull Condition condition;
         
         public void assertParametersSuffice(
             @Nonnull Set<ParameterName> params,
@@ -167,7 +168,7 @@ public class EmailTask extends Task {
                 case "attachments-from-request-file-uploads" -> new AttachmentsFromRequestFileUploads();
                 default -> throw new RuntimeException(a.getTagName());
             };
-            attachment.condition = new TaskCondition(a);
+            attachment.condition = new Condition(a);
             this.attachments.add(attachment);
         }
     }
