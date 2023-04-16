@@ -14,7 +14,7 @@ public abstract class EndpointHierarchyNode {
     public final @Nonnull Map<ParameterName, Parameter> parameters = new HashMap<>();
     
     public static class NodeNotFoundException extends Exception {
-        protected @Nonnull NodeName nodeName;
+        protected final @Nonnull NodeName nodeName;
         public NodeNotFoundException(@Nonnull NodeName nodeName, @Nonnull String msgPrefix) {
             super(msgPrefix + ": " + nodeName);
             this.nodeName = nodeName;

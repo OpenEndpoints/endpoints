@@ -14,7 +14,7 @@ import static java.util.regex.Matcher.quoteReplacement;
 
 public class SubstringHighlightLabel extends WebComponent {
     
-    @CheckForNull String value, highlight;
+    protected final @CheckForNull String value, highlight;
     
     public SubstringHighlightLabel(String id, @CheckForNull String highlight, @CheckForNull String value) {
         super(id);

@@ -20,7 +20,7 @@ import static com.databasesandlife.util.DomParser.getSubElements;
 
 public class LiteralXmlCommand extends DataSourceCommand {
     
-    protected @Nonnull Element source;
+    protected final @Nonnull Element source;
 
     public LiteralXmlCommand(
         @Nonnull XsltCompilationThreads threads,

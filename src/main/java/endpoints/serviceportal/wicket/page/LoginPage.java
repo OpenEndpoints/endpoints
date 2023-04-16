@@ -42,8 +42,8 @@ import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN_APPLICATION;
 
 public class LoginPage extends AbstractPage {
 
-    protected ServicePortalUsername username = null;
-    protected CleartextPassword password = null;
+    protected final ServicePortalUsername username = null;
+    protected final CleartextPassword password = null;
 
     @SuppressWarnings("PropertyModel") 
     public LoginPage() {

@@ -22,8 +22,8 @@ import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 @RequiredArgsConstructor
 public class PublishProcess {
 
-    @Nonnull ApplicationName applicationName;
-    @Nonnull PublishEnvironment environment;
+    protected final @Nonnull ApplicationName applicationName;
+    protected final @Nonnull PublishEnvironment environment;
 
     @FunctionalInterface
     public interface PublishLogger {

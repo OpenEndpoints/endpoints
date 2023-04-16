@@ -23,9 +23,9 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class XmlWithBase64TransformationsExpander {
     
-    protected @Nonnull TransformationContext context;
-    protected @Nonnull Document input;
-    protected @Nonnull Map<Transformer, BufferedDocumentGenerationDestination> transformerOutput = new IdentityHashMap<>();
+    protected final @Nonnull TransformationContext context;
+    protected final @Nonnull Document input;
+    protected final @Nonnull Map<Transformer, BufferedDocumentGenerationDestination> transformerOutput = new IdentityHashMap<>();
     
     @SneakyThrows(TransformerException.class)
     protected Map<String, Transformer> parseTransformers() {

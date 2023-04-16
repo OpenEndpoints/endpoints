@@ -32,8 +32,8 @@ import static javax.xml.xpath.XPathConstants.STRING;
 /** Performs an HTTP request. See "configuration.md" for more information */
 public class HttpRequestTask extends Task {
     
-    protected @Nonnull HttpRequestSpecification spec;
-    protected @Nonnull List<HttpOutputIntermediateValue> outputIntermediateValues;
+    protected final @Nonnull HttpRequestSpecification spec;
+    protected final @Nonnull List<HttpOutputIntermediateValue> outputIntermediateValues;
 
     public HttpRequestTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir, 

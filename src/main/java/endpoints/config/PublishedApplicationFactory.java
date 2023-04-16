@@ -29,7 +29,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
         @Nonnull PublishEnvironment env
     ) { }
 
-    protected @Nonnull File applicationCheckoutContainerDir;
+    protected final @Nonnull File applicationCheckoutContainerDir;
     protected final @Nonnull Map<ApplicationDefn, Application> cache = new HashMap<>();
     
     /**

@@ -20,7 +20,7 @@ import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 
 public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
 
-    protected @Nonnull OnDemandIncrementingNumberType type;
+    protected final @Nonnull OnDemandIncrementingNumberType type;
 
     public OnDemandIncrementingNumberCommand(
         @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,

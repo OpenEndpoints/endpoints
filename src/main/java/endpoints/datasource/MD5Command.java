@@ -20,8 +20,8 @@ import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainT
 
 public class MD5Command extends DataSourceCommand {
     
-    protected @CheckForNull String idPatternOrNull;
-    protected @Nonnull String messageStringPattern;
+    protected final @CheckForNull String idPatternOrNull;
+    protected final @Nonnull String messageStringPattern;
 
     public MD5Command(
         @Nonnull XsltCompilationThreads threads,

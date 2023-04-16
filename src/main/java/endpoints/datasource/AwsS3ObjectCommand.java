@@ -19,7 +19,7 @@ import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 
 public class AwsS3ObjectCommand extends DataSourceCommand {
     
-    protected @Nonnull String key;
+    protected final @Nonnull String key;
     
     public AwsS3ObjectCommand(
         @Nonnull XsltCompilationThreads threads,

@@ -23,10 +23,10 @@ import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainT
 
 public class XmlFromDatabaseCommand extends DataSourceCommand {
     
-    protected @Nonnull String outputTag;
-    protected @Nonnull String jdbcUrl;
-    protected @Nonnull String sql;
-    protected @Nonnull List<String> paramPatterns;
+    protected final @Nonnull String outputTag;
+    protected final @Nonnull String jdbcUrl;
+    protected final @Nonnull String sql;
+    protected final @Nonnull List<String> paramPatterns;
     
     public XmlFromDatabaseCommand(
         @Nonnull XsltCompilationThreads threads,

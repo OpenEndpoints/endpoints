@@ -29,7 +29,7 @@ import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainT
 
 public class RequestLogExpressionCaptureTask extends Task {
     
-    protected @Nonnull String key, valuePattern;
+    protected final @Nonnull String key, valuePattern;
     
     public RequestLogExpressionCaptureTask(
         @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,

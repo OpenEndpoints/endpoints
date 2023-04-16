@@ -31,8 +31,8 @@ import static java.lang.Boolean.parseBoolean;
 public class XmlFromApplicationCommand extends DataSourceCommand {
     
     protected final @Nonnull File xmlFromApplicationDir;
-    protected @Nonnull String filenamePattern;
-    protected boolean ignoreIfNotFound;
+    protected final @Nonnull String filenamePattern;
+    protected final boolean ignoreIfNotFound;
 
     public XmlFromApplicationCommand(
         @Nonnull XsltCompilationThreads threads,

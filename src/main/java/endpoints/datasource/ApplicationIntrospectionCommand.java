@@ -13,8 +13,8 @@ import java.util.Set;
 
 public class ApplicationIntrospectionCommand extends DataSourceCommand {
 
-    final @Nonnull File xmlFromApplicationDir;
-    final @Nonnull File dir;
+    protected final @Nonnull File xmlFromApplicationDir;
+    protected final @Nonnull File dir;
 
     public ApplicationIntrospectionCommand(
         @Nonnull XsltCompilationThreads threads,

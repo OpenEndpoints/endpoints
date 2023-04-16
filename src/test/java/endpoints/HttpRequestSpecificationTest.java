@@ -37,7 +37,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class HttpRequestSpecificationTest extends TestCase {
 
-    int port = 34895;
+    final int port = 34895;
 
     @FunctionalInterface
     interface DeliverResponse {

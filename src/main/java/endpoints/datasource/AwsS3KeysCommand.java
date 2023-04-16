@@ -21,9 +21,9 @@ import static java.util.stream.Collectors.toMap;
 
 public class AwsS3KeysCommand extends DataSourceCommand {
     
-    protected @CheckForNull String folderOrNull;
-    protected @Nonnull Map<String, String> matchTag;
-    protected int limit;
+    protected final @CheckForNull String folderOrNull;
+    protected final @Nonnull Map<String, String> matchTag;
+    protected final int limit;
     
     public AwsS3KeysCommand(
         @Nonnull XsltCompilationThreads threads,
