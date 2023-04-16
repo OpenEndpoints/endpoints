@@ -52,7 +52,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
         }
 
         sql = getMandatorySingleSubElement(config, "sql").getTextContent();
-        paramPatterns = getSubElements(config, "param").stream().map(e -> e.getTextContent()).collect(Collectors.toList());
+        paramPatterns = getSubElements(config, "param").stream().map(e -> e.getTextContent()).toList();
 
         var paramsExpanded = paramPatterns.stream().map(pattern -> null).toArray();
         try { execute(paramsExpanded); }
