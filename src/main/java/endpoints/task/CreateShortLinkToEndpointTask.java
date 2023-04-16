@@ -31,11 +31,10 @@ public class CreateShortLinkToEndpointTask extends Task {
     protected final @Nonnull Duration expiry;
 
     public CreateShortLinkToEndpointTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Map<String, Transformer> transformers,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
+        super(threads, applicationDir, transformers, indexFromZero, config);
         assertNoOtherElements(config);
         destinationEndpoint = new NodeName(getMandatoryAttribute(config, "destination-endpoint-name"));
         outputIntermediateValue = new IntermediateValueName(getMandatoryAttribute(config, "output-intermediate-value"));

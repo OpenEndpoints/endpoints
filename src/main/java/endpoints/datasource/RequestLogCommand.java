@@ -31,11 +31,9 @@ public class RequestLogCommand extends DataSourceCommand {
     protected static final DateTimeFormatter dateTimeFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     public RequestLogCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+        super(threads, applicationDir, command);
         assertNoOtherElements(command);
     }
 

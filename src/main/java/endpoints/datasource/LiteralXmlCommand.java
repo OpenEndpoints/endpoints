@@ -23,11 +23,9 @@ public class LiteralXmlCommand extends DataSourceCommand {
     protected final @Nonnull Element source;
 
     public LiteralXmlCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, config);
         source = config;
     }
     

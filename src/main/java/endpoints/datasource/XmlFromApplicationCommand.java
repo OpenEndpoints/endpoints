@@ -7,6 +7,7 @@ import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
+import endpoints.config.ApplicationFactory;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
@@ -35,12 +36,10 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     protected final boolean ignoreIfNotFound;
 
     public XmlFromApplicationCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
-        this.xmlFromApplicationDir = xmlFromApplicationDir;
+        super(threads, applicationDir, command);
+        this.xmlFromApplicationDir = new File(applicationDir, ApplicationFactory.xmlFromApplicationDir);
         assertNoOtherElements(command, "post-process");
         filenamePattern = getMandatoryAttribute(command, "file");
         ignoreIfNotFound = parseBoolean(getOptionalAttribute(command, "ignore-if-not-found"));

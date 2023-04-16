@@ -9,6 +9,7 @@ import endpoints.OoxmlParameterExpander;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.UploadedFile;
+import endpoints.config.ApplicationFactory;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
@@ -36,6 +37,7 @@ import java.util.regex.Pattern;
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.offerready.xslt.destination.EmailPartDocumentDestination.newMimeBodyForDestination;
+import static endpoints.config.ApplicationFactory.ooxmlResponsesDir;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class EmailTask extends Task {
@@ -98,11 +100,11 @@ public class EmailTask extends Task {
         @Override public OutputStream getOutputStream() { throw new RuntimeException("unreachable"); }
     }
 
-    protected @Nonnull File staticDir;
-    protected @Nonnull String fromPattern, subjectPattern;
-    protected @Nonnull List<String> toPatterns;
-    protected @Nonnull List<Transformer> alternativeBodies = new ArrayList<>();
-    protected @Nonnull List<Attachment> attachments = new ArrayList<>();
+    protected final @Nonnull File staticDir;
+    protected final @Nonnull String fromPattern, subjectPattern;
+    protected final @Nonnull List<String> toPatterns;
+    protected final @Nonnull List<Transformer> alternativeBodies = new ArrayList<>();
+    protected final @Nonnull List<Attachment> attachments = new ArrayList<>();
     
     protected @Nonnull Transformer findTransformer(@Nonnull Map<String, Transformer> transformers, @Nonnull Element el)
     throws ConfigurationException {
@@ -123,17 +125,16 @@ public class EmailTask extends Task {
     }
 
     public EmailTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Map<String, Transformer> transformers,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
+        super(threads, applicationDir, transformers, indexFromZero, config);
         
         assertNoOtherElements(config, "after", "input-intermediate-value","from", "to", "subject", "body-transformation",
             "attachment-static", "attachment-transformation", "attachment-ooxml-parameter-expansion", 
             "attachments-from-request-file-uploads");
 
-        this.staticDir = staticDir;
+        this.staticDir = new File(applicationDir, ApplicationFactory.staticDir);
 
         fromPattern = getMandatorySingleSubElement(config, "from").getTextContent().trim();
         subjectPattern = getMandatorySingleSubElement(config, "subject").getTextContent().trim();
@@ -160,7 +161,7 @@ public class EmailTask extends Task {
                 }
                 case "attachment-ooxml-parameter-expansion" -> {
                     var result = new AttachmentOoxmlParameterExpansion();
-                    result.expander = new OoxmlParameterExpander(ooxmlDir, "filename", a);
+                    result.expander = new OoxmlParameterExpander(new File(applicationDir, ooxmlResponsesDir), "filename", a);
                     yield result;
                 }
                 case "attachments-from-request-file-uploads" -> new AttachmentsFromRequestFileUploads();

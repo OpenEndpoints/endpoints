@@ -22,6 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
+import static endpoints.config.ApplicationFactory.*;
 import static java.util.stream.Collectors.toList;
 
 public class EndpointHierarchyParser extends DomParser {
@@ -52,8 +53,7 @@ public class EndpointHierarchyParser extends DomParser {
     
     protected static @Nonnull ResponseConfiguration parseResponseConfiguration(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers, 
-        @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir, @Nonnull File staticDir, 
-        @Nonnull Set<ParameterName> params, @CheckForNull Element element, @Nonnull String tagName
+        @Nonnull File applicationDir, @Nonnull Set<ParameterName> params, @CheckForNull Element element, @Nonnull String tagName
     ) throws ConfigurationException {
         if (element == null) element = DomParser.newDocumentBuilder().newDocument().createElement(tagName);
     
@@ -67,13 +67,14 @@ public class EndpointHierarchyParser extends DomParser {
         final ResponseConfiguration result;
         
         if (staticElement != null)
-            result = new StaticResponseConfiguration(staticDir, element, staticElement);
+            result = new StaticResponseConfiguration(new File(applicationDir, staticDir), element, staticElement);
         else if (urlElement != null)
-            result = new UrlResponseConfiguration(threads, httpXsltDirectory, element, urlElement);
+            result = new UrlResponseConfiguration(threads, applicationDir, element, urlElement);
         else if (responseTransformationElement != null)
             result = new TransformationResponseConfiguration(transformers, element, responseTransformationElement);
         else if (ooxmlExpansionElement != null)
-            result = new OoxmlParameterExpansionResponseConfiguration(ooxmlDir, element, ooxmlExpansionElement);
+            result = new OoxmlParameterExpansionResponseConfiguration(new File(applicationDir, ooxmlResponsesDir), 
+                element, ooxmlExpansionElement);
         else if (redirectToElement != null)
             result = new RedirectResponseConfiguration(element, redirectToElement);
         else if (forwardToEndpointElement != null)
@@ -89,8 +90,7 @@ public class EndpointHierarchyParser extends DomParser {
     @SneakyThrows({SecurityException.class, ClassNotFoundException.class, NoSuchMethodException.class,
         IllegalAccessException.class, InstantiationException.class, InvocationTargetException.class})
     protected static @Nonnull Task parseTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Map<String, Transformer> transformers,
         @Nonnull Set<ParameterName> params, int indexFromZero, @Nonnull Element element
     ) throws ConfigurationException {
         var taskClassName = getMandatoryAttribute(element, "class");
@@ -98,8 +98,8 @@ public class EndpointHierarchyParser extends DomParser {
             try {
                 @SuppressWarnings("unchecked") var taskClass = (Class<? extends Task>) Class.forName(taskClassName);
                 var constructor = taskClass.getConstructor(XsltCompilationThreads.class,
-                    File.class, File.class, Map.class, File.class, int.class, Element.class);
-                var result = constructor.newInstance(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, 
+                    File.class, Map.class, int.class, Element.class);
+                var result = constructor.newInstance(threads, applicationDir,  transformers,
                     indexFromZero, element);
                 result.assertParametersSuffice(params);
                 
@@ -129,24 +129,20 @@ public class EndpointHierarchyParser extends DomParser {
     }
 
     protected static @CheckForNull ParameterTransformation parseParameterTransformation(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, 
-        @Nonnull File xmlFromApplicationDir, @Nonnull File parameterTransformerXsltDirectory, 
-        @Nonnull File dataSourcePostProcessingXsltDir, @CheckForNull Element element
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @CheckForNull Element element
     ) throws ConfigurationException {
         try {
             if (element == null) return null;
 
             var xsltName = getMandatoryAttribute(element, "xslt");
-            var parameterTransformerFile = new File(parameterTransformerXsltDirectory, xsltName);
+            var parameterTransformerFile = new File(new File(applicationDir, parameterXsltDir), xsltName);
             if ( ! parameterTransformerFile.exists()) throw new ConfigurationException("XSLT file '"+xsltName+"' not found");
             var parameterTransformer = getTransformerOrScheduleCompilation(threads, parameterTransformerFile.getAbsolutePath(),
                     new StyleVisionXslt(parameterTransformerFile));
 
             var dataSourceCommands = new ArrayList<DataSourceCommand>();
             for (var command : getSubElements(element, "*"))
-                dataSourceCommands.add(DataSourceCommand.newForConfig(
-                    threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
+                dataSourceCommands.add(DataSourceCommand.newForConfig(threads, applicationDir, command));
 
             var result = new ParameterTransformation();
             result.dataSourceCommands = dataSourceCommands;
@@ -158,9 +154,7 @@ public class EndpointHierarchyParser extends DomParser {
     
     protected static @Nonnull Endpoint parseEndpoint(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File ooxmlDir, @Nonnull File staticDir,
-        @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
+        @Nonnull File applicationDir,
         @Nonnull EndpointHierarchyFolderNode parentOrNull, @Nonnull Element element
     ) throws ConfigurationException {
         var name = new NodeName(getMandatoryAttribute(element, "name"));
@@ -174,7 +168,6 @@ public class EndpointHierarchyParser extends DomParser {
             
             result.name = new NodeName(getMandatoryAttribute(element, "name"));
             result.parameterTransformation = parseParameterTransformation(threads, applicationDir, 
-                httpXsltDirectory, xmlFromApplicationDir, parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir,
                 getOptionalSingleSubElement(element, "parameter-transformation"));
 
             var includeInHashElement = getOptionalSingleSubElement(element, "include-in-hash");
@@ -190,7 +183,7 @@ public class EndpointHierarchyParser extends DomParser {
             result.success = new ArrayList<>();
             for (int i = 0; i < successElements.size(); i++) {
                 try {
-                    result.success.add(parseResponseConfiguration(threads, transformers, httpXsltDirectory, ooxmlDir, staticDir, 
+                    result.success.add(parseResponseConfiguration(threads, transformers, applicationDir,
                         result.aggregateParametersOverParents().keySet(), successElements.get(i), "success"));
                 }
                 catch (ConfigurationException e) { throw new ConfigurationException("<success> idx=" + i, e); }
@@ -198,13 +191,13 @@ public class EndpointHierarchyParser extends DomParser {
 
             // Add a default catch-all <success/> if there is no catch-all
             if (result.success.isEmpty() || result.success.get(result.success.size()-1).isConditional())
-                result.success.add(parseResponseConfiguration(threads, transformers, httpXsltDirectory, ooxmlDir, staticDir, 
+                result.success.add(parseResponseConfiguration(threads, transformers, applicationDir,
                     result.aggregateParametersOverParents().keySet(), null, "success"));
             
             try { 
                 var errorParamNames = 
                     Set.of(new ParameterName("internal-error-text"), new ParameterName("parameter-transformation-error-text"));
-                result.error = parseResponseConfiguration(threads, transformers, httpXsltDirectory, ooxmlDir, staticDir,
+                result.error = parseResponseConfiguration(threads, transformers, applicationDir,
                     errorParamNames, getOptionalSingleSubElement(element, "error"), "error"); 
                 if (result.error.isDownload()) throw new ConfigurationException(
                     "HTTP standard does not allow downloads to be triggered from error status codes");
@@ -220,8 +213,8 @@ public class EndpointHierarchyParser extends DomParser {
             
             var taskElements = getSubElements(element, "task");
             for (int t = 0; t < taskElements.size(); t++)
-                result.tasks.add(parseTask(threads, httpXsltDirectory, ooxmlDir, 
-                    transformers, staticDir, result.aggregateParametersOverParents().keySet(), t, taskElements.get(t)));
+                result.tasks.add(parseTask(threads, applicationDir,
+                    transformers, result.aggregateParametersOverParents().keySet(), t, taskElements.get(t)));
             
             var successAndTasks = new ArrayList<EndpointExecutionParticipant>();
             successAndTasks.addAll(result.success);
@@ -235,9 +228,7 @@ public class EndpointHierarchyParser extends DomParser {
     
     protected static @Nonnull EndpointHierarchyFolderNode parseFolderNode(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File ooxmlDir, @Nonnull File staticDir, 
-        @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
+        @Nonnull File applicationDir,
         @CheckForNull EndpointHierarchyFolderNode parentOrNull, @Nonnull Element element
     ) throws ConfigurationException {
         assertNoOtherElements(element, "parameter", "endpoint-folder", "endpoint");
@@ -247,11 +238,9 @@ public class EndpointHierarchyParser extends DomParser {
 
         var children = new ArrayList<EndpointHierarchyNode>();
         for (var el : getSubElements(element, "endpoint-folder"))
-            children.add(parseFolderNode(threads, transformers, applicationDir, httpXsltDirectory, xmlFromApplicationDir, 
-                ooxmlDir, staticDir, parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, result, el));
+            children.add(parseFolderNode(threads, transformers, applicationDir, result, el));
         for (var el : getSubElements(element, "endpoint"))
-            children.add(parseEndpoint(threads, transformers, applicationDir, httpXsltDirectory, xmlFromApplicationDir, 
-                ooxmlDir, staticDir, parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, result, el));
+            children.add(parseEndpoint(threads, transformers, applicationDir, result, el));
         result.children = children.toArray(new EndpointHierarchyNode[0]);
         
         return result;
@@ -318,19 +307,14 @@ public class EndpointHierarchyParser extends DomParser {
     
     public static @Nonnull EndpointHierarchyFolderNode parse(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File ooxmlDir, @Nonnull File staticDir,
-        @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
-        @Nonnull InputStream xml
+        @Nonnull File applicationDir, @Nonnull InputStream xml
     ) throws ConfigurationException {
         try (var ignored = new Timer(EndpointHierarchyFolderNode.class.getSimpleName()+".parse")){
             var root = from(xml);
             
             if ( ! "endpoint-folder".equals(root.getNodeName()))
                 throw new ConfigurationException("Root element must be <endpoint-folder>");
-            var result = parseFolderNode(threads, transformers, applicationDir, httpXsltDirectory, 
-                xmlFromApplicationDir, ooxmlDir, staticDir,
-                parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, null, root);
+            var result = parseFolderNode(threads, transformers, applicationDir, null, root);
             
             assertUniqueEndpointNames(new HashSet<>(), result);
             assertEndpointForwardsExitAndNoCircularReferences(result);
@@ -345,14 +329,11 @@ public class EndpointHierarchyParser extends DomParser {
 
     public static @Nonnull EndpointHierarchyFolderNode parse(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, Transformer> transformers,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File ooxmlDir, @Nonnull File staticDir,
-        @Nonnull File parameterTransformerXsltDirectory, @Nonnull File dataSourcePostProcessingXsltDir,
-        @Nonnull File file
+        @Nonnull File applicationDir
     ) throws ConfigurationException {
+        var file = new File(applicationDir, endpointXmlFilename);
         try (var i = new FileInputStream(file)) {
-            return parse(threads, transformers, applicationDir, httpXsltDirectory, xmlFromApplicationDir, ooxmlDir,
-                staticDir, parameterTransformerXsltDirectory, dataSourcePostProcessingXsltDir, i);
+            return parse(threads, transformers, applicationDir, i);
         }
         catch (Exception e) { throw new ConfigurationException(file.getAbsolutePath(), e); }
     }

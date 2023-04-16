@@ -32,6 +32,14 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         boolean debugAllowed
     ) { }
 
+    public static final String endpointXmlFilename = "endpoints.xml";
+    public static final String ooxmlResponsesDir = "ooxml-responses";
+    public static final String staticDir = "static";
+    public static final String parameterXsltDir = "parameter-xslt";
+    public static final String httpXsltDir = "http-xslt";
+    public static final String xmlFromApplicationDir = "xml-from-application";
+    public static final String dataSourcePostProcessingXsltDir = "data-source-post-processing-xslt";
+
     protected static @Nonnull Transformer parseTransformer(
         @Nonnull XsltCompilationThreads threads, @Nonnull Map<String, DataSource> dataSources,
         @Nonnull File application, @Nonnull Element element
@@ -58,7 +66,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             fontsDirectory.exists() ? fontsDirectory : null,
             fopConfig.exists() ? fopConfig : null);
         
-        result.generator.setImagesBase(new File(application, "static"));
+        result.generator.setImagesBase(new File(application, staticDir));
         
         return result;
     }
@@ -114,17 +122,12 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     ) 
     throws ConfigurationException {
         try (var ignored = new Timer("loadApplication '"+directory+"'")) {
-            var httpXsltDirectory = new File(directory, "http-xslt");
-            var xmlFromApplicationDirectory = new File(directory, "xml-from-application");
-            var dataSourcePostProcessingXsltDir = new File(directory, "data-source-post-processing-xslt");
-            
             var dataSources = new HashMap<String, DataSource>();
             var dataSourcesFiles = new File(directory, "data-sources").listFiles(new FilenameExtensionFilter("xml"));
             if (dataSourcesFiles == null) throw new ConfigurationException("'data-sources' directory missing");
             for (var ds : dataSourcesFiles) {
                 try { 
-                    var d = new DataSource(threads, directory, httpXsltDirectory, 
-                        xmlFromApplicationDirectory, dataSourcePostProcessingXsltDir, DomParser.from(ds));
+                    var d = new DataSource(threads, directory, DomParser.from(ds));
                     dataSources.put(ds.getName().replace(".xml", ""), d); 
                 }
                 catch (Exception e) { throw new ConfigurationException(ds.getAbsolutePath(), e); }
@@ -150,10 +153,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             var result = new Application();
             result.revision = revision;
             result.transformers = transformers;
-            result.endpoints = EndpointHierarchyParser.parse(threads, transformers, directory, httpXsltDirectory,
-                xmlFromApplicationDirectory, new File(directory, "ooxml-responses"),
-                new File(directory, "static"), new File(directory, "parameter-xslt"),
-                dataSourcePostProcessingXsltDir, new File(directory, "endpoints.xml"));
+            result.endpoints = EndpointHierarchyParser.parse(threads, transformers, directory);
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));
             result.emailServerOrNull = emailServer;
             result.awsS3ConfigurationOrNull = awsS3Config;

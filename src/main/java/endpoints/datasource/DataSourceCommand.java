@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
+import static endpoints.config.ApplicationFactory.dataSourcePostProcessingXsltDir;
 
 public abstract class DataSourceCommand {
 
@@ -23,9 +24,7 @@ public abstract class DataSourceCommand {
     @SneakyThrows({SecurityException.class, ClassNotFoundException.class, NoSuchMethodException.class,
         IllegalAccessException.class, InstantiationException.class, InvocationTargetException.class})
     public static @Nonnull DataSourceCommand newForConfig(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element command
     ) throws ConfigurationException {
         try {
             final String className = switch (command.getTagName()) {
@@ -44,10 +43,8 @@ public abstract class DataSourceCommand {
                 default -> throw new ConfigurationException("Command tag <" + command.getTagName() + "> unrecognized");
             };
 
-            var constructor = Class.forName(className).getConstructor(XsltCompilationThreads.class,
-                File.class, File.class, File.class, File.class, Element.class);
-            return (DataSourceCommand) constructor.newInstance(threads,
-                applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+            var constructor = Class.forName(className).getConstructor(XsltCompilationThreads.class, File.class, Element.class);
+            return (DataSourceCommand) constructor.newInstance(threads, applicationDir, command);
         }
         catch (InvocationTargetException e) {
             if (e.getCause() instanceof ConfigurationException cause)
@@ -58,11 +55,10 @@ public abstract class DataSourceCommand {
 
     @SuppressWarnings("unused") // Unused params are used in subclasses
     public DataSourceCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element config
     ) throws ConfigurationException {
-        this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, config);
+        this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, 
+            new File(applicationDir, dataSourcePostProcessingXsltDir), config);
     }
 
     public boolean requiresAwsS3Configuration() { return false; }

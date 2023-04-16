@@ -71,7 +71,7 @@ public class AwsS3KeysCommandTest extends TestCase {
             </aws-s3-keys>
             """;
         var command = new AwsS3KeysCommand(new WeaklyCachedXsltTransformer.XsltCompilationThreads(), new File("/"),
-            new File("/"), new File("/"), new File("/"), DomParser.from(config));
+            DomParser.from(config));
         var result = command.execute(new AwsS3Configuration(bucketName));
 
         assertTrue(checkResultContains(result, "ObjectA"));

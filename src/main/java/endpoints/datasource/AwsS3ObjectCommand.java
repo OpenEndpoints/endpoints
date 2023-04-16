@@ -22,11 +22,9 @@ public class AwsS3ObjectCommand extends DataSourceCommand {
     protected final @Nonnull String key;
     
     public AwsS3ObjectCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, config);
         key = getMandatoryAttribute(config, "key");
     }
 

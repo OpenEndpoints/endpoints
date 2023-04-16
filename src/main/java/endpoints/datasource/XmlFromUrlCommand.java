@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getOptionalAttribute;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
+import static endpoints.config.ApplicationFactory.httpXsltDir;
 
 public class XmlFromUrlCommand extends DataSourceCommand {
 
@@ -25,13 +26,11 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     protected final boolean expandParametersInResponse;
     
     public XmlFromUrlCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, config);
         outputWrapperElementName = getOptionalAttribute(config, "tag");
-        spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
+        spec = new HttpRequestSpecification(threads, new File(applicationDir, httpXsltDir), config);
         expandParametersInResponse = Boolean.parseBoolean(getOptionalAttribute(config, "expand-parameters-in-response", "true"));
     }
 

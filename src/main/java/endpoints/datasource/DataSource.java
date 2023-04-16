@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 
 import static com.databasesandlife.util.DomParser.getSubElements;
+import static endpoints.config.ApplicationFactory.dataSourcePostProcessingXsltDir;
 
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public class DataSource {
@@ -32,9 +33,7 @@ public class DataSource {
     }
 
     public DataSource(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element script
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element script
     ) throws ConfigurationException {
         if ( ! script.getTagName().equals("data-source")) throw new ConfigurationException("Data source should have root tag " +
             "<data-source> but instead has <"+script.getTagName()+">");
@@ -42,9 +41,10 @@ public class DataSource {
         for (var command : getSubElements(script, "*")) {
             if (command.getNodeName().equals("post-process")) continue;
             this.commands.add(DataSourceCommand.newForConfig(threads,
-                applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command));
+                applicationDir, command));
         }
-        this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, dataSourcePostProcessingXsltDir, script);
+        this.postProcessors = DataSourcePostProcessor.parsePostProcessors(threads, 
+            new File(applicationDir, dataSourcePostProcessingXsltDir), script);
     }
 
     public boolean requiresAwsS3Configuration() {

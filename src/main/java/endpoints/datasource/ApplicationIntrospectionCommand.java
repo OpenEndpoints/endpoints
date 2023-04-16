@@ -4,6 +4,7 @@ import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.TransformationContext;
+import endpoints.config.ApplicationFactory;
 import endpoints.config.IntermediateValueName;
 import org.w3c.dom.Element;
 
@@ -17,12 +18,10 @@ public class ApplicationIntrospectionCommand extends DataSourceCommand {
     protected final @Nonnull File dir;
 
     public ApplicationIntrospectionCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
-        this.xmlFromApplicationDir = xmlFromApplicationDir;
+        super(threads, applicationDir, command);
+        this.xmlFromApplicationDir = new File(applicationDir, ApplicationFactory.xmlFromApplicationDir);
         this.dir = applicationDir;
     }
 

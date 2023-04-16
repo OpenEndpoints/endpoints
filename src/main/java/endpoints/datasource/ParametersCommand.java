@@ -16,11 +16,9 @@ import java.util.*;
 public class ParametersCommand extends DataSourceCommand {
 
     public ParametersCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, config);
     }
 
     public static @Nonnull Element[] createParametersElements(

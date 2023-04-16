@@ -29,11 +29,9 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     protected final @Nonnull List<String> paramPatterns;
     
     public XmlFromDatabaseCommand(
-        @Nonnull XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, config);
+        super(threads, applicationDir, config);
 
         assertNoOtherElements(config, "post-process", "jdbc-connection-string", "sql", "param");
         outputTag = getOptionalAttribute(config, "tag", "xml-from-database");

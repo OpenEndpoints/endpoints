@@ -24,10 +24,9 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
 
     public OnDemandIncrementingNumberCommand(
         @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull File httpXsltDirectory, @Nonnull File xmlFromApplicationDir,
-        @Nonnull File dataSourcePostProcessingXsltDir, @Nonnull Element command
+        @Nonnull File applicationDir, @Nonnull Element command
     ) throws ConfigurationException {
-        super(threads, applicationDir, httpXsltDirectory, xmlFromApplicationDir, dataSourcePostProcessingXsltDir, command);
+        super(threads, applicationDir, command);
         assertNoOtherElements(command, "post-process");
         
         var typeString = getMandatoryAttribute(command, "type");

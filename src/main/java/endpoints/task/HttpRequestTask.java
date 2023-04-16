@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static endpoints.config.ApplicationFactory.httpXsltDir;
 import static javax.xml.xpath.XPathConstants.STRING;
 
 /** Performs an HTTP request. See "configuration.md" for more information */
@@ -36,12 +37,11 @@ public class HttpRequestTask extends Task {
     protected final @Nonnull List<HttpOutputIntermediateValue> outputIntermediateValues;
 
     public HttpRequestTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir, 
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
-        int indexFromZero, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, 
+        @Nonnull Map<String, Transformer> transformers, int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
-        spec = new HttpRequestSpecification(threads, httpXsltDirectory, config);
+        super(threads, applicationDir, transformers, indexFromZero, config);
+        spec = new HttpRequestSpecification(threads, new File(applicationDir, httpXsltDir), config);
         outputIntermediateValues = HttpOutputIntermediateValue.parse(
             DomParser.getSubElements(config, "output-intermediate-value"));
         if (spec.ignoreIfError && ! outputIntermediateValues.isEmpty())

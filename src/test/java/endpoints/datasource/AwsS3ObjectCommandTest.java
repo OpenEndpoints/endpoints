@@ -33,7 +33,7 @@ public class AwsS3ObjectCommandTest extends TestCase {
         
         var config = "<aws-s3-object key='file.xml'/>";
         var command = new AwsS3ObjectCommand(new WeaklyCachedXsltTransformer.XsltCompilationThreads(), new File("/"),
-            new File("/"), new File("/"), new File("/"), DomParser.from(config));
+            DomParser.from(config));
         var result = command.execute(new AwsS3Configuration(bucketName));
         var formatted = DomParser.formatXmlPretty(result);
         var expected = """

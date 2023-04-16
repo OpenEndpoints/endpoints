@@ -29,9 +29,8 @@ public abstract class Task extends EndpointExecutionParticipant {
     // Subclass must implement this constructor, as it is called by reflection
     @SuppressWarnings("unused") 
     public Task(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir, 
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
-        int indexFromZero, @Nonnull Element config
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, 
+        @Nonnull Map<String, Transformer> transformers, int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
         super(config);
         

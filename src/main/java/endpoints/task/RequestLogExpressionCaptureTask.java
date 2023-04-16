@@ -32,11 +32,10 @@ public class RequestLogExpressionCaptureTask extends Task {
     protected final @Nonnull String key, valuePattern;
     
     public RequestLogExpressionCaptureTask(
-        @Nonnull XsltCompilationThreads threads, @Nonnull File httpXsltDirectory, @Nonnull File ooxmlDir,
-        @Nonnull Map<String, Transformer> transformers, @Nonnull File staticDir,
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Map<String, Transformer> transformers,
         int indexFromZero, @Nonnull Element config
     ) throws ConfigurationException {
-        super(threads, httpXsltDirectory, ooxmlDir, transformers, staticDir, indexFromZero, config);
+        super(threads, applicationDir, transformers, indexFromZero, config);
         
         assertNoOtherElements(config);
 
@@ -52,7 +51,7 @@ public class RequestLogExpressionCaptureTask extends Task {
         xml.setAttribute("key", key);
         xml.setAttribute("value", valuePattern);
         return new RequestLogExpressionCaptureTask(new XsltCompilationThreads(),
-            new File("/"), new File("/"), Map.of(), new File("/"), 0, xml);
+            new File("/"), Map.of(), 0, xml);
     }
 
     @Override
