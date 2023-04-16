@@ -16,7 +16,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;

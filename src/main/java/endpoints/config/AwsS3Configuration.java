@@ -2,16 +2,12 @@ package endpoints.config;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.DeploymentParameters;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetBucketLocationRequest;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 
 import static com.databasesandlife.util.DomParser.*;
-import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
 
 public record AwsS3Configuration(
     String bucket

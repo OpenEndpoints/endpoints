@@ -1,7 +1,6 @@
 package endpoints.serviceportal;
 
 import endpoints.PublishEnvironment;
-import endpoints.config.Endpoint;
 import endpoints.config.NodeName;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointContentMenuItem;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointMenuFolder;

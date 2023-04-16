@@ -14,8 +14,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.UUID;
 
-import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
-
 public class AwsS3KeysCommandTest extends TestCase {
     
     @Override protected void setUp() throws Exception {

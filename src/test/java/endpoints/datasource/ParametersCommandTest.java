@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Arrays.asList;
 
 public class ParametersCommandTest extends TestCase {
     
