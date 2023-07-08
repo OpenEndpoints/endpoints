@@ -138,7 +138,7 @@ Vagrant.configure(2) do |config|
     chmod -R a+rwX /var/endpoints/application-git-repositories
 
     echo --- Install HTTP listener to test certain requests
-    docker run -p 8081:80 -d --name=http-server --restart unless-stopped mendhak/http-https-echo
+    docker run -p 8081:8080 -d --name=http-server --restart unless-stopped mendhak/http-https-echo
   }
   
   config.vm.provision "shell", run: "always", inline: %q{
