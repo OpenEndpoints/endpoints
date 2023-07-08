@@ -204,7 +204,7 @@ POST
 \begin_inset space ~
 \end_inset
 
-Requset
+Request
 \begin_inset space ~
 \end_inset
 
@@ -1459,7 +1459,7 @@ Tasks must explicitly specify which intermediate values they output and
 Different tasks have different capability to output intermediate values.
  For example, HTTP Tasks parse the response, but there is no useful way
  for an email task to output an intermediate value.
- Which tasks output which intermediate values can be seen in the documenation
+ Which tasks output which intermediate values can be seen in the documentation
  of the task.
 \end_layout
 
@@ -3161,7 +3161,7 @@ if the incoming request is for the preview environment, only request log
 \family typewriter
 RequestLogCommand
 \family default
- Java class for more informaion on which fields are returned in which format.
+ Java class for more information on which fields are returned in which format.
 \end_layout
 
 \begin_layout Description
@@ -3575,7 +3575,7 @@ ${foo}
 \family typewriter
 <response-from-url>
 \family default
- An HTTP request is perfomed and the result of this request is streamed
+ An HTTP request is performed and the result of this request is streamed
  back to the client as the response of the call to Endpoints.
  The 
 \family typewriter
@@ -4667,7 +4667,7 @@ JAVA_OPTIONS
 \family default
  Optional.
  Passed to the JVM.
- Controls hings such as Java heap size.
+ Controls things such as Java heap size.
  By default, Java takes care of assigning the right amount of memory for
  the Docker container.
  Useful values (multiple values separated by a space)
@@ -4733,7 +4733,7 @@ ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE
 \family default
  Optional.
  If present it uses a different URL for AWS S3 access.
- This is useful in test enviroments with a simulated local S3.
+ This is useful in test environments with a simulated local S3.
  It is not intended to be used when deploying the application for real.
 \end_layout
 
