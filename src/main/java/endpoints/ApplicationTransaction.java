@@ -4,11 +4,10 @@ import com.databasesandlife.util.EmailTransaction;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.config.Application;
+import endpoints.config.IntermediateValueName;
 
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Represents a unit of work a user wishes to perform.
@@ -28,22 +27,40 @@ import java.util.List;
  */
 public class ApplicationTransaction implements AutoCloseable {
     
+    protected final @Nonnull Application application;
     public final @Nonnull DbTransaction db = DeploymentParameters.get().newDbTransaction();
     protected final @Nonnull List<DbTransaction> additionalDbs = new ArrayList<>();
-    public final @CheckForNull EmailTransaction email;
+    protected final @Nonnull Map<Map<String, String>, EmailTransaction> email = new HashMap<>();
     
-    public ApplicationTransaction(@Nonnull Application a) throws ConfigurationException {
-        if (a.getEmailServerOrNull() == null) email = null;
-        else email = new EmailTransaction(a.getEmailServerOrNull());
+    public ApplicationTransaction(@Nonnull Application a) {
+        this.application = a;
     }
 
     @SuppressWarnings("unused") // Used to be used when tasks could specify arbitrary DB connections, maybe useful in the future?
     public synchronized void addDatabaseConnection(@Nonnull DbTransaction db) {
         additionalDbs.add(db);
     }
+    
+    public @Nonnull EmailTransaction getEmailTransaction(
+        @Nonnull TransformationContext context,
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) throws ConfigurationException {
+        var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+        
+        synchronized (this) {
+            if ( ! email.containsKey(stringParams)) {
+                var config = application.getEmailConfigurationOrNull();
+                assert config != null : "should have been checked on application load";
+
+                var tx = new EmailTransaction(config.generate(context, visibleIntermediateValues));
+                email.put(stringParams, tx);
+            }
+            return email.get(stringParams);
+        }
+    }
 
     public void commit() {
-        if (email != null) email.commit();
+        email.values().forEach(e -> e.commit()); // more likely to go wrong, so place higher
         db.commit();
         additionalDbs.forEach(db -> db.commit());
     }

@@ -10,10 +10,7 @@ import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.UploadedFile;
 import endpoints.condition.Condition;
-import endpoints.config.ApplicationFactory;
-import endpoints.config.IntermediateValueName;
-import endpoints.config.ParameterName;
-import endpoints.config.Transformer;
+import endpoints.config.*;
 import endpoints.config.response.StaticResponseConfiguration;
 import endpoints.datasource.TransformationFailedException;
 import jakarta.activation.DataHandler;
@@ -174,11 +171,6 @@ public class EmailTask extends Task {
     }
 
     @Override
-    public boolean requiresEmailServer() {
-        return true;
-    }
-
-    @Override
     public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException {
         super.assertParametersSuffice(params);
         PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, fromPattern, "<from>");
@@ -187,6 +179,14 @@ public class EmailTask extends Task {
             PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, t, "<to>");
         for (var b : alternativeBodies) b.assertParametersSuffice(params, inputIntermediateValues);
         for (var a : attachments) a.assertParametersSuffice(params, inputIntermediateValues);
+    }
+
+    @Override
+    public void assertCompatibleWithEmailConfig(
+        @CheckForNull EmailSendingConfigurationFactory config, @Nonnull Set<ParameterName> params
+    ) throws ConfigurationException {
+        if (config == null) throw new ConfigurationException("'email-sending-configuration.xml' missing");
+        config.assertParametersSuffice(params, inputIntermediateValues);
     }
 
     @Override
@@ -321,21 +321,21 @@ public class EmailTask extends Task {
 
         Runnable sendEmail = () -> {
             try {
-                assert context.tx.email != null; // because requiresEmailServer() returns true
-                synchronized (context.tx.email) {
+                var emailTransaction = context.tx.getEmailTransaction(context, inputIntermediateValues);
+                synchronized (emailTransaction) {
                     for (var toPattern : toPatterns) {
-                        var msg = context.tx.email.newMimeMessage();
+                        var msg = emailTransaction.newMimeMessage();
                         msg.setFrom(new InternetAddress(replacePlainTextParameters(fromPattern, stringParams)));
                         msg.addRecipient(RecipientType.TO, new InternetAddress(replacePlainTextParameters(toPattern, stringParams)));
                         msg.setSubject(replacePlainTextParameters(subjectPattern, stringParams));
                         msg.setContent(mainPart);
                         msg.setSentDate(new Date());
 
-                        context.tx.email.send(msg);
+                        emailTransaction.send(msg);
                     }
                 }
             }
-            catch (MessagingException e) { throw new RuntimeException(e); }
+            catch (ConfigurationException | MessagingException e) { throw new RuntimeException(e); }
         };
         context.threads.addTaskWithDependencies(partTasks, sendEmail);
         

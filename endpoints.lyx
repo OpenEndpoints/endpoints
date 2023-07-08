@@ -4076,6 +4076,14 @@ value
  for example authorization headers for a commercial email sending service.
 \end_layout
 
+\begin_layout Standard
+All of these values (apart from the names of headers) may use 
+\family typewriter
+${foo}
+\family default
+ style parameters.
+\end_layout
+
 \begin_layout Subsection
 
 \family typewriter

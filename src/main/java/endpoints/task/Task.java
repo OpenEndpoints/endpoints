@@ -7,6 +7,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidEx
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.condition.Condition;
 import endpoints.TransformationContext;
+import endpoints.config.EmailSendingConfigurationFactory;
 import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
 import endpoints.config.Transformer;
@@ -53,7 +54,7 @@ public abstract class Task extends EndpointExecutionParticipant {
         };
     }
 
-    protected @Nonnull String getHumanReadableId() {
+    public @Nonnull String getHumanReadableId() {
         if (id == null) return ordinal(taskIndexFromZero+1) + " <task>";
         else return "<task id='" + id.id() + "'/>";
     }
@@ -65,12 +66,16 @@ public abstract class Task extends EndpointExecutionParticipant {
         }
     }
 
-    public boolean requiresEmailServer() { return false; }
-    
-    public void assertParametersSuffice(@Nonnull Set<ParameterName> params) throws ConfigurationException { 
+    public void assertParametersSuffice(@Nonnull Set<ParameterName> params)
+    throws ConfigurationException { 
         condition.assertParametersSuffice(params, inputIntermediateValues);
     }
     
+    public void assertCompatibleWithEmailConfig(
+        @CheckForNull EmailSendingConfigurationFactory config, @Nonnull Set<ParameterName> params
+    ) throws ConfigurationException {
+    }
+
     public void assertTemplatesValid() throws DocumentTemplateInvalidException { }
     
     /**

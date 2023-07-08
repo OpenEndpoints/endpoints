@@ -72,16 +72,19 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         return result;
     }
     
-    protected static void assertNoEmailConfigurationNeeded(@Nonnull EndpointHierarchyFolderNode node)
-    throws ConfigurationException {
+    protected static void assertCompatibleWithEmailConfig(
+        @CheckForNull EmailSendingConfigurationFactory config, @Nonnull EndpointHierarchyFolderNode node
+    ) throws ConfigurationException {
         for (var child : node.children) {
             if (child instanceof Endpoint e) {
-                for (var t : e.tasks)
-                    if (t.requiresEmailServer())
-                        throw new ConfigurationException("Application has one or more email tasks, " +
-                            "but 'email-sending-configuration.xml' missing");
+                try {
+                    for (var t : e.tasks)
+                        try { t.assertCompatibleWithEmailConfig(config, e.aggregateParametersOverParents().keySet()); }
+                        catch (ConfigurationException ex) { throw new ConfigurationException(t.getHumanReadableId(), ex); }
+                }
+                catch (ConfigurationException ex) { throw new ConfigurationException("Endpoint '" + e.name.name + "'", ex); }
             }
-            else if (child instanceof EndpointHierarchyFolderNode f) assertNoEmailConfigurationNeeded(f);
+            else if (child instanceof EndpointHierarchyFolderNode f) assertCompatibleWithEmailConfig(config, f);
             else throw new RuntimeException("Unexpected child: "+child.getClass()); 
         }
     }
@@ -143,8 +146,8 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
                 catch (Exception e) { throw new ConfigurationException(t.getAbsolutePath(), e); }
             }
             
-            var emailConfig = new File(directory, "email-sending-configuration.xml");
-            var emailServer = emailConfig.exists() ? EmailSendingConfigurationParser.parse(emailConfig) : null;
+            var emailConfigFile = new File(directory, "email-sending-configuration.xml");
+            var emailConfig = emailConfigFile.exists() ? new EmailSendingConfigurationFactory(emailConfigFile) : null;
             if (new File(directory, "smtp.xml").exists())
                 throw new ConfigurationException("Legacy 'smtp.xml' exists, rename to 'email-sending-configuration.xml'");
             
@@ -156,12 +159,13 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             result.transformers = transformers;
             result.endpoints = EndpointHierarchyParser.parse(threads, transformers, directory);
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));
-            result.emailServerOrNull = emailServer;
+            result.emailConfigurationOrNull = emailConfig;
             result.awsS3ConfigurationOrNull = awsS3Config;
             result.servicePortalEndpointMenuItems = new ServicePortalEndpointMenuItemsParser().parse(result.endpoints,
                 new File(directory, "service-portal-endpoint-menu-items.xml"));
             
-            if (emailServer == null) assertNoEmailConfigurationNeeded(result.endpoints);
+            assertCompatibleWithEmailConfig(result.emailConfigurationOrNull, result.endpoints);
+            
             if (awsS3Config == null) {
                 assertNoDataSourceAwsS3ConfigurationNeeded(dataSources);
                 assertNoTransformerAwsS3ConfigurationNeeded(transformers);

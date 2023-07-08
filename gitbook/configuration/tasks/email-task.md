@@ -27,6 +27,8 @@ The file has the root element \<email-sending-configuration> and have the follow
 * If no username and password are set, TLS will not be used
 * extra headers are written into every email sent via SMTP, for example authorization headers for a commercial email sending service
 
+Any of the fields (apart from the header names) may use `${foo}` parameters.
+
 ### Alternative Set-Up:
 
 An alternative option is to configure an MX address for the DNS lookup.

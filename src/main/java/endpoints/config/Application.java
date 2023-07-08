@@ -1,6 +1,5 @@
 package endpoints.config;
 
-import com.databasesandlife.util.EmailTransaction.EmailSendingConfiguration;
 import endpoints.GitRevision;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointMenuFolder;
 import lombok.Getter;
@@ -26,7 +25,7 @@ public class Application {
     protected @Getter @Nonnull Map<String, Transformer> transformers;
     protected @Getter @Nonnull EndpointHierarchyFolderNode endpoints;
     protected @Getter @Nonnull String[] secretKeys;
-    protected @Getter @CheckForNull EmailSendingConfiguration emailServerOrNull;
+    protected @Getter @CheckForNull EmailSendingConfigurationFactory emailConfigurationOrNull;
     protected @Getter @CheckForNull AwsS3Configuration awsS3ConfigurationOrNull;
     protected @Getter @Nonnull ServicePortalEndpointMenuFolder servicePortalEndpointMenuItems;
     

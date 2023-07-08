@@ -45,4 +45,14 @@ public class PlaintextParameterReplacer {
     ) throws ConfigurationException {
         assertParametersSuffice(getKeys(params, visibleIntermediateValues), template, msg);
     }
+    
+    public static boolean containsParameters(@CheckForNull CharSequence template) {
+        try {
+            assertParametersSuffice(Set.of(), template, "");
+            return false;
+        }
+        catch (ConfigurationException e) {
+            return true;
+        }
+    }
 }
