@@ -26,7 +26,7 @@ Vagrant.configure(2) do |config|
     echo --- General OS installation
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qy    # grub upgrade warnings mess with the terminal
-    apt-get -qy install vim ntp unattended-upgrades less openjdk-17-jdk libxml2-utils
+    apt-get -qy install vim ntp unattended-upgrades less openjdk-17-jdk libxml2-utils jq
 
     echo -- PostgreSQL
     apt-get -qy install postgresql-14
@@ -92,8 +92,12 @@ Vagrant.configure(2) do |config|
     apt-get update
     apt-get install -qy docker-ce
 
-    echo --- Install "localstack", which simulates a lot of AWS services including S3
+    echo --- Install localstack, which simulates a lot of AWS services including S3
     docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack
+    cat << '    END' >> ~vagrant/.bash_aliases
+       alias list-localstack-aws-s3-files="curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/ | xmllint --format -"
+       alias list-localstack-aws-secrets="curl -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.ListSecrets' -d '{}' 'http://secretsmanager.us-east-2.localhost.localstack.cloud:4566/'| jq" 
+    END
     
     echo --- Build software
     sudo -u vagrant /bin/bash -c 'source /etc/environment && mvn -f /vagrant/pom.xml clean test'
@@ -140,10 +144,15 @@ Vagrant.configure(2) do |config|
   
     set -e  # stop on error
   
-    echo --- Create our S3 data in "localstack" for testing
-    sleep 10    # Wait for localstack to start
-    curl -X PUT 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/'
-    echo '<data-in-s3/>' | curl -X PUT -T - 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/file-in-s3.xml'
+    echo --- Wait for localstack to start
+    while ! curl -f http://s3.localhost.localstack.cloud:4566/ ; do echo Waiting for localstack to start...; sleep 1; done 
+
+    echo --- Create our S3 data in localstack for testing
+    curl --fail-with-body -X PUT 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/'
+    echo '<data-in-s3/>' | curl --fail-with-body -X PUT -T - 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/file-in-s3.xml'
+  
+    echo --- Create secrets in Secrets Manager of localstack for testing
+    curl --fail-with-body -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.CreateSecret' -d '{"ClientRequestToken":"70b1d1e6-8b36-4556-95ab-bd472cf893d7","Name":"VagrantSecret","SecretString":"MySecretValue"}' 'http://secretsmanager.us-east-2.localhost.localstack.cloud:4566/'
   
     echo ''
     echo '-----------------------------------------------------------------'
@@ -165,7 +174,8 @@ Vagrant.configure(2) do |config|
     echo '  psql -hlocalhost endpoints postgres '
     echo '  psql -hlocalhost example_application postgres '
     echo '  mysql -uroot -proot example_application'
-    echo '  curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/ | xmllint --format -   # List S3 files '
+    echo '  list-localstack-aws-s3-files '
+    echo '  list-localstack-aws-secrets '
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'
