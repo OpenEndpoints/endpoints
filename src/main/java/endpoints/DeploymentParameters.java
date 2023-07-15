@@ -135,7 +135,7 @@ public class DeploymentParameters {
 
     public @Nonnull S3Client newAwsS3Client() {
         var builder = S3Client.builder();
-        builder.region(AWS_GLOBAL);  // Needed for localstack
+        if (awsS3EndpointOverride != null) builder.region(AWS_GLOBAL);  // Needed for localstack
         setAwsEndpointOverride(builder, awsS3EndpointOverride);
         return builder.build();
     }
