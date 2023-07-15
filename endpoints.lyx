@@ -4948,6 +4948,112 @@ Test your workload with
  GCs.
 \end_layout
 
+\begin_layout Subsection
+Version Number
+\end_layout
+
+\begin_layout Standard
+The Endpoints software has a 
+\begin_inset Quotes eld
+\end_inset
+
+version number
+\begin_inset Quotes erd
+\end_inset
+
+ like 1.2.3.
+ This is displayed in certain places such as the Service Portal, so that
+ when bug reports are processed we can see which version the installation
+ is running.
+\end_layout
+
+\begin_layout Standard
+This is a 
+\begin_inset Quotes eld
+\end_inset
+
+Semantic Versioning 2.0.0
+\begin_inset Quotes erd
+\end_inset
+
+ version number.
+ See 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://semver.org/
+\end_layout
+
+\end_inset
+
+ for more information.
+\end_layout
+
+\begin_layout Standard
+Each Git commit to the 
+\family typewriter
+main
+\family default
+ branch should be formatted like 
+\begin_inset Quotes eld
+\end_inset
+
+2.0.0: Foo
+\begin_inset Quotes erd
+\end_inset
+
+.
+ The last commit message is written into the file 
+\family typewriter
+git.properties
+\family default
+ at build time.
+ This file is read and the commit string is parsed to extract the version
+ number for display in the software.
+\end_layout
+
+\begin_layout Standard
+This approach of using the Git commit string isn't ideal.
+\end_layout
+
+\begin_layout Standard
+It would be possible to also update the version in 
+\family typewriter
+pom.xml
+\family default
+ and read that out at runtime (currently that version number is never updated,
+ and ignored by the software).
+ However we didn't really feel there was much advantage in doing that over
+ reading the commit message, which ideally would be set on every commit
+ as well anyway.
+ Having the version number in the files under Git's control means reordering
+ of commits or assigning version numbers once work is finished using 
+\begin_inset Quotes eld
+\end_inset
+
+git rebase
+\begin_inset Quotes erd
+\end_inset
+
+ is more cumbersome.
+\end_layout
+
+\begin_layout Standard
+In an ideal world a CI would 
+\begin_inset Quotes eld
+\end_inset
+
+perform a build
+\begin_inset Quotes erd
+\end_inset
+
+ and that would issue a build number or version number, and that CI system
+ would allow inspection of which Git revision that build came from.
+ Alas there is no CI system at the moment.
+\end_layout
+
 \begin_layout Section
 Software Architecture
 \end_layout

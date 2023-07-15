@@ -23,7 +23,7 @@ public class AbstractPage extends WebPage {
     public AbstractPage() {
         add(new Label("environment", DeploymentParameters.get().servicePortalEnvironmentDisplayName)
             .setVisible(DeploymentParameters.get().servicePortalEnvironmentDisplayName != null));
-        add(new Label("softwareGitRevision", GitPropertiesBuildInfo.get().getGitRevision()));
+        add(new Label("softwareVersion", GitPropertiesBuildInfo.get().getVersionFromCommitPrefixOrGitRevision()));
     }
 
     protected void throwRedirectToPageAfterLogin(@Nonnull DbTransaction tx) {
