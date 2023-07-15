@@ -5024,7 +5024,8 @@ git.properties
 \end_layout
 
 \begin_layout Standard
-This approach of using the Git commit string isn't ideal.
+This approach of using the Git commit is a compromise but if offers us a
+ low-effort way to display the version number.
 \end_layout
 
 \begin_layout Standard
@@ -5034,9 +5035,7 @@ pom.xml
 \family default
  and read that out at runtime (currently that version number is never updated,
  and ignored by the software).
- However we didn't really feel there was much advantage in doing that over
- reading the commit message, which ideally would be set on every commit
- as well anyway.
+ However there isn't much advantage in doing that over the current approach.
  Having the version number in the files under Git's control means reordering
  of commits or assigning version numbers once work is finished using 
 \begin_inset Quotes eld
@@ -5060,7 +5059,8 @@ perform a build
 
  and that would issue a build number or version number, and that CI system
  would allow inspection of which Git revision that build came from.
- Alas there is no CI system at the moment.
+ However installing a CI just for this purpose would be too heavyweight
+ a solution.
 \end_layout
 
 \begin_layout Section
