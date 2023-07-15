@@ -1,11 +1,14 @@
 package endpoints.config;
 
+import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.GitRevision;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointMenuFolder;
 import lombok.Getter;
+import lombok.SneakyThrows;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -27,12 +30,16 @@ public class Application {
     protected @Getter @Nonnull String[] secretKeys;
     protected @Getter @CheckForNull EmailSendingConfigurationFactory emailConfigurationOrNull;
     protected @Getter @CheckForNull AwsS3Configuration awsS3ConfigurationOrNull;
+    protected @Getter @Nonnull AwsSecretsToParameterMapping secrets;
     protected @Getter @Nonnull ServicePortalEndpointMenuFolder servicePortalEndpointMenuItems;
     
     protected Application() { } 
     
+    @SneakyThrows(ConfigurationException.class)
     public static @Nonnull Application newForTesting() {
-        return new Application();
+        var result = new Application();
+        result.secrets = new AwsSecretsToParameterMapping(new File("doesnt-exist"));
+        return result;
     }
 
     public static @Nonnull Application newForTesting(@Nonnull Map<String, Transformer> transformers) {

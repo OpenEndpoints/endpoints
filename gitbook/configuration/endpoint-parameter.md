@@ -72,3 +72,22 @@ Note that this property will be inherited in the hierarchy of endpoint-folders. 
 There are certain parameters which are always available, and are not provided by the client. These can also be used with the same ${param} syntax.
 
 * `${request-id}` - this system parameter returns the globally unique id of the request, assigned by OpenEndpoints during the request.
+
+## AWS Secrets
+
+It is possible to load secrets from the AWS Secrets Manager and make them available via `${foo}` parameters, for example in the SMTP configuration.
+
+The relationship between `${foo}` parameters, and which secret they are backed by, is specified in the optional `secrets.xml` file, checked in at the root of the application directory.
+
+```xml
+<aws-secrets region="us-east-2">
+    <secret parameter-name="foo" aws-secret="my-aws-secret"/>
+    <secret parameter-name="bar" aws-secret="other-aws-secret"/>
+</aws-secrets>
+```
+
+Note, not all secrets need to actually need to exist in the AWS Secrets Manager. An error is produced only if the parameter (and thus the secret) is actually used. This is to allow “if” statements in the configuration, executing certain commands only on certain environments. If the configuration is executed on a different environment, the secret need not exist, as that part of the “if” statement is never executed.
+
+Secrets are fetched each request. This allows for easy secret rotation. No caching of secrets between requests occurs, and no restart of the application is necessary in the case of updating a secret within AWS Secrets Manager to a new value.
+
+JSON-style secrets, which the AWS Management Console web application creates by default, are not supported. The value of a secret is assumed to be plain text.

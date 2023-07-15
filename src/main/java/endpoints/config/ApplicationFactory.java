@@ -161,6 +161,7 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
             result.secretKeys = SecurityParser.parse(new File(directory, "security.xml"));
             result.emailConfigurationOrNull = emailConfig;
             result.awsS3ConfigurationOrNull = awsS3Config;
+            result.secrets = new AwsSecretsToParameterMapping(new File(directory, "secrets.xml"));
             result.servicePortalEndpointMenuItems = new ServicePortalEndpointMenuItemsParser().parse(result.endpoints,
                 new File(directory, "service-portal-endpoint-menu-items.xml"));
             

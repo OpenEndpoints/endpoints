@@ -50,6 +50,7 @@ Vagrant.configure(2) do |config|
     echo 'export ENDPOINTS_BASE_URL=http://localhost:9758/' >> /etc/environment
     echo 'export ENDPOINTS_JDBC_URL='"'"'jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /etc/environment
+    echo 'export ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE=http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/' >> /etc/environment
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
     echo 'export ENDPOINTS_XSLT_DEBUG_LOG=true' >> /etc/environment
@@ -63,7 +64,8 @@ Vagrant.configure(2) do |config|
     echo --- Set DeploymentParameters for Docker
     echo 'ENDPOINTS_BASE_URL=http://localhost:9758/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE=http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=Docker in Vagrant' >> /home/vagrant/docker-env
@@ -96,7 +98,7 @@ Vagrant.configure(2) do |config|
     docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack
     cat << '    END' >> ~vagrant/.bash_aliases
        alias list-localstack-aws-s3-files="curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/ | xmllint --format -"
-       alias list-localstack-aws-secrets="curl -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.ListSecrets' -d '{}' 'http://secretsmanager.us-east-2.localhost.localstack.cloud:4566/'| jq" 
+       alias list-localstack-aws-secrets="curl -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.ListSecrets' -d '{}' 'http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/'| jq" 
     END
     
     echo --- Build software
@@ -152,7 +154,7 @@ Vagrant.configure(2) do |config|
     echo '<data-in-s3/>' | curl --fail-with-body -X PUT -T - 'http://vagrantbucket.s3.localhost.localstack.cloud:4566/file-in-s3.xml'
   
     echo --- Create secrets in Secrets Manager of localstack for testing
-    curl --fail-with-body -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.CreateSecret' -d '{"ClientRequestToken":"70b1d1e6-8b36-4556-95ab-bd472cf893d7","Name":"VagrantSecret","SecretString":"MySecretValue"}' 'http://secretsmanager.us-east-2.localhost.localstack.cloud:4566/'
+    curl --fail-with-body -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.CreateSecret' -d '{"ClientRequestToken":"70b1d1e6-8b36-4556-95ab-bd472cf893d7","Name":"VagrantSecret","SecretString":"MySecretValue"}' 'http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/'
   
     echo ''
     echo '-----------------------------------------------------------------'

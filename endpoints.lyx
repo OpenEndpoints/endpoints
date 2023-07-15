@@ -508,6 +508,38 @@ Parameters
 \end_layout
 
 \begin_layout Standard
+Parameters can be used in a great number of places within Endpoints.
+ The syntax to use a parameter 
+\family typewriter
+${param}
+\family default
+.
+ The braces are, in contrast to many other systems, mandatory.
+\end_layout
+
+\begin_layout Standard
+Parameter names are case-sensitive.
+ Parameter names may consist of letters, digits, hyphen, underscore and
+ dot.
+ In contrast to variables in programming languages, there is no rule against
+ creating a parameter whose name beings with (or consists entirely of) digits.
+\end_layout
+
+\begin_layout Standard
+There are various types of parameter, all of which can be referenced with
+ the aforementioned 
+\family typewriter
+${param}
+\family default
+ syntax.
+ These are explained in the sections below.
+\end_layout
+
+\begin_layout Subsubsection
+Request Parameters
+\end_layout
+
+\begin_layout Standard
 One of the first things to happen during the processing of an endpoints
  request is to determine the values of parameters.
  Parameters are read-only strings, for example the parameter 
@@ -587,23 +619,6 @@ To use a default value, if the user hasn't supplied anything, and thereby
 \end_layout
 
 \begin_layout Standard
-The syntax for this is 
-\family typewriter
-${param}
-\family default
-.
- The braces are, in contrast to many other systems, mandatory.
-\end_layout
-
-\begin_layout Standard
-Parameter names are case-sensitive.
- Parameter names may consist of letters, digits, hyphen, underscore and
- dot.
- In contrast to variables in programming languages, there is no rule against
- creating a parameter whose name beings with (or consists entirely of) digits.
-\end_layout
-
-\begin_layout Standard
 The HTTP standard allows multiple GET parameters to be supplied with the
  same name, like 
 \family typewriter
@@ -658,6 +673,50 @@ ${request-id}
 \end_layout
 
 \begin_layout Subsubsection
+Intermediate Variables
+\end_layout
+
+\begin_layout Standard
+These are output by some tasks and can be consumed by other tasks, and data
+ sources within those tasks.
+ See section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:Intermediate-Values"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ for more information.
+\end_layout
+
+\begin_layout Subsubsection
+Secrets
+\end_layout
+
+\begin_layout Standard
+Secret information such as passwords can be loaded from a secret store (AWS
+ Secrets Manager) and also accessed via the 
+\family typewriter
+${param}
+\family default
+ syntax.
+ See section 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "subsec:secrets.xml"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ for more information.
+\end_layout
+
+\begin_layout Subsection
 Parameter Transformation
 \end_layout
 
@@ -4109,6 +4168,124 @@ This file is optional, unless any AWS S3 features are used in which case
 \end_layout
 
 \begin_layout Subsection
+Secrets (
+\family typewriter
+
+\begin_inset CommandInset label
+LatexCommand label
+name "subsec:secrets.xml"
+
+\end_inset
+
+secrets.xml
+\family default
+)
+\end_layout
+
+\begin_layout Standard
+It is possible to load secrets from the AWS Secrets Manager and make them
+ available via 
+\family typewriter
+${foo}
+\family default
+ parameters, for example in the SMTP configuration.
+\end_layout
+
+\begin_layout Standard
+The relationship between 
+\family typewriter
+${foo}
+\family default
+ parameters, and which secret they are backed by, is specified in the optional
+ 
+\family typewriter
+secrets.xml
+\family default
+ file, checked in at the root of the application directory.
+\end_layout
+
+\begin_layout LyX-Code
+<aws-secrets region=
+\begin_inset Quotes qrd
+\end_inset
+
+us-east-2
+\begin_inset Quotes qrd
+\end_inset
+
+>
+\end_layout
+
+\begin_layout LyX-Code
+  <secret parameter-name=
+\begin_inset Quotes qrd
+\end_inset
+
+foo
+\begin_inset Quotes qrd
+\end_inset
+
+ aws-secret=
+\begin_inset Quotes qrd
+\end_inset
+
+my-secret
+\begin_inset Quotes qrd
+\end_inset
+
+/>
+\end_layout
+
+\begin_layout LyX-Code
+  ...
+\end_layout
+
+\begin_layout LyX-Code
+</aws-secrets>
+\end_layout
+
+\begin_layout Standard
+Note, not all secrets need to actually need to exist in the AWS Secrets
+ Manager.
+ An error is produced only if the parameter (and thus the secret) is actually
+ used.
+ This is to allow 
+\begin_inset Quotes eld
+\end_inset
+
+if
+\begin_inset Quotes erd
+\end_inset
+
+ statements in the configuration, executing certain commands only on certain
+ environments.
+ If the configuration is executed on a different environment, the secret
+ need not exist, as that part of the 
+\begin_inset Quotes eld
+\end_inset
+
+if
+\begin_inset Quotes erd
+\end_inset
+
+ statement is never executed.
+\end_layout
+
+\begin_layout Standard
+Secrets are fetched each request.
+ This allows for easy secret rotation.
+ No caching of secrets between requests occurs, and no restart of the applicatio
+n is necessary in the case of updating a secret within AWS Secrets Manager
+ to a new value.
+\end_layout
+
+\begin_layout Standard
+JSON-style secrets, which the AWS Management Console web application creates
+ by default, are not supported.
+ The value of a secret is assumed to be plain text.
+\end_layout
+
+\begin_layout Subsection
 
 \family typewriter
 service-portal-endpoint-menu-items.xml
@@ -4743,6 +4920,14 @@ ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE
  If present it uses a different URL for AWS S3 access.
  This is useful in test environments with a simulated local S3.
  It is not intended to be used when deploying the application for real.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE
+\family default
+ Analagous to S3 override.
 \end_layout
 
 \begin_layout Subsection

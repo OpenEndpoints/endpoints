@@ -10,6 +10,7 @@
     <post-process xslt="values.xslt"/>
   </application-introspection>
   <literal-xml>
+    <secret-test>This is a test of secret: ${my-aws-secret}</secret-test>
     <tag>email-address is ${email-address}, invoice number is ${invoice-number}</tag>
     <accents>Some accents to prove UTF-8 is used: äöü €</accents>
     <request-id>Request ID is ${request-id}.</request-id>

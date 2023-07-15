@@ -165,7 +165,7 @@
         <dependency>
             <groupId>com.databasesandlife</groupId>
             <artifactId>java-common</artifactId>
-            <version>20.0.0</version>
+            <version>20.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>
@@ -258,6 +258,11 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
+            <version>2.20.98</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>secretsmanager</artifactId>
             <version>2.20.98</version>
         </dependency>
     </dependencies>

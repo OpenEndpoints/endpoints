@@ -7,6 +7,7 @@ import endpoints.config.*;
 import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ public class TransformationContext {
     public final @Nonnull Map<OnDemandIncrementingNumber.OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
     public final @Nonnull Map<String, String> requestLogExpressionCaptures;
     public boolean alreadyDeliveredResponse = false;
+    protected @CheckForNull Map<String, LazyCachingValue> secrets = null;
 
     public synchronized @Nonnull Runnable scheduleTransformation(
         @Nonnull BufferedDocumentGenerationDestination outputTo,
@@ -109,15 +111,21 @@ public class TransformationContext {
                     result = LazyCachingValue.newFixed("");
                 return result;
             }
-            @Override public Set<String> keySet() {
-                throw new RuntimeException("Do not iterate over this map as it would cause all secrets to be fetched.");
-            }
             @Override public Set<Entry<String, LazyCachingValue>> entrySet() {
                 throw new RuntimeException("Do not iterate over this map as it would cause all secrets to be fetched.");
             }
         };
+        
+        // Add system parameters, request parameters, and intermediate values
         for (var e : getParametersAndIntermediateValues(visibleIntermediateValues).entrySet())
             result.put(e.getKey(), LazyCachingValue.newFixed(e.getValue()));
+
+        // Cache secrets between multiple calls to this method, so each secret is only fetched max of once
+        synchronized (this) {
+            if (secrets == null) secrets = application.getSecrets().getValues();
+            result.putAll(secrets);
+        }
+
         return result;
     }
 }
