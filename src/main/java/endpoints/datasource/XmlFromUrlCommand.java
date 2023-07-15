@@ -50,13 +50,13 @@ public class XmlFromUrlCommand extends DataSourceCommand {
     ) {
         abstract class LaterResult extends DataSourceCommandFetcher implements ScheduleDependencyInAnyOrder { }
         
-        var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+        var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
         var result = new LaterResult() {
             public Element unexpanded;
             @Override protected @Nonnull Element[] populateOrThrow() {
                 if (unexpanded == null) return new Element[0];
                 var expanded = expandParametersInResponse
-                    ? DomVariableExpander.expand(dollarThenBraces, stringParams, unexpanded).getDocumentElement()
+                    ? DomVariableExpander.expand(dollarThenBraces, p -> stringParams.get(p).get(), unexpanded).getDocumentElement()
                     : unexpanded;
 
                 Element wrapped;

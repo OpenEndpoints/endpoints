@@ -21,7 +21,7 @@ import java.util.zip.ZipOutputStream;
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
@@ -46,7 +46,7 @@ public class OoxmlParameterExpander {
      * @param output This will be closed
      */
     @SneakyThrows(IOException.class)
-    protected void expand(@Nonnull OutputStream output, @Nonnull Map<String, String> params) throws ConfigurationException {
+    protected void expand(@Nonnull OutputStream output, @Nonnull Map<String, LazyCachingValue> params) throws ConfigurationException {
         try (
             var zipInput = new ZipInputStream(new FileInputStream(input));
             var zipOutput = new ZipOutputStream(output);
@@ -60,7 +60,7 @@ public class OoxmlParameterExpander {
 
                     if (entry.getName().endsWith("document.xml") || entry.getName().matches(".*slide\\d+\\.xml")) {
                         var xmlInput = DomParser.from(new ByteArrayInputStream(zipInput.readAllBytes()));
-                        var xmlOutput = DomVariableExpander.expand(dollarThenBraces, params, xmlInput);
+                        var xmlOutput = DomVariableExpander.expand(dollarThenBraces, p -> params.get(p).get(), xmlInput);
                         var xmlOutputFormatted = DomParser.formatXmlPretty(xmlOutput.getDocumentElement());
                         zipOutput.write(xmlOutputFormatted.getBytes(UTF_8));
                     } else {
@@ -76,7 +76,7 @@ public class OoxmlParameterExpander {
         @Nonnull Set<ParameterName> params, @Nonnull Set<IntermediateValueName> inputIntermediateValues
     ) throws ConfigurationException {
         var stringParams = PlaintextParameterReplacer.getKeys(params, inputIntermediateValues);
-        expand(NULL_OUTPUT_STREAM, stringParams.stream().collect(toMap(p -> p, p -> "")));
+        expand(NULL_OUTPUT_STREAM, stringParams.stream().collect(toMap(p -> p, p -> LazyCachingValue.newFixed(""))));
         PlaintextParameterReplacer.assertParametersSuffice(params, inputIntermediateValues, filenamePattern, 
             "'download-filename' attribute");
     }
@@ -98,7 +98,7 @@ public class OoxmlParameterExpander {
     ) {
         return context.threads.addTask(() -> {
             try {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+                var stringParams = context.getParametersAndIntermediateValuesAndSecrets(inputIntermediateValues);
                 var filename = replacePlainTextParameters(filenamePattern, stringParams);
                 
                 destination.setContentDispositionToDownload(filename);

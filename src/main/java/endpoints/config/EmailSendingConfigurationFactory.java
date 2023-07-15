@@ -13,8 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.*;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.PlaintextParameterReplacer.containsParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 
 public class EmailSendingConfigurationFactory {
 
@@ -44,6 +44,9 @@ public class EmailSendingConfigurationFactory {
                 try { Integer.parseInt(portPattern); }
                 catch (NumberFormatException e) { throw new ConfigurationException("<port>", e); }
             }
+            
+            if (serverPattern == null && mxAddressElementPattern == null)
+                throw new ConfigurationException("One of either <server> or <mx-address> must be specified");
             
             extraHeaderPatternForHeaderKey = new HashMap<>();
             for (var e : getSubElements(rootEl, "header")) {
@@ -78,7 +81,7 @@ public class EmailSendingConfigurationFactory {
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException {
-        var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+        var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
         
         final SmtpServerConfiguration smtp;
         if (mxAddressElementPattern != null) {
@@ -88,7 +91,7 @@ public class EmailSendingConfigurationFactory {
         } else {
             SmtpServerAddress address;
 
-            if (usernamePattern != null) {
+            if (usernamePattern != null && passwordPattern != null) {
                 var tls = new TlsSmtpServerAddress();
                 tls.username = replacePlainTextParameters(usernamePattern, stringParams);
                 tls.password = replacePlainTextParameters(passwordPattern, stringParams);
@@ -97,6 +100,7 @@ public class EmailSendingConfigurationFactory {
                 address = new SmtpServerAddress();
             }
 
+            assert serverPattern != null : "Constructor checks that either serverPattern or mxAddressElementPattern is non-null";
             address.host = replacePlainTextParameters(serverPattern, stringParams);
 
             if (portPattern != null) {

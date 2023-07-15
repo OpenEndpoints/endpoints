@@ -8,7 +8,10 @@ import endpoints.datasource.TransformationFailedException;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.synchronizedMap;
@@ -64,7 +67,7 @@ public class TransformationContext {
         return result;
     }
     
-    public synchronized @Nonnull Map<IntermediateValueName, String> getVisibleIntermediateValues(
+    public @Nonnull Map<IntermediateValueName, String> getVisibleIntermediateValues(
         @Nonnull Set<IntermediateValueName> visible
     ) {
         var result = new HashMap<>(intermediateValues);
@@ -77,20 +80,44 @@ public class TransformationContext {
         return result;
     }
 
-    public synchronized @Nonnull Map<String, String> getStringParametersIncludingIntermediateValues(
+    /** 
+     * Returns system parameters, request parameters, and intermediate values. 
+     * Can be iterated over, as nothing is lazy.
+     */
+    public @Nonnull Map<String, String> getParametersAndIntermediateValues(
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) {
-        Map<String, String> result = new HashMap<>() {
-            @Override public String get(Object key) {
-                var result = super.get(key);
-                if (parameterNotFoundPolicy == ParameterNotFoundPolicy.emptyString && result == null) result = "";
-                return result;
-            }
-        };
+        Map<String, String> result = new HashMap<>();
         result.putAll(getParametersIncludingSystemParameters()
             .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
         result.putAll(getVisibleIntermediateValues(visibleIntermediateValues)
             .entrySet().stream().collect(Collectors.toMap(e -> e.getKey().name, e -> e.getValue())));
+        return result;
+    }
+
+    /** 
+     * Returns system parameters, request parameters, and intermediate values, and secrets.
+     * Only "get" should be used, it should not be iterated over, as secrets are lazy.
+     */
+    public @Nonnull Map<String, LazyCachingValue> getParametersAndIntermediateValuesAndSecrets(
+        @Nonnull Set<IntermediateValueName> visibleIntermediateValues
+    ) {
+        Map<String, LazyCachingValue> result = new HashMap<>() {
+            @Override public @Nonnull LazyCachingValue get(Object key) {
+                var result = super.get(key);
+                if (parameterNotFoundPolicy == ParameterNotFoundPolicy.emptyString && result == null) 
+                    result = LazyCachingValue.newFixed("");
+                return result;
+            }
+            @Override public Set<String> keySet() {
+                throw new RuntimeException("Do not iterate over this map as it would cause all secrets to be fetched.");
+            }
+            @Override public Set<Entry<String, LazyCachingValue>> entrySet() {
+                throw new RuntimeException("Do not iterate over this map as it would cause all secrets to be fetched.");
+            }
+        };
+        for (var e : getParametersAndIntermediateValues(visibleIntermediateValues).entrySet())
+            result.put(e.getKey(), LazyCachingValue.newFixed(e.getValue()));
         return result;
     }
 }

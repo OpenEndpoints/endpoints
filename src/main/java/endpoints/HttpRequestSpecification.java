@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
 import static endpoints.EndpointExecutor.logXmlForDebugging;
@@ -98,7 +98,7 @@ public class HttpRequestSpecification {
         }
     }
 
-    protected static @Nonnull JsonNode expandJson(@Nonnull Map<String, String> parameters, @Nonnull JsonNode input)
+    protected static @Nonnull JsonNode expandJson(@Nonnull Map<String, LazyCachingValue> parameters, @Nonnull JsonNode input)
     throws VariableNotFoundException {
         if (input instanceof ArrayNode arrayNode) {
             var result = arrayNode.arrayNode();
@@ -247,7 +247,7 @@ public class HttpRequestSpecification {
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException {
         var stringKeys = PlaintextParameterReplacer.getKeys(params, visibleIntermediateValues);
-        var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
+        var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> LazyCachingValue.newFixed("")));
 
         PlaintextParameterReplacer.assertParametersSuffice(stringKeys, urlPattern, "<url> element");
         for (var e : getParameterPatterns.entrySet())
@@ -264,7 +264,7 @@ public class HttpRequestSpecification {
 
         try {
             if (requestBodyXmlTemplate != null)
-                DomVariableExpander.expand(dollarThenBraces, emptyParams, requestBodyXmlTemplate);
+                DomVariableExpander.expand(dollarThenBraces, param -> "", requestBodyXmlTemplate);
             if (requestBodyJsonTemplate != null)
                 expandJson(emptyParams, requestBodyJsonTemplate);
         }
@@ -292,7 +292,7 @@ public class HttpRequestSpecification {
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues,
         @Nonnull Consumer<URLConnection> after
     )  {
-        var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+        var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
         var baseUrl = replacePlainTextParameters(urlPattern, stringParams); // without ?x=y parameters
         var precursorTasks = new ArrayList<Runnable>();
         try {
@@ -342,7 +342,7 @@ public class HttpRequestSpecification {
                 // Get XML (either fixed in <xml-body>, or result of XSLT) 
                 final Document body;
                 if (requestBodyXmlTemplate != null) {
-                    body = DomVariableExpander.expand(dollarThenBraces, stringParams, requestBodyXmlTemplate);
+                    body = DomVariableExpander.expand(dollarThenBraces, p -> stringParams.get(p).get(), requestBodyXmlTemplate);
                 } else if (requestBodyXmlTransformer != null) {
                     var parametersXml = createParametersElement("parameters", context, visibleIntermediateValues);
                     var bodyDocument = new DOMResult();

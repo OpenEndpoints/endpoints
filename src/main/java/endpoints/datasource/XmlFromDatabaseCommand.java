@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.*;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 
 public class XmlFromDatabaseCommand extends DataSourceCommand {
     
@@ -94,7 +94,7 @@ public class XmlFromDatabaseCommand extends DataSourceCommand {
     ) {
         var result = new DataSourceCommandFetcher() {
             @Override protected Element[] populateOrThrow() {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
                 var paramsExpanded = paramPatterns.stream().map(pattern -> replacePlainTextParameters(pattern, stringParams)).toArray();
                 return execute(paramsExpanded);
             }

@@ -2,6 +2,7 @@ package endpoints.config.response;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import endpoints.LazyCachingValue;
 import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
 import endpoints.condition.Condition;
@@ -35,7 +36,7 @@ public abstract class ResponseConfiguration extends EndpointExecutionParticipant
     public boolean isConditional() { return condition.isOptional(); }
     public boolean isDownload() { return false; }
     
-    public boolean satisfiesCondition(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, String> parameters) {
+    public boolean satisfiesCondition(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, LazyCachingValue> parameters) {
         return condition.evaluate(parameterMultipleValueSeparator, parameters);
     }
 }

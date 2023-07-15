@@ -2,6 +2,7 @@ package endpoints.condition;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import endpoints.LazyCachingValue;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +36,7 @@ public class ConditionFolder {
         for (var c : conditions) c.assertParametersSuffice(params, visibleIntermediateValues);
     }
 
-    public boolean evaluate(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, String> parameters) {
+    public boolean evaluate(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, LazyCachingValue> parameters) {
         return conditions.stream().allMatch(c -> c.evaluate(parameterMultipleValueSeparator, parameters));
     }
 }

@@ -65,7 +65,7 @@ public class CreateShortLinkToEndpointTask extends Task {
             linkRecord.setExpiresOn(now.plus(expiry));
             context.tx.db.insert(linkRecord);
 
-            var params = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+            var params = context.getParametersAndIntermediateValues(inputIntermediateValues);
             for (var e : params.entrySet()) {
                 var parameterRecord = new ShortLinkToEndpointParameterRecord();
                 parameterRecord.setShortLinkToEndpointCode(result);

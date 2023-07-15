@@ -1,6 +1,7 @@
 package endpoints.datadrivencms;
 
 import com.databasesandlife.util.DomParser;
+import endpoints.LazyCachingValue;
 import junit.framework.TestCase;
 
 import java.util.List;
@@ -88,7 +89,7 @@ public class DataDrivenCmsFileTest extends TestCase {
             new DataDrivenCmsFile(DomParser.from(otherFileThatGetsMerged))
         );
 
-        var params = Map.of("trueParameter", "true");
+        var params = Map.of("trueParameter", LazyCachingValue.newFixed("true"));
         var output = DataDrivenCmsFile.createDataSourceOutput("||", params, files);
         var stringOutput = DomParser.formatXmlPretty(output);
         var expected = """

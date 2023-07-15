@@ -56,7 +56,7 @@ public class DataDrivenCmsDataSourceCommand extends DataSourceCommand {
     ) {
         var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
                 var sep = context.endpoint.getParameterMultipleValueSeparator();
                 return new Element[] { DataDrivenCmsFile.createDataSourceOutput(sep, stringParams, files) };
             }

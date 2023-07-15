@@ -10,6 +10,7 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidEx
 import com.offerready.xslt.destination.BufferedHttpResponseDocumentGenerationDestination;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.HttpRequestSpecification.HttpRequestFailedException;
+import endpoints.LazyCachingValue.LazyParameterComputationException;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.TransformationContext.ParameterNotFoundPolicy;
 import endpoints.config.*;
@@ -58,11 +59,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.databasesandlife.util.DomParser.*;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.databasesandlife.util.ThreadPool.unwrapException;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.*;
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.generated.jooq.Tables.*;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
@@ -397,7 +398,7 @@ public class EndpointExecutor {
         @SneakyThrows({IOException.class, InvalidRequestException.class, TransformationFailedException.class})
         public void runUnconditionally() {
             var destination = new BufferedHttpResponseDocumentGenerationDestination();
-            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+            var stringParams = context.getParametersAndIntermediateValuesAndSecrets(config.inputIntermediateValues);
 
             if (config instanceof EmptyResponseConfiguration) {
                 destination.setStatusCode(contentStatusCode);
@@ -447,7 +448,7 @@ public class EndpointExecutor {
 
         @Override 
         public void run() {
-            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+            var stringParams = context.getParametersAndIntermediateValuesAndSecrets(config.inputIntermediateValues);
 
             boolean satisfiesCondition = config.satisfiesCondition(
                 context.endpoint.getParameterMultipleValueSeparator(), stringParams);
@@ -488,7 +489,7 @@ public class EndpointExecutor {
 
         @SneakyThrows({InvalidRequestException.class, TransformationFailedException.class, NodeNotFoundException.class})
         @Override public void runUnconditionally() {
-            var stringParams = context.getStringParametersIncludingIntermediateValues(config.inputIntermediateValues);
+            var stringParams = context.getParametersAndIntermediateValuesAndSecrets(config.inputIntermediateValues);
 
             if (config instanceof ForwardToEndpointResponseConfiguration fwd) {
                 var request = new Request() {
@@ -503,8 +504,9 @@ public class EndpointExecutor {
                     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
                         var patterns = fwd.inputParameterPatterns;
                         return patterns == null
-                            ? stringParams.entrySet().stream().collect(
-                                toMap(e -> new ParameterName(e.getKey()), e -> List.of(e.getValue()))) 
+                            ? context.getParametersAndIntermediateValues(config.inputIntermediateValues)
+                                .entrySet().stream().collect(
+                                    toMap(e -> new ParameterName(e.getKey()), e -> List.of(e.getValue()))) 
                             : patterns.entrySet().stream().collect(
                                 toMap(e -> e.getKey(), e -> List.of(replacePlainTextParameters(e.getValue(), stringParams))));
                     }
@@ -699,6 +701,7 @@ public class EndpointExecutor {
                 catch (RuntimeException e) {
                     unwrapException(e, InvalidRequestException.class);
                     unwrapException(e, IncorrectHashException.class);
+                    unwrapException(e, LazyParameterComputationException.class);
                     unwrapException(e, TransformationFailedException.class);
                     unwrapException(e, EndpointExecutionFailedException.class);
                     unwrapException(e, HttpRequestFailedException.class);
@@ -751,6 +754,7 @@ public class EndpointExecutor {
                     
                     try { threads.execute(); }
                     catch (RuntimeException e2) {
+                        unwrapException(e2, LazyParameterComputationException.class);
                         unwrapException(e2, InvalidRequestException.class);
                         unwrapException(e2, TransformationFailedException.class);
                         throw e2;

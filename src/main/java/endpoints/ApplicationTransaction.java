@@ -30,7 +30,7 @@ public class ApplicationTransaction implements AutoCloseable {
     protected final @Nonnull Application application;
     public final @Nonnull DbTransaction db = DeploymentParameters.get().newDbTransaction();
     protected final @Nonnull List<DbTransaction> additionalDbs = new ArrayList<>();
-    protected final @Nonnull Map<Map<String, String>, EmailTransaction> email = new HashMap<>();
+    protected final @Nonnull Map<Set<String>, EmailTransaction> email = new HashMap<>();
     
     public ApplicationTransaction(@Nonnull Application a) {
         this.application = a;
@@ -45,17 +45,17 @@ public class ApplicationTransaction implements AutoCloseable {
         @Nonnull TransformationContext context,
         @Nonnull Set<IntermediateValueName> visibleIntermediateValues
     ) throws ConfigurationException {
-        var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+        var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
         
         synchronized (this) {
-            if ( ! email.containsKey(stringParams)) {
+            if ( ! email.containsKey(stringParams.keySet())) {
                 var config = application.getEmailConfigurationOrNull();
                 assert config != null : "should have been checked on application load";
 
                 var tx = new EmailTransaction(config.generate(context, visibleIntermediateValues));
-                email.put(stringParams, tx);
+                email.put(stringParams.keySet(), tx);
             }
-            return email.get(stringParams);
+            return email.get(stringParams.keySet());
         }
     }
 

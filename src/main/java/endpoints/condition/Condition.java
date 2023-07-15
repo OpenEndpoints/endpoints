@@ -1,6 +1,8 @@
 package endpoints.condition;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import endpoints.LazyCachingValue;
+import endpoints.LazyCachingValue.LazyParameterComputationException;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -16,7 +18,7 @@ import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.util.Arrays.stream;
 
 /** Represents the <code>if="${foo}" equals="xyz"</code> conditions that tasks may have */
@@ -87,7 +89,7 @@ public class Condition {
         return true;
     }
     
-    public boolean evaluate(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, String> parameters) {
+    public boolean evaluate(@Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, LazyCachingValue> parameters) {
         var lhs = replacePlainTextParameters(lhsPattern, parameters).split(Pattern.quote(parameterMultipleValueSeparator));
         var rhs = replacePlainTextParameters(rhsPattern, parameters).split(Pattern.quote(parameterMultipleValueSeparator));
         return switch (operator) {

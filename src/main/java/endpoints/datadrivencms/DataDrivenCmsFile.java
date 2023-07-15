@@ -2,6 +2,7 @@ package endpoints.datadrivencms;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
+import endpoints.LazyCachingValue;
 import endpoints.condition.ConditionFolder;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -54,7 +55,7 @@ public class DataDrivenCmsFile {
 
     protected static <T extends DataDrivenCmsInstance>
     @Nonnull Map<String, TreeMap<Integer, T>> newIdToPriorityToContent(
-        @Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, String> params,
+        @Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, LazyCachingValue> params,
         @Nonnull List<DataDrivenCmsFile> files, @Nonnull Function<DataDrivenCmsFile, List<T>> itemsExtractor
     ) {
         return files.stream()
@@ -71,7 +72,7 @@ public class DataDrivenCmsFile {
     }
     
     public static @Nonnull Element createDataSourceOutput(
-        @Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, String> params,
+        @Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, LazyCachingValue> params,
         @Nonnull List<DataDrivenCmsFile> files
     ) {
         var document = DomParser.newDocumentBuilder().newDocument();

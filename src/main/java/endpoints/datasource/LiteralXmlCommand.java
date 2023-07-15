@@ -5,7 +5,6 @@ import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
 import com.databasesandlife.util.DomVariableExpander.VariableSyntax;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
@@ -13,8 +12,7 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getSubElements;
 
@@ -36,10 +34,7 @@ public class LiteralXmlCommand extends DataSourceCommand {
     ) throws ConfigurationException {
         super.assertParametersSuffice(params, visibleIntermediateValues);
         
-        var stringKeys = PlaintextParameterReplacer.getKeys(params, visibleIntermediateValues);
-        var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
-        
-        try { DomVariableExpander.expand(VariableSyntax.dollarThenBraces, emptyParams, source); }
+        try { DomVariableExpander.expand(VariableSyntax.dollarThenBraces, param -> "", source); }
         catch (VariableNotFoundException e) { throw new ConfigurationException(e); }
     }
 
@@ -50,9 +45,11 @@ public class LiteralXmlCommand extends DataSourceCommand {
     ) {
         var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
                 return getSubElements(source, "*").stream()
-                    .map(e -> DomVariableExpander.expand(VariableSyntax.dollarThenBraces, stringParams, e).getDocumentElement())
+                    .map(e -> DomVariableExpander
+                        .expand(VariableSyntax.dollarThenBraces, var -> stringParams.get(var).get(), e)
+                        .getDocumentElement())
                     .toArray(Element[]::new);
             }
         };

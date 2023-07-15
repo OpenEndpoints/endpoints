@@ -33,8 +33,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.databasesandlife.util.DomParser.*;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.offerready.xslt.destination.EmailPartDocumentDestination.newMimeBodyForDestination;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.config.ApplicationFactory.ooxmlResponsesDir;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -258,7 +258,7 @@ public class EmailTask extends Task {
         @Nonnull TransformationContext context,
         @Nonnull SynchronizationPoint workComplete
     ) throws TaskExecutionFailedException {
-        var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+        var stringParams = context.getParametersAndIntermediateValuesAndSecrets(inputIntermediateValues);
 
         var mainPart = new MimeMultipart("mixed");
         var partTasks = new ArrayList<Runnable>();

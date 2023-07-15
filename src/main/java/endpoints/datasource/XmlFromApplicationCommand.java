@@ -5,6 +5,7 @@ import com.databasesandlife.util.DomVariableExpander;
 import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
+import endpoints.LazyCachingValue;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.TransformationContext;
 import endpoints.config.ApplicationFactory;
@@ -20,14 +21,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
 import static com.databasesandlife.util.DomParser.getOptionalAttribute;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.lang.Boolean.parseBoolean;
+import static java.util.stream.Collectors.toMap;
 
 public class XmlFromApplicationCommand extends DataSourceCommand {
     
@@ -57,17 +58,18 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
         
         checkContents: if ( ! filenamePattern.contains("$")) {
             try {
-                var emptyParams = stringKeys.stream().collect(Collectors.toMap(param -> param, param -> ""));
+                var emptyParams = stringKeys.stream().collect(toMap(param -> param, param -> LazyCachingValue.newFixed("")));
                 var element = executeImmediately(emptyParams);
                 if (element == null) break checkContents;
-                DomVariableExpander.expand(dollarThenBraces, emptyParams, element);
+                DomVariableExpander.expand(dollarThenBraces, p -> "", element);
             }
             catch (VariableNotFoundException | TransformationFailedException e) { throw new ConfigurationException(e); }
         }
     }
 
     @SneakyThrows(IOException.class)
-    protected @CheckForNull Element executeImmediately(@Nonnull Map<String, String> params) throws TransformationFailedException {
+    protected @CheckForNull Element executeImmediately(@Nonnull Map<String, LazyCachingValue> params) 
+    throws TransformationFailedException {
         try {
             var leafname = replacePlainTextParameters(filenamePattern, params);
             var file = new File(xmlFromApplicationDir, leafname);
@@ -96,10 +98,12 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
     ) {
         var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() throws TransformationFailedException {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
                 var fileElement = executeImmediately(stringParams);
                 if (fileElement == null) return new Element[0];
-                var expanded = DomVariableExpander.expand(dollarThenBraces, stringParams, fileElement).getDocumentElement();
+                var expanded = DomVariableExpander
+                    .expand(dollarThenBraces, p -> stringParams.get(p).get(), fileElement)
+                    .getDocumentElement();
                 return new Element[] { expanded };
             }
         };

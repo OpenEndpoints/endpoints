@@ -16,7 +16,7 @@ import java.io.File;
 import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.*;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 
 public class MD5Command extends DataSourceCommand {
     
@@ -49,7 +49,7 @@ public class MD5Command extends DataSourceCommand {
     ) {
         var result = new DataSourceCommandFetcher() {
             @Override protected @Nonnull Element[] populateOrThrow() {
-                var stringParams = context.getStringParametersIncludingIntermediateValues(visibleIntermediateValues);
+                var stringParams = context.getParametersAndIntermediateValuesAndSecrets(visibleIntermediateValues);
 
                 var md5Digest = MD5Hex.md5(replacePlainTextParameters(messageStringPattern, stringParams));
 

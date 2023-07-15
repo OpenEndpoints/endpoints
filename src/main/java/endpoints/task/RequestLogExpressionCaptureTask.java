@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 import static com.databasesandlife.util.DomParser.assertNoOtherElements;
 import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static com.databasesandlife.util.PlaintextParameterReplacer.replacePlainTextParameters;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 
 public class RequestLogExpressionCaptureTask extends Task {
     
@@ -65,7 +65,7 @@ public class RequestLogExpressionCaptureTask extends Task {
     public void executeThenScheduleSynchronizationPoint(
         @Nonnull TransformationContext context, @Nonnull SynchronizationPoint workComplete
     ) {
-        var stringParams = context.getStringParametersIncludingIntermediateValues(inputIntermediateValues);
+        var stringParams = context.getParametersAndIntermediateValuesAndSecrets(inputIntermediateValues);
         
         synchronized (context.requestLogExpressionCaptures) {
             context.requestLogExpressionCaptures.put(
