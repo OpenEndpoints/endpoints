@@ -42,6 +42,8 @@ If `${foo}` equals "hello world", the data-source output will be:
 </transformation-input>
 ```
 
+Note that the contents of <literal-xml> must be elements, simply placing text straight under the <literal.xml> element will not work.
+
 ## Application Introspection
 
 This content-source produces as its output a description of the entire application directory structure (=your configuration).

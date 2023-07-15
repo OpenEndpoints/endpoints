@@ -2902,12 +2902,21 @@ xml-from-application
 \family typewriter
 <literal-xml>
 \family default
- The contents of the element are placed in the output.
+ All child elements are placed in the output.
  Parameters like 
 \family typewriter
 ${foo}
 \family default
  are expanded in the bodies of elements, and in all attributes.
+ (Note that the contents of 
+\family typewriter
+<literal-xml>
+\family default
+ must be elements, simply placing text straight under the 
+\family typewriter
+<literal.xml>
+\family default
+ element will not work.)
 \end_layout
 
 \begin_layout Description
