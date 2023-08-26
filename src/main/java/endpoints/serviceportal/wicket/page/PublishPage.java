@@ -3,17 +3,19 @@ package endpoints.serviceportal.wicket.page;
 import endpoints.DeploymentParameters;
 import endpoints.PublishEnvironment;
 import endpoints.PublishProcess;
-import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
-import org.slf4j.LoggerFactory;
+import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.Link;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
 import static endpoints.PublishProcess.setApplicationToPublished;
 import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 
+@Slf4j
 public class PublishPage extends AbstractLoggedInApplicationPage {
 
     @SuppressWarnings("WicketForgeJavaIdInspection")
@@ -50,7 +52,7 @@ public class PublishPage extends AbstractLoggedInApplicationPage {
             tx.commit();
         }
         catch (PublishProcess.ApplicationInvalidException e) {
-            LoggerFactory.getLogger(getClass()).warn("Publish of '" + application.name + "' on '" + environment.name() + "' failed", e);
+            log.warn("Publish of '" + application.name + "' on '" + environment.name() + "' failed", e);
             error(e.getMessage());
         }
     }

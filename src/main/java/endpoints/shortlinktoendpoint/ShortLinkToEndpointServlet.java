@@ -6,7 +6,7 @@ import endpoints.EndpointExecutor.InvalidRequestException;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.ParameterName;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +21,7 @@ import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT_PARAMETER;
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toMap;
 
+@Slf4j
 public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
     
     @Override
@@ -42,7 +43,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
                 .and(SHORT_LINK_TO_ENDPOINT.EXPIRES_ON.gt(now()))
                 .fetchOne();
             if (shortLink == null) {
-                LoggerFactory.getLogger(getClass()).error("Code '" + code.getCode() + "' not found");
+                log.error("Code '" + code.getCode() + "' not found");
                 resp.sendError(404, "Code '" + code.getCode() + "' not found");
                 return;
             }
@@ -78,11 +79,11 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
             resp.sendError(400, "Endpoint specified in this short link not found in the application");
         }
         catch (InvalidRequestException e) {
-            LoggerFactory.getLogger(getClass()).error("Request invalid", e);
+            log.error("Request invalid", e);
             resp.sendError(400, "Request invalid: " + e.getMessage());
         }
         catch (Exception e) { 
-            LoggerFactory.getLogger(getClass()).error("An internal error occurred", e);
+            log.error("An internal error occurred", e);
             resp.sendError(500, "An internal error occurred");
         }
     }

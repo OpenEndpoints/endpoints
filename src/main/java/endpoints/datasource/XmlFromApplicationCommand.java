@@ -12,7 +12,7 @@ import endpoints.config.ApplicationFactory;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -22,14 +22,13 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import static com.databasesandlife.util.DomParser.assertNoOtherElements;
-import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static com.databasesandlife.util.DomParser.getOptionalAttribute;
+import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static java.lang.Boolean.parseBoolean;
 import static java.util.stream.Collectors.toMap;
 
+@Slf4j
 public class XmlFromApplicationCommand extends DataSourceCommand {
     
     protected final @Nonnull File xmlFromApplicationDir;
@@ -75,7 +74,7 @@ public class XmlFromApplicationCommand extends DataSourceCommand {
             var file = new File(xmlFromApplicationDir, leafname);
 
             if ( ! file.getCanonicalPath().startsWith(xmlFromApplicationDir.getCanonicalPath()+File.separator)) {
-                LoggerFactory.getLogger(getClass()).warn(getClass().getName()+": Leafname appears to access files outside " +
+                log.warn(getClass().getName()+": Leafname appears to access files outside " +
                     "of base directory: " + leafname);
                 throw new TransformationFailedException("Leafname is blocked");
             }

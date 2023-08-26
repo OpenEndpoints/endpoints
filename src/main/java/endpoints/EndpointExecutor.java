@@ -28,6 +28,7 @@ import endpoints.task.TaskId;
 import jakarta.activation.MimetypesFileTypeMap;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,7 @@ import static java.util.stream.Collectors.toMap;
 import static javax.servlet.http.HttpServletResponse.*;
 import static org.jooq.impl.DSL.max;
 
+@Slf4j
 public class EndpointExecutor {
 
     @FunctionalInterface
@@ -231,8 +233,7 @@ public class EndpointExecutor {
                             inputParametersDocument.importNode(element, true));
 
                 // Debug Log
-                LoggerFactory.getLogger(getClass()).debug("Parameter Transformation Input:\n" 
-                    + formatXmlPretty(inputParametersDocument.getDocumentElement()));
+                log.debug("Parameter Transformation Input:\n" + formatXmlPretty(inputParametersDocument.getDocumentElement()));
 
                 // Transform
                 boolean debug = debugAllowed && debugRequested;
@@ -285,7 +286,7 @@ public class EndpointExecutor {
             var result = new Node[nodeList.getLength()];
             for (int i = 0; i < nodeList.getLength(); i++) result[i] = nodeList.item(i);
 
-            LoggerFactory.getLogger(getClass()).debug("POST request JSON converted to XML, output is:\n" + Arrays.stream(result)
+            log.debug("POST request JSON converted to XML, output is:\n" + Arrays.stream(result)
                 .map(x -> x instanceof Element ? formatXmlPretty((Element) x) : "(not an element)")
                 .collect(joining("\n")));
 
@@ -723,7 +724,7 @@ public class EndpointExecutor {
             catch (Exception e) {
                 try (var tx = new ApplicationTransaction(application);
                      var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
-                    LoggerFactory.getLogger(getClass()).warn("Delivering error", e);
+                    log.warn("Delivering error", e);
 
                     var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);
                     

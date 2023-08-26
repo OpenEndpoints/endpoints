@@ -1,10 +1,10 @@
 package endpoints;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.flywaydb.core.Flyway;
 import org.flywaydb.core.api.configuration.FluentConfiguration;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.servlet.ServletException;
@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 
+@Slf4j
 public abstract class AbstractEndpointsServlet extends HttpServlet {
 
     @Override
@@ -48,7 +49,7 @@ public abstract class AbstractEndpointsServlet extends HttpServlet {
             tx.commit();
         }
         catch (DbTransaction.CannotConnectToDatabaseException e) {
-            LoggerFactory.getLogger(getClass()).warn("Cannot load applications at servlet startup, "
+            log.warn("Cannot load applications at servlet startup, "
                 + "will load lazily during requests instead: Database connection problem", e);
         }
     }

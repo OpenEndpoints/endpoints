@@ -3,14 +3,17 @@ package endpoints;
 import com.databasesandlife.util.Timer;
 import endpoints.EndpointExecutor.InvalidRequestException;
 import endpoints.PublishEnvironment.PublishEnvironmentNotFoundException;
-import endpoints.config.*;
+import endpoints.config.Application;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
+import endpoints.config.ApplicationName;
+import endpoints.config.Endpoint;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
+import endpoints.config.NodeName;
 import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpirerJob;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -25,6 +28,7 @@ import java.util.regex.Pattern;
 
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
+@Slf4j
 public class EndpointExecutorServlet extends AbstractEndpointsServlet {
     
     @RequiredArgsConstructor
@@ -44,8 +48,6 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
     
     protected void logParamsForDebugging(@Nonnull HttpServletRequest servletRequest, @Nonnull Request request) {
         if ( ! DeploymentParameters.get().xsltDebugLog) return;
-        
-        var log = LoggerFactory.getLogger(getClass());
         
         log.info("Request class: " + servletRequest.getClass());
         log.info("Part class: " + request.getUploadedFiles().stream()
@@ -141,13 +143,13 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
         }
         catch (InvalidRequestException e) {
             // Assuming it's just an error with some text for the user, don't fill up our logs with stack backtraces
-            if (e.getCause() == null) LoggerFactory.getLogger(getClass()).error(e.getClass().getSimpleName()+": "+e.getMessage());
-            else LoggerFactory.getLogger(getClass()).error("Request invalid", e);
+            if (e.getCause() == null) log.error(e.getClass().getSimpleName()+": "+e.getMessage());
+            else log.error("Request invalid", e);
             
             resp.sendError(400, "Request invalid: " + e.getMessage());
         }
         catch (Exception e) { 
-            LoggerFactory.getLogger(getClass()).error("An internal error occurred", e);
+            log.error("An internal error occurred", e);
             resp.sendError(500, "An internal error occurred");
         }
     }

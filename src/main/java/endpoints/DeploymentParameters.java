@@ -7,7 +7,7 @@ import endpoints.config.ApplicationFactory;
 import endpoints.config.FixedPathApplicationFactory;
 import endpoints.config.PublishedApplicationFactory;
 import lombok.SneakyThrows;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
@@ -36,6 +36,7 @@ import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
  * such as creating a new database connection with the JDBC URL, or "self-testing" e.g. that the database connection
  * specifies a valid database.
  */
+@Slf4j
 public class DeploymentParameters {
     
     private static DeploymentParameters sharedInstance = null;
@@ -97,7 +98,7 @@ public class DeploymentParameters {
         requestLogExpiryDays = 
             getOptionalParameter("ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS").map(Integer::parseInt).orElse(null);
 
-        LoggerFactory.getLogger(getClass()).info("Endpoints server application is in " + 
+        log.info("Endpoints server application is in " + 
             (isSingleApplicationMode() 
                 ? "SINGLE APPLICATION mode" 
                 : "MULTIPLE APPLICATIONS mode (via service portal, publishing from Git)"));

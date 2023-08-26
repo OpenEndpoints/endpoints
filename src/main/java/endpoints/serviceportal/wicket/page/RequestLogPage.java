@@ -19,6 +19,7 @@ import endpoints.serviceportal.wicket.panel.SubstringHighlightLabel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -35,7 +36,6 @@ import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.request.resource.ByteArrayResource;
 import org.jooq.Condition;
 import org.jooq.Field;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -57,6 +57,7 @@ import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
 import static org.apache.wicket.util.time.Duration.seconds;
 import static org.jooq.impl.DSL.*;
 
+@Slf4j
 public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
     protected final @Nonnull ApplicationName applicationName = getSession().getLoggedInApplicationDataOrThrow().application();
@@ -228,7 +229,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
 
         protected T fetch() {
             try (var tx = DeploymentParameters.get().newDbTransaction()) {
-                LoggerFactory.getLogger(getClass()).info("Downloading " + requestLogField + " for request_log_id " + id.id() + "...");
+                log.info("Downloading " + requestLogField + " for request_log_id " + id.id() + "...");
                 return tx.jooq().select(requestLogField)
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))

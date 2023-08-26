@@ -1,7 +1,7 @@
 package endpoints;
 
 import com.databasesandlife.util.DailyJob;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 
@@ -10,12 +10,13 @@ import static endpoints.generated.jooq.Tables.REQUEST_LOG_EXPRESSION_CAPTURE;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.jooq.impl.DSL.select;
 
+@Slf4j
 public class RequestLogExpirerJob extends DailyJob {
     
     @Override protected void performJob() {
         var days = DeploymentParameters.get().requestLogExpiryDays;
         if (days == null) {
-            LoggerFactory.getLogger(getClass()).info("Request log expiry env var is not set, will not expire request log");
+            log.info("Request log expiry env var is not set, will not expire request log");
             return;
         }
         

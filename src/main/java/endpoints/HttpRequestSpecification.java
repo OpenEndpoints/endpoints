@@ -1,8 +1,8 @@
 package endpoints;
 
 import com.databasesandlife.util.*;
-import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
 import com.databasesandlife.util.Timer;
+import com.databasesandlife.util.DomVariableExpander.VariableNotFoundException;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,11 +20,12 @@ import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;
 import endpoints.datasource.TransformationFailedException;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.slf4j.LoggerFactory;
 import org.json.JSONException;
 import org.jsoup.Jsoup;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.Attributes;
@@ -52,16 +53,17 @@ import java.util.stream.Collectors;
 
 import static com.databasesandlife.util.DomParser.*;
 import static com.databasesandlife.util.DomVariableExpander.VariableSyntax.dollarThenBraces;
-import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExceptionMessage;
 import static com.offerready.xslt.WeaklyCachedXsltTransformer.getTransformerOrScheduleCompilation;
 import static endpoints.EndpointExecutor.logXmlForDebugging;
+import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.datasource.ParametersCommand.createParametersElement;
 import static java.lang.Boolean.parseBoolean;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toSet;
 import static org.jsoup.nodes.Document.OutputSettings.Syntax.xml;
 
+@Slf4j
 public class HttpRequestSpecification {
 
     public enum HttpMethod {
@@ -399,7 +401,7 @@ public class HttpRequestSpecification {
                             requestBodyJsonTransformer.newTransformer().transform(
                                 new DOMSource(parametersXml.getOwnerDocument()), new StreamResult(json));
                             if (DeploymentParameters.get().xsltDebugLog)
-                                LoggerFactory.getLogger(getClass()).info("Result of XSLT, to send to '" + baseUrl + "'\n" + json);
+                                log.info("Result of XSLT, to send to '" + baseUrl + "'\n" + json);
                             IOUtils.write(json.toString(), o, UTF_8);
                         } else {
                             throw new RuntimeException("Unreachable");

@@ -1,7 +1,7 @@
 package endpoints.serviceportal.wicket.endpointmenu;
 
-import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import com.databasesandlife.util.jdbc.DbTransaction;
+import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import endpoints.*;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
@@ -11,14 +11,14 @@ import endpoints.config.ParameterName;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.SneakyThrows;
-import org.apache.wicket.request.resource.ByteArrayResource;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ResourceLink;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
 import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.resource.ByteArrayResource;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -29,6 +29,7 @@ import java.util.Map;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@Slf4j
 public class EndpointPanel extends Panel {
 
     protected final @Nonnull PublishEnvironment environment;
@@ -111,7 +112,7 @@ public class EndpointPanel extends Panel {
                 });
         }
         catch (EndpointExecutionFailedException e) {
-            LoggerFactory.getLogger(getClass()).warn("Error while generating EndpointPanel (displayed to user)", e);
+            log.warn("Error while generating EndpointPanel (displayed to user)", e);
             error(e.getMessage()); 
         }
         

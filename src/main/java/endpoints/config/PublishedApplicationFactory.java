@@ -6,9 +6,9 @@ import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import endpoints.GitApplicationRepository;
 import endpoints.GitApplicationRepository.RepositoryCommandFailedException;
-import endpoints.PublishEnvironment;
 import endpoints.GitRevision;
-import org.slf4j.LoggerFactory;
+import endpoints.PublishEnvironment;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -22,6 +22,7 @@ import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 /**
  * Loads and caches Applications from disk based on the directory specified in the database (last publish)
  */
+@Slf4j
 public class PublishedApplicationFactory extends ApplicationFactory {
 
     protected record ApplicationDefn(
@@ -63,7 +64,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
                     }
                 }
                 catch (Exception e) {
-                    LoggerFactory.getLogger(getClass()).error("Cannot load application '"+name.name+"' (will skip)", e);
+                    log.error("Cannot load application '"+name.name+"' (will skip)", e);
                 }
             };
 
@@ -73,7 +74,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
                     threads.addTask(loadAndCacheApplication);      // Only load the application if the checkout was successful
                 }
                 catch (Exception e) {
-                    LoggerFactory.getLogger(getClass()).error("Cannot checkout application '"+name.name+"' from Git (will skip)", e);
+                    log.error("Cannot checkout application '"+name.name+"' from Git (will skip)", e);
                 }
             });
         }
@@ -114,7 +115,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             repo.checkoutAtomicallyIfNecessary(revision, directory);
 
             // Load the application and put into our cache
-            LoggerFactory.getLogger(getClass()).info("Application '" + name.name + "' has changed or was never loaded: will reload...");
+            log.info("Application '" + name.name + "' has changed or was never loaded: will reload...");
             var threads = new XsltCompilationThreads();
             cachedApp = loadApplication(threads, revision, directory);
             cache.put(new ApplicationDefn(name, environment), cachedApp);

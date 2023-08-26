@@ -1,11 +1,7 @@
 package endpoints;
 
-import org.slf4j.LoggerFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.json.JSONTokener;
-import org.json.XML;
+import lombok.extern.slf4j.Slf4j;
+import org.json.*;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -23,6 +19,7 @@ import static java.util.regex.Matcher.quoteReplacement;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
+@Slf4j
 public class JsonToXmlConverter {
 
     protected static final Pattern patternFirstChar = Pattern.compile("^[^a-zA-Z_]");
@@ -77,7 +74,7 @@ public class JsonToXmlConverter {
             return newDocumentBuilder().parse(new ByteArrayInputStream(xmlIncludingHeader.getBytes(UTF_8))).getDocumentElement();
         }
         catch (SAXException e) {
-            LoggerFactory.getLogger(getClass()).info("JSON converted to XML: " + xmlIncludingHeader);
+            log.info("JSON converted to XML: " + xmlIncludingHeader);
             throw new JSONException(e);
         }
     } 

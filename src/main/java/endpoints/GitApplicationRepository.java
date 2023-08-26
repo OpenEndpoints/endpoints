@@ -10,15 +10,17 @@ import endpoints.config.ApplicationName;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
-import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
-import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
-import org.slf4j.LoggerFactory;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.*;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.ssh.jsch.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.ssh.jsch.OpenSshConfig;
 import org.eclipse.jgit.util.FS;
 
 import javax.annotation.CheckForNull;
@@ -33,6 +35,7 @@ import java.util.function.Consumer;
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
+@Slf4j
 @RequiredArgsConstructor
 public class GitApplicationRepository {
 
@@ -102,7 +105,7 @@ public class GitApplicationRepository {
             @Override public void run() {
                 try { FileUtils.deleteDirectory(dir); }
                 catch (Exception e) {
-                    LoggerFactory.getLogger(getClass()).warn("Uncaught exception while deleting temporary directory '" + dir + "'", e);
+                    log.warn("Uncaught exception while deleting temporary directory '" + dir + "'", e);
                 }
             }
         };
