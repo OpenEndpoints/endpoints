@@ -466,7 +466,15 @@ Format of an Application
 \end_layout
 
 \begin_layout Standard
-The term "application" is used to describe a piece of configuration.
+The term 
+\begin_inset Quotes eld
+\end_inset
+
+application
+\begin_inset Quotes erd
+\end_inset
+
+ is used to describe a piece of configuration.
  The system can serve multiple applications simultaneously.
 \end_layout
 
@@ -1358,7 +1366,15 @@ An
 \family default
 s.
  The task does an action such as sending an email or writing to a database.
- It is like a "side-effect" of accessing the endpoint.
+ It is like a 
+\begin_inset Quotes eld
+\end_inset
+
+side-effect
+\begin_inset Quotes erd
+\end_inset
+
+ of accessing the endpoint.
 \end_layout
 
 \begin_layout Subsubsection
@@ -4821,8 +4837,15 @@ ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY
 ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME
 \family default
  Optional.
- For example "Production Environment", for the login screen of the Service
- Portal.
+ For example 
+\begin_inset Quotes eld
+\end_inset
+
+Production Environment
+\begin_inset Quotes erd
+\end_inset
+
+, for the login screen of the Service Portal.
 \end_layout
 
 \begin_layout Subsubsection
@@ -4840,8 +4863,8 @@ ENDPOINTS_CHECK_HASH
 \family default
  Optional.
  Default true.
- Can be "false".
- If this is set to "false", no hash checking is done.
+ Can be “false”.
+ If this is set to “false”, no hash checking is done.
  This is useful when Endpoints is not world-visible, for example part of
  a multi-image Kubernetes Hub, etc.
 \end_layout
@@ -4853,7 +4876,7 @@ ENDPOINTS_DISPLAY_EXPECTED_HASH
 \family default
  Optional.
  Default false.
- For debugging, set this to "true" in order to display the expected value
+ For debugging, set this to “true” in order to display the expected value
  of security hashes.
 \end_layout
 
