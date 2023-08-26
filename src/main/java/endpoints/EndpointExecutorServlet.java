@@ -6,7 +6,7 @@ import endpoints.PublishEnvironment.PublishEnvironmentNotFoundException;
 import endpoints.config.*;
 import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
-import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpirer;
+import endpoints.shortlinktoendpoint.ShortLinkToEndpointExpirerJob;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -75,8 +75,8 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
 
     @Override public void init() throws ServletException {
         super.init();
-        new ShortLinkToEndpointExpirer().start();
-        new RequestLogExpirer().start();
+        new ShortLinkToEndpointExpirerJob().start();
+        new RequestLogExpirerJob().start();
     }
 
     @Override

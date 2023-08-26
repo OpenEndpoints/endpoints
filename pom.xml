@@ -106,6 +106,23 @@
 
     <dependencies>
         <dependency>
+            <!-- Logback includes SLF4J API -->
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.8</version>
+        </dependency>
+        <dependency>
+            <!-- Impl log4j 1 API and send logs to SLF4J -->
+            <groupId>org.slf4j</groupId>
+            <artifactId>log4j-over-slf4j</artifactId>
+            <version>1.7.36</version>
+        </dependency>
+        <dependency>
+            <groupId>com.databasesandlife</groupId>
+            <artifactId>java-common</artifactId>
+            <version>20.1.1</version>
+        </dependency>
+        <dependency>
             <groupId>javax.annotation</groupId>
             <artifactId>javax.annotation-api</artifactId>
             <version>1.3.2</version>
@@ -135,18 +152,6 @@
             <scope>provided</scope>  <!-- only does compile-type stuff -->
         </dependency>
         <dependency>
-            <!-- Logback includes SLF4J API -->
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.8</version>
-        </dependency>
-        <dependency>
-            <!-- Impl log4j 1 API and send logs to SLF4J -->
-            <groupId>org.slf4j</groupId>
-            <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.7.36</version>
-        </dependency>
-        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <version>3.1.0</version>
@@ -161,11 +166,6 @@
             <groupId>commons-codec</groupId>
             <artifactId>commons-codec</artifactId>
             <version>1.15</version>
-        </dependency>
-        <dependency>
-            <groupId>com.databasesandlife</groupId>
-            <artifactId>java-common</artifactId>
-            <version>20.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jgit</groupId>

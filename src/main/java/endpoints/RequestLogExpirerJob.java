@@ -1,5 +1,6 @@
 package endpoints;
 
+import com.databasesandlife.util.DailyJob;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
@@ -9,7 +10,7 @@ import static endpoints.generated.jooq.Tables.REQUEST_LOG_EXPRESSION_CAPTURE;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.jooq.impl.DSL.select;
 
-public class RequestLogExpirer extends DailyJob {
+public class RequestLogExpirerJob extends DailyJob {
     
     @Override protected void performJob() {
         var days = DeploymentParameters.get().requestLogExpiryDays;

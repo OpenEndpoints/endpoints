@@ -1,6 +1,6 @@
 package endpoints.shortlinktoendpoint;
 
-import endpoints.DailyJob;
+import com.databasesandlife.util.DailyJob;
 import endpoints.DeploymentParameters;
 
 import java.time.Instant;
@@ -9,7 +9,7 @@ import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT;
 import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT_PARAMETER;
 import static org.jooq.impl.DSL.select;
 
-public class ShortLinkToEndpointExpirer extends DailyJob {
+public class ShortLinkToEndpointExpirerJob extends DailyJob {
 
     @Override protected void performJob() {
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
