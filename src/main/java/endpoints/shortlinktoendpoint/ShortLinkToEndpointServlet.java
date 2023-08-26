@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
 
 import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT;
 import static endpoints.generated.jooq.Tables.SHORT_LINK_TO_ENDPOINT_PARAMETER;
+import static java.lang.Boolean.parseBoolean;
 import static java.time.Instant.now;
 import static java.util.stream.Collectors.toMap;
 
@@ -66,7 +67,7 @@ public class ShortLinkToEndpointServlet extends AbstractEndpointsServlet {
             };
             
             new EndpointExecutor().execute(shortLink.getEnvironment(), shortLink.getApplication(), application, endpoint,
-                Boolean.parseBoolean(req.getParameter("debug")),
+                parseBoolean(req.getParameter("debug")), parseBoolean(req.getParameter("verbose")),
                 null, request, responseContent -> responseContent.deliver(resp));
             
             tx.commit();

@@ -236,15 +236,14 @@ public class EndpointExecutor {
                 log.debug("Parameter Transformation Input:\n" + formatXmlPretty(inputParametersDocument.getDocumentElement()));
 
                 // Transform
-                boolean debug = debugAllowed && debugRequested;
-                if (debug) parameterTransformationLogger.input = inputParametersDocument.getDocumentElement();
+                parameterTransformationLogger.input = inputParametersDocument.getDocumentElement();
                 var outputParametersDocument = new DOMResult();
                 parameterTransformation.xslt.newTransformer()
                     .transform(new DOMSource(inputParametersDocument), outputParametersDocument);
 
                 // Parse and return output
                 var outputParametersRoot = ((Document) outputParametersDocument.getNode()).getDocumentElement();
-                if (debug) parameterTransformationLogger.output = outputParametersRoot;
+                parameterTransformationLogger.output = outputParametersRoot;
                 if (outputParametersRoot == null)
                     throw new ConfigurationException("Parameter transformation delivered empty document");
                 var error = getOptionalSingleSubElement(outputParametersRoot, "error");
@@ -525,13 +524,16 @@ public class EndpointExecutor {
     protected void insertRequestLog(
         @Nonnull DbTransaction tx,
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpointName,
-        @Nonnull Instant now, @Nonnull RequestId requestId, @Nonnull Request req, boolean debugAllowed, boolean debugRequested,
+        @Nonnull Instant now, @Nonnull RequestId requestId, @Nonnull Request req, 
+        boolean debugAllowed, boolean debugRequested, boolean verboseRequested,
         @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull Map<String, String> requestLogExpressionCaptures,
         @Nonnull BufferedHttpResponseDocumentGenerationDestination response,
         @Nonnull Consumer<RequestLogIdsRecord> alterRequestLogIds, @Nonnull Consumer<RequestLogRecord> alterRequestLog
     ) {
+        var recordDebugInfo = (debugAllowed && debugRequested) || (verboseRequested && response.getStatusCode() >= 400);
+        
         var ids = new RequestLogIdsRecord();
         ids.setRequestId(requestId);
         ids.setApplication(applicationName);
@@ -548,12 +550,12 @@ public class EndpointExecutor {
         r.setDatetime(now);
         r.setStatusCode(response.getStatusCode());
         r.setUserAgent(req.getUserAgent());
-        r.setParameterTransformationInput(parameterTransformationLogger.input);
-        r.setParameterTransformationOutput(parameterTransformationLogger.output);
+        r.setParameterTransformationInput(recordDebugInfo ? parameterTransformationLogger.input : null);
+        r.setParameterTransformationOutput(recordDebugInfo ? parameterTransformationLogger.output : null);
         r.setRequestContentType(Optional.ofNullable(req.getRequestBodyIfPost())
-            .filter(x -> debugAllowed && debugRequested).map(b -> b.contentType()).orElse(null));
+            .filter(x -> recordDebugInfo).map(b -> b.contentType()).orElse(null));
         r.setRequestBody(Optional.ofNullable(req.getRequestBodyIfPost())
-            .filter(x -> debugAllowed && debugRequested).map(b -> b.body()).orElse(null));
+            .filter(x -> recordDebugInfo).map(b -> b.body()).orElse(null));
         alterRequestLog.accept(r);
         tx.insert(r);
         
@@ -657,7 +659,7 @@ public class EndpointExecutor {
      */
     public void execute(
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
-        @Nonnull Application application, @Nonnull Endpoint endpoint, boolean debugRequested,
+        @Nonnull Application application, @Nonnull Endpoint endpoint, boolean debugRequested, boolean verboseRequested,
         @CheckForNull String hashToCheck, @Nonnull Request req, @Nonnull Responder responder
     ) throws EndpointExecutionFailedException {
         try (var ignored = new Timer(getClass().getSimpleName())) {
@@ -712,7 +714,7 @@ public class EndpointExecutor {
                 }
 
                 insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
-                    req, appConfig.debugAllowed(), debugRequested, 
+                    req, appConfig.debugAllowed(), debugRequested, verboseRequested, 
                     parameterTransformationLogger, autoInc, requestLogExpressionCaptures, successResponse.destination, r -> {
                         r.setIncrementalIdPerEndpoint(requestAutoInc);
                         r.setRandomIdPerApplication(random);
@@ -762,7 +764,7 @@ public class EndpointExecutor {
                     }
 
                     insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
-                        req, appConfig.debugAllowed(), debugRequested, 
+                        req, appConfig.debugAllowed(), debugRequested, verboseRequested, 
                         parameterTransformationLogger, autoInc, context.requestLogExpressionCaptures, 
                         errorResponse.destination, r -> {}, r -> {
                             r.setExceptionMessage(e.getMessage());

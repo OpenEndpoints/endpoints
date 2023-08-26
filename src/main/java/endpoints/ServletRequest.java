@@ -67,6 +67,7 @@ public class ServletRequest implements Request {
     @Override public @Nonnull Map<ParameterName, List<String>> getParameters() {
         return req.getParameterMap().entrySet().stream()
             .filter(e -> ! e.getKey().equalsIgnoreCase("debug"))
+            .filter(e -> ! e.getKey().equalsIgnoreCase("verbose"))
             .collect(toMap(
                 e -> new ParameterName(e.getKey()),
                 e -> List.of(e.getValue())

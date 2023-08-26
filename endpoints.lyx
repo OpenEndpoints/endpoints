@@ -303,6 +303,22 @@ debug
  parameter is passed to the request, does debugging occur.
 \end_layout
 
+\begin_layout Description
+
+\family typewriter
+verbose
+\family default
+ This requests that if there is an error (4xx or 5xx) then the above 
+\begin_inset Quotes eld
+\end_inset
+
+debug
+\begin_inset Quotes erd
+\end_inset
+
+ logic occurs, no matter if the application has debug enabled or not.
+\end_layout
+
 \begin_layout Subsection
 Debugging
 \end_layout
@@ -326,16 +342,31 @@ Debugging
 \begin_inset space ~
 \end_inset
 
-Requested It is possible to send the extra parameter 
+Requested If the request has the extra parameter 
 \family typewriter
 debug=true
 \family default
- with a request.
- 
+.
+\end_layout
+
+\begin_layout Description
+Verbose
+\begin_inset space ~
+\end_inset
+
+Requested If the request has the extra parameter 
+\family typewriter
+verbose=true
+\family default
+.
 \end_layout
 
 \begin_layout Standard
-Debugging occurs if 
+Debugging occurs if
+\end_layout
+
+\begin_layout Itemize
+
 \emph on
 both
 \emph default
@@ -343,7 +374,17 @@ both
 \emph on
 and
 \emph default
- requested.
+ requested, 
+\emph on
+or
+\end_layout
+
+\begin_layout Itemize
+verbose is requested 
+\emph on
+and 
+\emph default
+the request has an error (4xx or 5xx).
 \end_layout
 
 \begin_layout Standard
@@ -353,8 +394,8 @@ Debugging means: the input and output of the parameter transformation is
 \end_layout
 
 \begin_layout Standard
-Whether debugging is allowed or not, and whether it has been requested or
- not, are available in the input to the parameter transformation.
+Whether debugging is allowed or not, and whether it or verbose has been
+ requested or not, are available in the input to the parameter transformation.
  This may, if the parameter transformation desires it, be written into 
 \begin_inset Quotes eld
 \end_inset

@@ -339,30 +339,33 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 });
                 captures.setVisible( ! entry.expressionCaptures.isEmpty());
 
+                var debug = new WebMarkupContainer("debug");
+                debug.setVisible(rec.getRequestContentType() != null
+                    || entry.parameterTransformationInput.xmlIsAvailable || entry.parameterTransformationOutput.xmlIsAvailable);
+                debug.add(new ResourceLink<>("downloadRequestBody",
+                    new BinaryDownloadResource(id, REQUEST_LOG.REQUEST_BODY, rec.getRequestContentType(),
+                        "request-body-"+id.id()))
+                    .setVisible(rec.getRequestContentType() != null));
+                debug.add(new Label("requestContentType", rec.getRequestContentType())
+                    .setVisible(rec.getRequestContentType() != null));
+                debug.add(new WebMarkupContainer("noRequestContentType").setVisible(rec.getRequestContentType() == null));
+                debug.add(new ResourceLink<>("downloadInputXml",
+                    new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input-"+id.id()+".xml"))
+                    .add(AttributeAppender.append("class",
+                        entry.parameterTransformationInput.matchesTextFilter ? "filter-highlight" : ""))
+                    .setVisible(entry.parameterTransformationInput.xmlIsAvailable));
+                debug.add(new ResourceLink<>("downloadOutputXml",
+                    new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output-"+id.id()+".xml"))
+                    .add(AttributeAppender.append("class",
+                        entry.parameterTransformationOutput.matchesTextFilter ? "filter-highlight" : ""))
+                    .setVisible(entry.parameterTransformationOutput.xmlIsAvailable));
+
                 var details = new WebMarkupContainer("details");
                 details.add(AttributeAppender.append("style", () -> expandedRows.contains(id) ? "" : "display:none;"));
                 details.setOutputMarkupId(true);
                 details.add(new Label("dateTimeUtc", DateTimeFormatter.ofPattern("d MMMM yyyy, HH:mm:ss.SSS, 'UTC'")
                     .format(rec.getDatetime().atZone(UTC))));
-                details.add(new ResourceLink<>("downloadRequestBody",
-                    new BinaryDownloadResource(id, REQUEST_LOG.REQUEST_BODY, rec.getRequestContentType(),
-                        "request-body-"+id.id()))
-                    .setVisible(rec.getRequestContentType() != null));
-                details.add(new Label("requestContentType", rec.getRequestContentType())
-                    .setVisible(rec.getRequestContentType() != null));
-                details.add(new WebMarkupContainer("noRequestContentType").setVisible(rec.getRequestContentType() == null));
-                details.add(new ResourceLink<>("downloadInputXml",
-                    new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_INPUT, "input-"+id.id()+".xml"))
-                    .add(AttributeAppender.append("class",
-                        entry.parameterTransformationInput.matchesTextFilter ? "filter-highlight" : ""))
-                    .setVisible(entry.parameterTransformationInput.xmlIsAvailable));
-                details.add(new ResourceLink<>("downloadOutputXml",
-                    new XmlDownloadResource(id, REQUEST_LOG.PARAMETER_TRANSFORMATION_OUTPUT, "output-"+id.id()+".xml"))
-                    .add(AttributeAppender.append("class", 
-                        entry.parameterTransformationOutput.matchesTextFilter ? "filter-highlight" : ""))
-                    .setVisible(entry.parameterTransformationOutput.xmlIsAvailable));
-                details.add(new WebMarkupContainer("outputXmlNotAvailable")
-                    .setVisible( ! entry.parameterTransformationOutput.xmlIsAvailable));
+                details.add(debug);
                 for (var label : detailsHighlightLabels) details.add(label);
                 details.add(captures);
                 item.add(details);

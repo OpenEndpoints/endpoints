@@ -26,6 +26,7 @@ import java.io.InputStream;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
+import static java.lang.Boolean.parseBoolean;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 @Slf4j
@@ -138,7 +139,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
             var suppliedHash = req.getParameter("hash");
 
             new EndpointExecutor().execute(environment, applicationName, application, endpoint,
-                Boolean.parseBoolean(req.getParameter("debug")),
+                parseBoolean(req.getParameter("debug")), parseBoolean(req.getParameter("verbose")),
                 suppliedHash, request, responseContent -> responseContent.deliver(resp));
         }
         catch (InvalidRequestException e) {

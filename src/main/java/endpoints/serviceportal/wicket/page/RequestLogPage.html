@@ -216,7 +216,7 @@
                                                     </table>
                                                 </td>
                                             </tr>
-                                            <tr wicket:enclosure="downloadInputXml">
+                                            <tr wicket:id="debug">
                                                 <td>Debug:</td>
                                                 <td>
                                                     <a wicket:id="downloadRequestBody" href="#">Download Request Body</a>
@@ -224,10 +224,11 @@
                                                         <span wicket:id="requestContentType">text/html</span>)</span>
                                                     <span wicket:id="noRequestContentType">(Request body not available)</span>
                                                     <br/>
-                                                    <a wicket:id="downloadInputXml" href="#">Download Parameter Transformation Input XML</a>
-                                                    |
+                                                    <span wicket:enclosure=""> 
+                                                        <a wicket:id="downloadInputXml" href="#">Download Parameter Transformation Input XML</a>
+                                                        |
+                                                    </span>
                                                     <a wicket:id="downloadOutputXml" href="#">Download Parameter Transformation Output XML</a>
-                                                    <span wicket:id="outputXmlNotAvailable">(Parameter Transformation Output Not Available)</span>
                                                 </td>
                                             </tr>
                                         </table>
