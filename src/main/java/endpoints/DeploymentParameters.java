@@ -12,6 +12,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.cloudwatch.CloudWatchClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 
@@ -43,9 +44,9 @@ public class DeploymentParameters {
 
     /** Has trailing slash */ public final @Nonnull URL baseUrl;
     public final @Nonnull String jdbcUrl;
-    public final @CheckForNull URI awsS3EndpointOverride, awsSecretsManagerEndpointOverride;
+    public final @CheckForNull URI awsS3EndpointOverride, awsSecretsManagerEndpointOverride, awsCloudWatchEndpointOverride;
     public final @Nonnull File publishedApplicationsDirectory;
-    public final boolean checkHash, displayExpectedHash, xsltDebugLog;
+    public final boolean checkHash, displayExpectedHash, xsltDebugLog, sendAwsCloudWatchMetrics;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
     public final @CheckForNull ZoneId singleApplicationModeTimezoneId;
     
@@ -95,6 +96,21 @@ public class DeploymentParameters {
         singleApplicationModeTimezoneId = 
             getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
 
+        var metrics = getOptionalParameter("ENDPOINTS_AWS_CLOUDWATCH_METRICS");
+        if (metrics.isEmpty()) {
+            sendAwsCloudWatchMetrics = false;
+            awsCloudWatchEndpointOverride = null;
+        } else if (metrics.get().equals("true")) {
+            sendAwsCloudWatchMetrics = true;
+            awsCloudWatchEndpointOverride = null;
+        } else if (metrics.get().startsWith("http")) {
+            sendAwsCloudWatchMetrics = true;
+            awsCloudWatchEndpointOverride = URI.create(metrics.get());
+        } else {
+            throw new RuntimeException("Environment variable 'ENDPOINTS_AWS_CLOUDWATCH_METRICS' must be missing, 'true' or URL, " +
+                "but was present with value '"+metrics.get()+"'");
+        }
+
         log.info("Endpoints server application is in " + 
             (isSingleApplicationMode() 
                 ? "SINGLE APPLICATION mode" 
@@ -143,5 +159,13 @@ public class DeploymentParameters {
         builder.region(region);
         setAwsEndpointOverride(builder, awsSecretsManagerEndpointOverride);
         return builder.build();
+    }
+
+    public @CheckForNull AwsCloudWatchRequestMetricWriter getAwsCloudWatchRequestMetricWriter() {
+        if ( ! sendAwsCloudWatchMetrics) return null;
+        
+        var builder = CloudWatchClient.builder();
+        setAwsEndpointOverride(builder, awsSecretsManagerEndpointOverride);
+        return new AwsCloudWatchRequestMetricWriter(builder.build());
     }
 }

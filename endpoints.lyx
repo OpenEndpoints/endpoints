@@ -4895,6 +4895,24 @@ ENDPOINTS_XSLT_DEBUG_LOG
 \begin_layout Description
 
 \family typewriter
+ENDPOINTS_AWS_CLOUDWATCH_METRICS
+\family default
+ Optional.
+ Default false.
+ Can be 
+\begin_inset Quotes eld
+\end_inset
+
+true
+\begin_inset Quotes erd
+\end_inset
+
+ to send metrics to AWS CloudWatch.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
 JAVA_OPTIONS
 \family default
  Optional.

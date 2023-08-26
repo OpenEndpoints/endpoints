@@ -53,6 +53,7 @@ import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
@@ -667,6 +668,7 @@ public class EndpointExecutor {
             var requestId = RequestId.newRandom();
             
             var parameterTransformationLogger = new ParameterTransformationLogger();
+            var awsCloudWatchRequestMetricWriter = DeploymentParameters.get().getAwsCloudWatchRequestMetricWriter();
             
             try (var tx = new ApplicationTransaction(application);
                  var ignored2 = new Timer("<success> for application='"+applicationName.name()+"', endpoint='"+endpoint.name.name+"'")) {
@@ -719,6 +721,11 @@ public class EndpointExecutor {
                         r.setIncrementalIdPerEndpoint(requestAutoInc);
                         r.setRandomIdPerApplication(random);
                     }, r -> {});
+                
+                if (awsCloudWatchRequestMetricWriter != null)
+                    awsCloudWatchRequestMetricWriter.scheduleWriteMetric(
+                        applicationName, endpoint.name, environment, now,
+                        successResponse.destination.getStatusCode(), Duration.between(now, Instant.now()));
 
                 tx.commit();
                 responder.respond(successResponse.destination);
@@ -772,6 +779,11 @@ public class EndpointExecutor {
                             r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException h ?h.responseStatusCode : null);
                             r.setXsltParameterErrorMessage(e instanceof ParameterTransformationHadErrorException p ? p.error : null);
                         });
+
+                    if (awsCloudWatchRequestMetricWriter != null)
+                        awsCloudWatchRequestMetricWriter.scheduleWriteMetric(
+                            applicationName, endpoint.name, environment, now,
+                            errorResponse.destination.getStatusCode(), Duration.between(now, Instant.now()));
 
                     tx.commit();
                     responder.respond(errorResponse.destination);

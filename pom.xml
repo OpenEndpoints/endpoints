@@ -265,6 +265,11 @@
             <artifactId>secretsmanager</artifactId>
             <version>2.20.98</version>
         </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>cloudwatch</artifactId>
+            <version>2.20.98</version>
+        </dependency>
     </dependencies>
 
     <build>

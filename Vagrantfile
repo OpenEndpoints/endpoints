@@ -47,10 +47,12 @@ Vagrant.configure(2) do |config|
     echo 'mysql -uroot -proot example_application' >> ~vagrant/.bash_history
 
     echo --- Set DeploymentParameters
+    echo 'export AWS_REGION=us-east-1' >> /etc/environment   # for CloudWatch APIs
     echo 'export ENDPOINTS_BASE_URL=http://localhost:9758/' >> /etc/environment
     echo 'export ENDPOINTS_JDBC_URL='"'"'jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /etc/environment
     echo 'export ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE=http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/' >> /etc/environment
+    echo 'export ENDPOINTS_AWS_CLOUDWATCH_METRICS=http://cloudwatch.us-east-1.localhost.localstack.cloud:4566/' >> /etc/environment
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
     echo 'export ENDPOINTS_XSLT_DEBUG_LOG=true' >> /etc/environment
@@ -61,10 +63,12 @@ Vagrant.configure(2) do |config|
     source /etc/environment
 
     echo --- Set DeploymentParameters for Docker
+    echo 'AWS_REGION=us-east-1' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_BASE_URL=http://localhost:9758/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE=http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_AWS_CLOUDWATCH_METRICS=http://cloudwatch.us-east-1.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=Docker in Vagrant' >> /home/vagrant/docker-env
@@ -92,13 +96,20 @@ Vagrant.configure(2) do |config|
     apt-get update
     apt-get install -qy docker-ce
 
-    echo --- Install localstack, which simulates a lot of AWS services including S3
+    echo --- Install localstack, which simulates a lot of AWS services
     docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack
     cat << '    END' >> ~vagrant/.bash_aliases
        alias list-localstack-aws-s3-files="curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/ | xmllint --format -"
        alias list-localstack-aws-secrets="curl -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.ListSecrets' -d '{}' 'http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/'| jq" 
     END
     
+    echo --- Install AWS CLI client for accessing local simulation
+    apt-get install -qy python3-pip unzip
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    ./aws/install
+    pip install awscli-local
+
     echo --- Build software
     sudo -u vagrant /bin/bash -c 'source /etc/environment && mvn -f /vagrant/pom.xml clean test'
     echo 'mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true clean jetty:run' >> ~vagrant/.bash_history
@@ -176,6 +187,7 @@ Vagrant.configure(2) do |config|
     echo '  mysql -uroot -proot example_application'
     echo '  list-localstack-aws-s3-files '
     echo '  list-localstack-aws-secrets '
+    echo '  awslocal cloudwatch list-metrics '
     echo '  mvn -f /vagrant/pom.xml -DSaxon=PE -Dspotbugs.skip=true package \'
     echo '      && sudo docker build -t endpoints /vagrant \'
     echo '      && sudo docker run -i -t --env-file ~/docker-env \'
