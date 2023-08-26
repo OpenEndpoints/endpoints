@@ -48,7 +48,6 @@ public class DeploymentParameters {
     public final boolean checkHash, displayExpectedHash, xsltDebugLog;
     public final @CheckForNull String servicePortalEnvironmentDisplayName;
     public final @CheckForNull ZoneId singleApplicationModeTimezoneId;
-    public final @CheckForNull Integer requestLogExpiryDays;
     
     protected @CheckForNull ApplicationFactory applications = null;
     
@@ -95,8 +94,6 @@ public class DeploymentParameters {
             getOptionalParameter("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME").orElse(null);
         singleApplicationModeTimezoneId = 
             getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
-        requestLogExpiryDays = 
-            getOptionalParameter("ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS").map(Integer::parseInt).orElse(null);
 
         log.info("Endpoints server application is in " + 
             (isSingleApplicationMode() 

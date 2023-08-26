@@ -12,14 +12,10 @@ import static org.jooq.impl.DSL.select;
 
 @Slf4j
 public class RequestLogExpirerJob extends DailyJob {
+
+    static final int days = 32; // User can only go back 30 days, or within same month (31 days).
     
     @Override protected void performJob() {
-        var days = DeploymentParameters.get().requestLogExpiryDays;
-        if (days == null) {
-            log.info("Request log expiry env var is not set, will not expire request log");
-            return;
-        }
-        
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
             tx.jooq()
                 .deleteFrom(REQUEST_LOG_EXPRESSION_CAPTURE)

@@ -4872,32 +4872,6 @@ ENDPOINTS_XSLT_DEBUG_LOG
 \begin_layout Description
 
 \family typewriter
-ENDPOINTS_REQUEST_LOG_EXPIRY_DAYS
-\family default
- Optional.
- If this is set, then delete old 
-\begin_inset Quotes eld
-\end_inset
-
-request log
-\begin_inset Quotes erd
-\end_inset
-
- entries after this number of days.
- If not set, 
-\begin_inset Quotes eld
-\end_inset
-
-request log
-\begin_inset Quotes erd
-\end_inset
-
- entries are not deleted.
-\end_layout
-
-\begin_layout Description
-
-\family typewriter
 JAVA_OPTIONS
 \family default
  Optional.
