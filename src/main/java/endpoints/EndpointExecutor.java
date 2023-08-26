@@ -202,7 +202,7 @@ public class EndpointExecutor {
         inputParametersDocument.getDocumentElement().appendChild(inputFromApplicationElement);
         var databaseConfig = tx.db.jooq().selectFrom(APPLICATION_CONFIG)
             .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName)).fetchOne();
-        appendTextElement(inputFromApplicationElement, "application", applicationName.name);
+        appendTextElement(inputFromApplicationElement, "application", applicationName.name());
         appendTextElement(inputFromApplicationElement, "application-display-name", 
             databaseConfig == null ? null : databaseConfig.getDisplayName());
         if (debugAllowed) inputFromApplicationElement.appendChild(inputParametersDocument.createElement("debug-allowed"));
@@ -669,7 +669,7 @@ public class EndpointExecutor {
             var parameterTransformationLogger = new ParameterTransformationLogger();
             
             try (var tx = new ApplicationTransaction(application);
-                 var ignored2 = new Timer("<success> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
+                 var ignored2 = new Timer("<success> for application='"+applicationName.name()+"', endpoint='"+endpoint.name.name+"'")) {
                 
                 var threads = new ThreadPool();
                 threads.setThreadNamePrefix("<success>");
@@ -678,7 +678,7 @@ public class EndpointExecutor {
                 
                 if (appConfig.locked()) throw new InvalidRequestException("Application is locked");
 
-                try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name 
+                try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name() 
                         + "', environment '" + environment.name() + "'")) {
                     tx.db.jooq().select().from(APPLICATION_PUBLISH)
                         .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(applicationName))
@@ -725,7 +725,7 @@ public class EndpointExecutor {
             }
             catch (Exception e) {
                 try (var tx = new ApplicationTransaction(application);
-                     var ignored2 = new Timer("<error> for application='"+applicationName.name+"', endpoint='"+endpoint.name.name+"'")) {
+                     var ignored2 = new Timer("<error> for application='"+applicationName.name()+"', endpoint='"+endpoint.name.name+"'")) {
                     log.warn("Delivering error", e);
 
                     var appConfig = DeploymentParameters.get().getApplications(tx.db).fetchApplicationConfig(tx.db, applicationName);

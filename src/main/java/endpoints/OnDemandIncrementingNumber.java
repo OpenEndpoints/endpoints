@@ -66,7 +66,7 @@ public class OnDemandIncrementingNumber {
     public int getOrFetchValue(@Nonnull DbTransaction tx) {
         synchronized (tx) {
             if (value == null) {
-                try (var ignored = new Timer("Acquire lock on '" + application.name
+                try (var ignored = new Timer("Acquire lock on '" + application.name()
                         + "', environment '" + environment.name() + "'")) {
                     tx.jooq()
                         .selectFrom(APPLICATION_PUBLISH)

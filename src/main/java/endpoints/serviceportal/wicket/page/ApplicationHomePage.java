@@ -28,13 +28,13 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
 
         try (var tx = DeploymentParameters.get().newDbTransaction()) {
             var applicationName = getSession().getLoggedInApplicationDataOrThrow().application();
-            var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/");
+            var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name() + "/");
             var applicationRepo = GitApplicationRepository.fetch(tx, applicationName);
 
             app = tx.jooq().fetchSingle(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
 
             add(new ServicePortalFeedbackPanel("feedback"));
-            add(new Label("applicationName", applicationName.name));
+            add(new Label("applicationName", applicationName.name()));
             add(new Label("repository", applicationRepo.url));
             add(new Label("urlPreview", new URL(applicationUrl, "{endpoint}?environment=preview&{parameter}").toExternalForm()));
             add(new Label("urlLive", new URL(applicationUrl, "{endpoint}?{parameter}").toExternalForm()));
@@ -70,7 +70,7 @@ public class ApplicationHomePage extends AbstractLoggedInApplicationPage {
                     .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))))
                 .execute();
             
-            success("Debug entries successfully removed from all requests for application '" + applicationName.name + "'");
+            success("Debug entries successfully removed from all requests for application '" + applicationName.name() + "'");
             
             tx.commit();
         }

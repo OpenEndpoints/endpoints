@@ -23,7 +23,7 @@ import java.util.Map;
 public abstract class ApplicationFactory extends DocumentOutputDefinitionParser {
     
     public static class ApplicationNotFoundException extends Exception {
-        public ApplicationNotFoundException(ApplicationName name) { super(name.name); }
+        public ApplicationNotFoundException(ApplicationName a) { super(a.name()); }
         public ApplicationName getName() { return new ApplicationName(getMessage()); }
     }
     

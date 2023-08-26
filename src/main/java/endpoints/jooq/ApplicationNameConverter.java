@@ -17,8 +17,8 @@ public class ApplicationNameConverter implements Converter<String, ApplicationNa
     }
 
     @Override
-    public @CheckForNull String to(@CheckForNull ApplicationName x) {
-        if (x == null) return null;
-        return x.name;
+    public @CheckForNull String to(@CheckForNull ApplicationName a) {
+        if (a == null) return null;
+        return a.name();
     }
 }

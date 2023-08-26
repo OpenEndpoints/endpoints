@@ -52,7 +52,7 @@ public class PublishPage extends AbstractLoggedInApplicationPage {
             tx.commit();
         }
         catch (PublishProcess.ApplicationInvalidException e) {
-            log.warn("Publish of '" + application.name + "' on '" + environment.name() + "' failed", e);
+            log.warn("Publish of '" + application.name() + "' on '" + environment.name() + "' failed", e);
             error(e.getMessage());
         }
     }

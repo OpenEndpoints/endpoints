@@ -15,7 +15,7 @@ import static org.jooq.impl.DSL.select;
 public class AdminDeleteApplicationPage extends AbstractLoggedInAdminPage {
     
     public AdminDeleteApplicationPage(@Nonnull ApplicationConfigRecord app) {
-        add(new Label("name", app.getApplicationName().name));
+        add(new Label("name", app.getApplicationName().name()));
         add(new Label("displayName", app.getDisplayName()));
         add(new Link<>("submit") {
             @Override public void onClick() {
@@ -49,7 +49,7 @@ public class AdminDeleteApplicationPage extends AbstractLoggedInAdminPage {
                 .where(SERVICE_PORTAL_LOGIN_APPLICATION.APPLICATION_NAME.eq(name)).execute();
             tx.jooq().deleteFrom(APPLICATION_CONFIG)
                 .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(name)).execute();
-            getSession().info("Application '" + name.name + "' successfully deleted.");
+            getSession().info("Application '" + name.name() + "' successfully deleted.");
             setResponsePage(AdminApplicationListPage.class);
             tx.commit();
         }

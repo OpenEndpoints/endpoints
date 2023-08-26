@@ -68,11 +68,11 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
             } else {
                 var record = tx.jooq().fetchOne(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(application));
                 if (record == null) {
-                    getSession().error("Application '" + application.name + "' not found");
+                    getSession().error("Application '" + application.name() + "' not found");
                     throw new RestartResponseException(AdminApplicationListPage.class);
                 }
                 
-                name = record.getApplicationName().getName();
+                name = record.getApplicationName().name();
                 displayName = record.getDisplayName();
                 gitUrl = record.getGitUrl();
                 username = record.getGitUsername();
@@ -84,7 +84,7 @@ public class AdminEditApplicationPage extends AbstractLoggedInAdminPage {
                 else authType = AuthType.authPublic;
             }
             
-            add(new Label("title", application == null ? "Add Application" : "Update Application '"+application.name+"'"));
+            add(new Label("title", application == null ? "Add Application" : "Update Application '"+application.name()+"'"));
             
             var form = new Form<>("form");
             add(form);

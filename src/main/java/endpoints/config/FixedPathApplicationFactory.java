@@ -31,10 +31,10 @@ public class FixedPathApplicationFactory extends ApplicationFactory {
     }
 
     @Override public synchronized @Nonnull Application getApplication(
-        @Nonnull DbTransaction db, @Nonnull ApplicationName name, @Nonnull PublishEnvironment environment
+        @Nonnull DbTransaction db, @Nonnull ApplicationName app, @Nonnull PublishEnvironment environment
     ) throws ApplicationNotFoundException {
-        if ( ! environment.equals(PublishEnvironment.getDefault())) throw new ApplicationNotFoundException(name);
-        if ( ! "endpoints".equals(name.name)) throw new ApplicationNotFoundException(name);
+        if ( ! environment.equals(PublishEnvironment.getDefault())) throw new ApplicationNotFoundException(app);
+        if ( ! "endpoints".equals(app.name())) throw new ApplicationNotFoundException(app);
         return application;
     }
 

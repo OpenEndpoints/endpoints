@@ -124,7 +124,7 @@ public class EndpointExecutorServlet extends AbstractEndpointsServlet {
             catch (ApplicationNotFoundException e) {
                 var envLog = (environmentName == null || environmentName.equals(PublishEnvironment.getDefault().name()))
                     ? "" : " on "+environmentName+" environment";
-                resp.sendError(SC_NOT_FOUND, "Application '"+applicationName.name+"' not found"+envLog);
+                resp.sendError(SC_NOT_FOUND, "Application '"+applicationName.name()+"' not found"+envLog);
                 return;
             }
             catch (NodeNotFoundException e) { 

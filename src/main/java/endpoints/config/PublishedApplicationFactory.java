@@ -50,21 +50,21 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             .from(APPLICATION_PUBLISH).fetch();
         var repos = GitApplicationRepository.fetchAll(tx);
         for (var r : rows) {
-            var name = r.value1();
+            var app = r.value1();
             var revision = r.value3();
-            var repo = repos.get(name);
-            var directory = getApplicationDirectory(name, revision);
+            var repo = repos.get(app);
+            var directory = getApplicationDirectory(app, revision);
 
             var loadAndCacheApplication = (Runnable) () -> {
                 try {
                     var application = loadApplication(threads, revision, directory);
 
                     synchronized (PublishedApplicationFactory.this) {
-                        cache.put(new ApplicationDefn(name, r.value2()), application);
+                        cache.put(new ApplicationDefn(app, r.value2()), application);
                     }
                 }
                 catch (Exception e) {
-                    log.error("Cannot load application '"+name.name+"' (will skip)", e);
+                    log.error("Cannot load application '"+app.name()+"' (will skip)", e);
                 }
             };
 
@@ -74,7 +74,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
                     threads.addTask(loadAndCacheApplication);      // Only load the application if the checkout was successful
                 }
                 catch (Exception e) {
-                    log.error("Cannot checkout application '"+name.name+"' from Git (will skip)", e);
+                    log.error("Cannot checkout application '"+app.name()+"' from Git (will skip)", e);
                 }
             });
         }
@@ -94,7 +94,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
     }
 
     public @Nonnull File getApplicationDirectory(@Nonnull ApplicationName a, @Nonnull GitRevision r) {
-        return new File(applicationCheckoutContainerDir, a.name + "-" + r.sha256Hex());
+        return new File(applicationCheckoutContainerDir, a.name() + "-" + r.sha256Hex());
     }
 
     /** This fetches previously published applications, therefore they are assumed to be valid */
@@ -115,7 +115,7 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             repo.checkoutAtomicallyIfNecessary(revision, directory);
 
             // Load the application and put into our cache
-            log.info("Application '" + name.name + "' has changed or was never loaded: will reload...");
+            log.info("Application '" + name.name() + "' has changed or was never loaded: will reload...");
             var threads = new XsltCompilationThreads();
             cachedApp = loadApplication(threads, revision, directory);
             cache.put(new ApplicationDefn(name, environment), cachedApp);
@@ -137,5 +137,4 @@ public class PublishedApplicationFactory extends ApplicationFactory {
             .fetchSingle();
         return new ApplicationConfig(appConfig.value1(), appConfig.value2());
     }
-
 }

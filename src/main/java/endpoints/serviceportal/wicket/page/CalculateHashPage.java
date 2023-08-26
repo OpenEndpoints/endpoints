@@ -98,7 +98,7 @@ public class CalculateHashPage extends AbstractLoggedInApplicationPage {
             for (var e : parameters.entrySet()) urlGetParams.put(e.getKey().getName(), e.getValue());
             urlGetParams.put("hash", generatedHash);
             if (environment != PublishEnvironment.getDefault()) urlGetParams.put("environment", environment.name());
-            var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name + "/" + endpoint.name);
+            var applicationUrl = new URL(getBaseUrl(), "/" + applicationName.name() + "/" + endpoint.name);
             generatedUrl = applicationUrl + "?" + WebEncodingUtils.encodeGetParameters(urlGetParams);
         }
         catch (ApplicationNotFoundException e) { error("Select a valid environment"); }

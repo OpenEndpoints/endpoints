@@ -34,10 +34,10 @@ public class AdminApplicationListPage extends AbstractLoggedInAdminPage {
             add(new ListView<>("application", applications) {
                 @Override protected void populateItem(ListItem<ApplicationConfigRecord> item) {
                     var record = item.getModelObject();
-                    item.add(new Label("name", record.getApplicationName().name));
+                    item.add(new Label("name", record.getApplicationName().name()));
                     item.add(new Label("displayName", record.getDisplayName()));
                     item.add(new BookmarkablePageLink<>("edit", AdminEditApplicationPage.class, 
-                        new PageParameters().set("app", record.getApplicationName().name)));
+                        new PageParameters().set("app", record.getApplicationName().name())));
                     item.add(new Link<>("delete") {
                         @Override public void onClick() {
                             setResponsePage(new AdminDeleteApplicationPage(record));

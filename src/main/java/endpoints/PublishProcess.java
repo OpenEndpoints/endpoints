@@ -51,7 +51,7 @@ public class PublishProcess {
 
     public @Nonnull GitRevision publish(@Nonnull DbTransaction tx, @Nonnull PublishLogger log) throws ApplicationInvalidException {
         File directory = null;
-        try (var ignored = new Timer("publish '"+applicationName.name+"'")) {
+        try (var ignored = new Timer("publish '"+applicationName.name()+"'")) {
             // Otherwise acquiring lock of application leads to: ERROR: could not serialize access due to concurrent update
             tx.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
 
@@ -60,7 +60,7 @@ public class PublishProcess {
             log.println(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss Z").format(Instant.now().atZone(ZoneId.systemDefault())));
 
             String envLog = environment != PublishEnvironment.getDefault() ? " to "+environment.name()+" environment" : "";
-            log.println("Starting publish of application '"+applicationName.name+"'"+envLog+"...");
+            log.println("Starting publish of application '"+applicationName.name()+"'"+envLog+"...");
             var applications = (PublishedApplicationFactory) DeploymentParameters.get().getApplications(tx);
 
             log.println("Determining latest revision in repository...");
