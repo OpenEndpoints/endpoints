@@ -19,9 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AwsCloudWatchRequestMetricWriter {
 
-    protected static final String metricNamepace = "Endpoints";
-    protected static final String metricName = "RequestDuration";
-    
     protected final CloudWatchClient client;
     
     public void scheduleWriteMetric(
@@ -31,11 +28,12 @@ public class AwsCloudWatchRequestMetricWriter {
         new Thread(() -> {
             try (var ignored = new Timer("AwsCloudWatchRequestMetricWriter")) {
                 MetricDatum datum = MetricDatum.builder()
-                    .metricName(metricName)
+                    .metricName("RequestDuration")
                     .dimensions(
-                        Dimension.builder().name("application").value(application.name()).build(),
-                        Dimension.builder().name("endpoint").value(endpoint.getName()).build(),
-                        Dimension.builder().name("environment").value(environment.name()).build()
+                        Dimension.builder().name("Application").value(application.name()).build(),
+                        Dimension.builder().name("Endpoint").value(endpoint.getName()).build(),
+                        Dimension.builder().name("Environment").value(environment.name()).build(),
+                        Dimension.builder().name("StatusCode").value(String.valueOf(statusCode)).build()
                     )
                     .unit(StandardUnit.MILLISECONDS)
                     .value((double) duration.toMillis())
@@ -43,7 +41,7 @@ public class AwsCloudWatchRequestMetricWriter {
                     .build();
     
                 PutMetricDataRequest request = PutMetricDataRequest.builder()
-                    .namespace(metricNamepace)
+                    .namespace("Endpoints")
                     .metricData(List.of(datum))
                     .build();
     
