@@ -46,8 +46,8 @@ public class DeploymentParameters {
     public final @Nonnull String jdbcUrl;
     public final @CheckForNull URI awsS3EndpointOverride, awsSecretsManagerEndpointOverride, awsCloudWatchEndpointOverride;
     public final @Nonnull File publishedApplicationsDirectory;
-    public final boolean checkHash, displayExpectedHash, xsltDebugLog, sendAwsCloudWatchMetrics;
-    public final @CheckForNull String servicePortalEnvironmentDisplayName;
+    public final boolean checkHash, displayExpectedHash, xsltDebugLog;
+    public final @CheckForNull String servicePortalEnvironmentDisplayName, cloudWatchMetricsInstance;
     public final @CheckForNull ZoneId singleApplicationModeTimezoneId;
     
     protected @CheckForNull ApplicationFactory applications = null;
@@ -83,6 +83,8 @@ public class DeploymentParameters {
             .map(x -> URI.create(x)).orElse(null);
         awsSecretsManagerEndpointOverride = getOptionalParameter("ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE")
             .map(x -> URI.create(x)).orElse(null);
+        awsCloudWatchEndpointOverride = getOptionalParameter("ENDPOINTS_AWS_CLOUDWATCH_ENDPOINT_OVERRIDE")
+            .map(x -> URI.create(x)).orElse(null);
         publishedApplicationsDirectory = 
             getOptionalParameter("ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY").map(s -> new File(s)).orElse(new File("/tmp"));
         checkHash =
@@ -93,23 +95,10 @@ public class DeploymentParameters {
             Boolean.parseBoolean(getOptionalParameter("ENDPOINTS_XSLT_DEBUG_LOG").orElse("false"));
         servicePortalEnvironmentDisplayName =
             getOptionalParameter("ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME").orElse(null);
+        cloudWatchMetricsInstance =
+            getOptionalParameter("ENDPOINTS_AWS_CLOUDWATCH_METRICS_INSTANCE").orElse(null);
         singleApplicationModeTimezoneId = 
             getOptionalParameter("ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID").map(s -> ZoneId.of(s)).orElse(null);
-
-        var metrics = getOptionalParameter("ENDPOINTS_AWS_CLOUDWATCH_METRICS");
-        if (metrics.isEmpty()) {
-            sendAwsCloudWatchMetrics = false;
-            awsCloudWatchEndpointOverride = null;
-        } else if (metrics.get().equals("true")) {
-            sendAwsCloudWatchMetrics = true;
-            awsCloudWatchEndpointOverride = null;
-        } else if (metrics.get().startsWith("http")) {
-            sendAwsCloudWatchMetrics = true;
-            awsCloudWatchEndpointOverride = URI.create(metrics.get());
-        } else {
-            throw new RuntimeException("Environment variable 'ENDPOINTS_AWS_CLOUDWATCH_METRICS' must be missing, 'true' or URL, " +
-                "but was present with value '"+metrics.get()+"'");
-        }
 
         log.info("Endpoints server application is in " + 
             (isSingleApplicationMode() 
@@ -162,10 +151,10 @@ public class DeploymentParameters {
     }
 
     public @CheckForNull AwsCloudWatchRequestMetricWriter getAwsCloudWatchRequestMetricWriter() {
-        if ( ! sendAwsCloudWatchMetrics) return null;
+        if (cloudWatchMetricsInstance == null) return null;
         
         var builder = CloudWatchClient.builder();
         setAwsEndpointOverride(builder, awsSecretsManagerEndpointOverride);
-        return new AwsCloudWatchRequestMetricWriter(builder.build());
+        return new AwsCloudWatchRequestMetricWriter(builder.build(), cloudWatchMetricsInstance);
     }
 }

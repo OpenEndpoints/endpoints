@@ -4895,21 +4895,27 @@ ENDPOINTS_XSLT_DEBUG_LOG
 \begin_layout Description
 
 \family typewriter
-ENDPOINTS_AWS_CLOUDWATCH_METRICS
+ENDPOINTS_AWS_CLOUDWATCH_METRICS_INSTANCE
 \family default
  Optional.
- Default false.
- Can be 
-\begin_inset Quotes eld
-\end_inset
-
-true
-\begin_inset Quotes erd
-\end_inset
-
- to send metrics to AWS CloudWatch.
+ If set, CloudWatch metrics are sent, and the 
+\family typewriter
+Instance
+\family default
+ dimension of those metrics are this value.
+ For example, if there are multiple Endpoints installations within the same
+ AWS account, setting this environment variable to different values for
+ each of them allows the metrics to be differentiated.
 \end_layout
 
+\begin_deeper
+\begin_layout Standard
+If this environment variable is not set, not CloudWatch metrics are sent,
+ for example the application is deployed to somewhere other than AWS so
+ no CloudWatch is available.
+\end_layout
+
+\end_deeper
 \begin_layout Description
 
 \family typewriter
@@ -4982,15 +4988,25 @@ https://www.databasesandlife.com/java-docker-aws-ecs-multicore/
 ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE
 \family default
  Optional.
- If present it uses a different URL for AWS S3 access.
+ If not set, AWS S3 within the AWS account Endpoints software has been deployed
+ to is used.
+ If the environment variable is present, the software uses that URL for
+ AWS S3 access instead.
  This is useful in test environments with a simulated local S3.
- It is not intended to be used when deploying the application for real.
 \end_layout
 
 \begin_layout Description
 
 \family typewriter
 ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE
+\family default
+ Analagous to S3 override.
+\end_layout
+
+\begin_layout Description
+
+\family typewriter
+ENDPOINTS_AWS_CLOUDWATCH_ENDPOINT_OVERRIDE
 \family default
  Analagous to S3 override.
 \end_layout

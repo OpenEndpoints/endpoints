@@ -19,7 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AwsCloudWatchRequestMetricWriter {
 
-    protected final CloudWatchClient client;
+    protected final @Nonnull CloudWatchClient client;
+    protected final @Nonnull String instance;
     
     public void scheduleWriteMetric(
         @Nonnull ApplicationName application, @Nonnull NodeName endpoint, @Nonnull PublishEnvironment environment,
@@ -30,6 +31,7 @@ public class AwsCloudWatchRequestMetricWriter {
                 MetricDatum datum = MetricDatum.builder()
                     .metricName("RequestDuration")
                     .dimensions(
+                        Dimension.builder().name("Instance").value(instance).build(),
                         Dimension.builder().name("Application").value(application.name()).build(),
                         Dimension.builder().name("Endpoint").value(endpoint.getName()).build(),
                         Dimension.builder().name("Environment").value(environment.name()).build(),

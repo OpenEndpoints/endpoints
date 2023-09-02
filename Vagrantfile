@@ -52,11 +52,12 @@ Vagrant.configure(2) do |config|
     echo 'export ENDPOINTS_JDBC_URL='"'"'jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /etc/environment
     echo 'export ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE=http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/' >> /etc/environment
-    echo 'export ENDPOINTS_AWS_CLOUDWATCH_METRICS=http://cloudwatch.us-east-1.localhost.localstack.cloud:4566/' >> /etc/environment
+    echo 'export ENDPOINTS_AWS_CLOUDWATCH_ENDPOINT_OVERRIDE=http://cloudwatch.us-east-1.localhost.localstack.cloud:4566/' >> /etc/environment
     echo 'export ENDPOINTS_PUBLISHED_APPLICATION_DIRECTORY=/var/endpoints/applications-checkout' >> /etc/environment
     echo 'export ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /etc/environment
     echo 'export ENDPOINTS_XSLT_DEBUG_LOG=true' >> /etc/environment
     echo 'export ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=Vagrant' >> /etc/environment
+    echo 'export ENDPOINTS_AWS_CLOUDWATCH_METRICS_INSTANCE=Vagrant' >> /etc/environment
     echo 'export ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID=UTC' >> /etc/environment
     echo 'export EXAMPLE_APPLICATION_POSTGRESQL_JDBC='"'"'jdbc:postgresql://localhost/example_application?user=postgres&password=postgres'"'" >> /etc/environment
     echo 'export EXAMPLE_APPLICATION_MYSQL_JDBC='"'"'jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8'"'" >> /etc/environment
@@ -68,10 +69,11 @@ Vagrant.configure(2) do |config|
     echo 'ENDPOINTS_JDBC_URL=jdbc:postgresql://localhost/endpoints?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_AWS_S3_ENDPOINT_OVERRIDE=http://s3.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_AWS_SECRETS_MANAGER_ENDPOINT_OVERRIDE=http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
-    echo 'ENDPOINTS_AWS_CLOUDWATCH_METRICS=http://cloudwatch.us-east-1.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_AWS_CLOUDWATCH_ENDPOINT_OVERRIDE=http://cloudwatch.us-east-1.localhost.localstack.cloud:4566/' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_DISPLAY_EXPECTED_HASH=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_XSLT_DEBUG_LOG=true' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SERVICE_PORTAL_ENVIRONMENT_DISPLAY_NAME=Docker in Vagrant' >> /home/vagrant/docker-env
+    echo 'ENDPOINTS_AWS_CLOUDWATCH_METRICS_INSTANCE=Docker in Vagrant' >> /home/vagrant/docker-env
     echo 'ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID=UTC' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_POSTGRESQL_JDBC=jdbc:postgresql://localhost/example_application?user=postgres&password=postgres' >> /home/vagrant/docker-env
     echo 'EXAMPLE_APPLICATION_MYSQL_JDBC=jdbc:mysql://localhost/example_application?user=root&password=root&useUnicode=true&characterEncoding=UTF-8' >> /home/vagrant/docker-env
