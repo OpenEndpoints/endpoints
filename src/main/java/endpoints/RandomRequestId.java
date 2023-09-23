@@ -1,10 +1,8 @@
 package endpoints;
 
-import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.config.ApplicationName;
 
 import javax.annotation.Nonnull;
-
 import java.io.Serializable;
 
 import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
@@ -15,18 +13,17 @@ public record RandomRequestId(
     long id
 ) implements Serializable {
 
-    /**
-     * Note: Assumes application is "locked" i.e. only one instance of this code is running at once
-     */
     public static @Nonnull RandomRequestId generate(
-        @Nonnull DbTransaction tx,
+        @Nonnull ApplicationTransaction tx,
         @Nonnull ApplicationName applicationName, @Nonnull PublishEnvironment environment
     ) {
+        tx.acquireLock(environment, applicationName);
+        
         for (int attempt = 0; attempt < 100; attempt++) {
             // 10 digits, starting with a non-zero, so it is always 10 characters long
             var candidate = new RandomRequestId(Long.parseLong(random(1, "123456789") + randomNumeric(9)));
 
-            var existingCount = tx.jooq()
+            var existingCount = tx.db.jooq()
                 .selectCount()
                 .from(REQUEST_LOG_IDS)
                 .where(REQUEST_LOG_IDS.APPLICATION.eq(applicationName))

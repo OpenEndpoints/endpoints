@@ -1,13 +1,17 @@
 package endpoints;
 
 import com.databasesandlife.util.EmailTransaction;
+import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.config.Application;
+import endpoints.config.ApplicationName;
 import endpoints.config.IntermediateValueName;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+
+import static endpoints.generated.jooq.Tables.APPLICATION_PUBLISH;
 
 /**
  * Represents a unit of work a user wishes to perform.
@@ -34,6 +38,23 @@ public class ApplicationTransaction implements AutoCloseable {
     
     public ApplicationTransaction(@Nonnull Application a) {
         this.application = a;
+
+        // This is necessary so that "SELECT FOR UPDATE" can be used, 
+        // and that committed values from other transactions can be read after the lock is acquired.
+        // (With REPEATABLE READ, even after SELECT FOR UPDATE acquires the lock, values from the start of the tx are read.)
+        db.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED");
+    }
+
+    public void acquireLock(
+        @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName
+    ) {
+        try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name()
+            + "', environment '" + environment.name() + "'")) {
+            db.jooq().select().from(APPLICATION_PUBLISH)
+                .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(applicationName))
+                .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
+                .forUpdate().fetchSingle();
+        }
     }
 
     @SuppressWarnings("unused") // Used to be used when tasks could specify arbitrary DB connections, maybe useful in the future?

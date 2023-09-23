@@ -54,7 +54,7 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
 
                 var e = result.createElement("on-demand-incrementing-number");
                 e.setAttribute("type", type.name());
-                e.setTextContent(Integer.toString(context.autoInc.get(type).getOrFetchValue(context.tx.db)));
+                e.setTextContent(Integer.toString(context.autoInc.get(type).getOrFetchValue(context.tx)));
 
                 return new Element[] { e };
             }

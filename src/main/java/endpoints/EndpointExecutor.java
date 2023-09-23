@@ -129,13 +129,15 @@ public class EndpointExecutor {
     }
 
     /**
-     * Note: Assumes application is "locked" i.e. only one instance of this process is running on this application.
+     * Returns the next number, or 1 if this is the first request.
      */
     protected long getNextAutoIncrement(
-        @Nonnull DbTransaction tx,
+        @Nonnull ApplicationTransaction tx,
         @Nonnull ApplicationName application, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpoint
     ) {
-        var max = tx.jooq()
+        tx.acquireLock(environment, application);
+        
+        var max = tx.db.jooq()
             .select(max(REQUEST_LOG_IDS.INCREMENTAL_ID_PER_ENDPOINT))
             .from(REQUEST_LOG_IDS)
             .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
@@ -680,18 +682,10 @@ public class EndpointExecutor {
                 
                 if (appConfig.locked()) throw new InvalidRequestException("Application is locked");
 
-                try (var ignored3 = new Timer("Acquire lock on '" + applicationName.name() 
-                        + "', environment '" + environment.name() + "'")) {
-                    tx.db.jooq().select().from(APPLICATION_PUBLISH)
-                        .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(applicationName))
-                        .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
-                        .forUpdate().execute();
-                }
-
-                var requestAutoInc = getNextAutoIncrement(tx.db, applicationName, environment, endpoint.name);
+                var requestAutoInc = getNextAutoIncrement(tx, applicationName, environment, endpoint.name);
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var requestLogExpressionCaptures = new HashMap<String, String>();
-                var random = RandomRequestId.generate(tx.db, applicationName, environment);
+                var random = RandomRequestId.generate(tx, applicationName, environment);
 
                 var successResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                     public BufferedHttpResponseDocumentGenerationDestination destination;

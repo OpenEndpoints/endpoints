@@ -1,7 +1,6 @@
 package endpoints;
 
 import com.databasesandlife.util.Timer;
-import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.config.ApplicationName;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
@@ -9,7 +8,10 @@ import org.jooq.Field;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.time.*;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Map;
@@ -63,12 +65,14 @@ public class OnDemandIncrementingNumber {
     public @CheckForNull Integer getValueOrNull() { return value; }
     
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter") 
-    public int getOrFetchValue(@Nonnull DbTransaction tx) {
+    public int getOrFetchValue(@Nonnull ApplicationTransaction tx) {
         synchronized (tx) {
+            tx.acquireLock(environment, application);
+            
             if (value == null) {
                 try (var ignored = new Timer("Acquire lock on '" + application.name()
                         + "', environment '" + environment.name() + "'")) {
-                    tx.jooq()
+                    tx.db.jooq()
                         .selectFrom(APPLICATION_PUBLISH)
                         .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(application))
                         .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
@@ -76,7 +80,7 @@ public class OnDemandIncrementingNumber {
                         .execute();
                 }
 
-                var timezone = tx.jooq()
+                var timezone = tx.db.jooq()
                     .select(APPLICATION_CONFIG.TIMEZONE)
                     .from(APPLICATION_CONFIG)
                     .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(application))
@@ -84,7 +88,7 @@ public class OnDemandIncrementingNumber {
                 if (timezone == null) throw new RuntimeException("Unreachable: " +
                     "Neither 'application_config' row is present, nor is environment variable set");
 
-                var max = tx.jooq()
+                var max = tx.db.jooq()
                     .select(max(type.getRequestLogIdsField()))
                     .from(REQUEST_LOG_IDS)
                     .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))

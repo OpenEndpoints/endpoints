@@ -2,9 +2,9 @@ package endpoints;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
+import endpoints.config.Application;
 import endpoints.config.ApplicationName;
 import endpoints.config.NodeName;
-import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
 import endpoints.generated.jooq.tables.records.RequestLogIdsRecord;
 import endpoints.generated.jooq.tables.records.RequestLogRecord;
 import junit.framework.TestCase;
@@ -17,6 +17,7 @@ import java.time.ZoneOffset;
 
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.perpetual;
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.year;
+import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static java.time.temporal.ChronoUnit.HOURS;
 
 public class OnDemandIncrementingNumberTest extends TestCase {
@@ -41,9 +42,10 @@ public class OnDemandIncrementingNumberTest extends TestCase {
     }
     
     protected void performTest(
-        int expectedValue, @Nonnull DbTransaction tx, @Nonnull ApplicationConfigRecord app,
+        int expectedValue, @Nonnull ApplicationTransaction tx, @Nonnull ApplicationName applicationName,
         @Nonnull OnDemandIncrementingNumberType type, @Nonnull Instant now, @Nonnull String timezone
     ) {
+        var app = tx.db.jooq().fetchSingle(APPLICATION_CONFIG, APPLICATION_CONFIG.APPLICATION_NAME.eq(applicationName));
         app.setTimezone(ZoneId.of(timezone));
         app.update();
         
@@ -54,7 +56,8 @@ public class OnDemandIncrementingNumberTest extends TestCase {
     public void testGetOrFetchValue() {
         var app = ApplicationName.newRandomForTesting();
 
-        try (var tx = DeploymentParameters.get().newDbTransaction()) {
+        try (var tx = new ApplicationTransaction(Application.newForTesting())) {
+            app.insertToDbForTesting(tx.db, PublishEnvironment.live);
 
             // Request logged at:                     One hour later (now) is:
             // 2018-12-31 23:30:00 CET                2019-01-01 00:30:00 CET                
@@ -62,18 +65,12 @@ public class OnDemandIncrementingNumberTest extends TestCase {
             var requestLog = LocalDateTime.of(2018, 12, 31, 22, 30).atOffset(ZoneOffset.UTC).toInstant();
             var oneHourLaterNow = requestLog.plus(1, HOURS);
             
-            var appRow = new ApplicationConfigRecord();
-            appRow.setApplicationName(app);
-            appRow.setDisplayName("unit test");
-            appRow.setGitUrl("TEST");
-            tx.insert(appRow);
-            
-            performTest(1, tx, appRow, perpetual, oneHourLaterNow, "UTC");
-            insertRequestLog(tx, app, requestLog);
-            performTest(2, tx, appRow, perpetual, oneHourLaterNow, "CET");
+            performTest(1, tx, app, perpetual, oneHourLaterNow, "UTC");
+            insertRequestLog(tx.db, app, requestLog);
+            performTest(2, tx, app, perpetual, oneHourLaterNow, "CET");
 
-            performTest(11, tx, appRow, year, oneHourLaterNow, "UTC");
-            performTest(1, tx, appRow, year, oneHourLaterNow, "CET");
+            performTest(11, tx, app, year, oneHourLaterNow, "UTC");
+            performTest(1, tx, app, year, oneHourLaterNow, "CET");
         }
     }
 }
