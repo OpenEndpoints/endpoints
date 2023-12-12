@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.net.MediaType;
 import com.offerready.xslt.DocumentGenerator.StyleVisionXslt;
+import com.offerready.xslt.JsonXmlConverter;
 import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
@@ -477,7 +478,7 @@ public class HttpRequestSpecification {
                 }
                 else if (urlConnection.getContentType().toLowerCase().contains("json")) {
                     try {
-                        var xmlFromJson = new JsonToXmlConverter().convert(
+                        var xmlFromJson = new JsonXmlConverter().convertJsonToXml(
                             urlConnection.getContentType(), urlConnection.getInputStream(), "response");
                         after.accept(xmlFromJson);
                     }

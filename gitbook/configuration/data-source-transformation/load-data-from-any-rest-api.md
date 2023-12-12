@@ -4,7 +4,10 @@ You can fetch content from any REST API and use it as a data-source in \<Onestop
 
 The data-source command to fetch xml or json data from any URL is `<xml-from-url>`. JSON or HTML returned to this command will automatically converted into XML.
 
-For JSON to XML conversion, any characters which would be illegal in XML (for example element name starting with a digit) replaced by `_xxxx_` containing their hex unicode character code.
+For JSON to XML conversion:
+
+* Any characters which would be illegal in XML (for example element name starting with a digit) replaced by `_xxxx_` containing their hex unicode character code.
+* Note that if any JSON objects have a key `_content`, then a single XML element is created, with the value of that `_content` key as the text body, and other keys from the JSON object being attributes on the resulting XML element.
 
 ## Basic Syntax
 

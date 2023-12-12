@@ -20,7 +20,9 @@ The following methods are available to transfer data with the request:
 * GET Request with parameters URL-encoded
 * POST Request containing parameters. This is the default when an HTML \<form> is used. The default content type is `application/x-www-form-urlencoded`. Use `multipart/form-data` to add any number of file uploads.
 * POST Request with application type `application/xml`: In this case arbitrary XML is supplied (in the request body), which is passed to the parameter-transformation-input structure, inside the `<input-from-request>` element instead of the normal `<parameter>` elements.
-* POST Request with application type `application/json`: In this case arbitrary JSON is supplied (in the request body), which is converted to XML and passed to the parameter-transformation-input structure, inside the `<input-from-request>` element instead of the normal `<parameter>` elements. Any characters which would be illegal in XML (for example element name starting with a digit) replaced by `_xxxx_` containing their hex unicode character code.
+* POST Request with application type `application/json`: In this case arbitrary JSON is supplied (in the request body), which is converted to XML and passed to the parameter-transformation-input structure, inside the `<input-from-request>` element instead of the normal `<parameter>` elements. Note:
+  * Any characters which would be illegal in XML (for example element name starting with a digit) replaced by `_xxxx_` containing their hex unicode character code.
+  * Note that if any JSON objects have a key `_content`, then a single XML element is created, with the value of that `_content` key as the text body, and other keys from the JSON object being attributes on the resulting XML element.
 
 ## Special Parameters
 

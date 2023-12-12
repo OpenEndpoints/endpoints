@@ -237,14 +237,34 @@ application/json
 \family typewriter
 <parameter>
 \family default
- elements, with any characters which would be illegal in XML (for example
- element name starting with a digit) replaced by 
+ elements.
+\end_layout
+
+\begin_deeper
+\begin_layout Standard
+Any characters which would be illegal in XML (for example element name starting
+ with a digit) are replaced by 
 \family typewriter
 _xxxx_
 \family default
  containing their hex unicode character code.
 \end_layout
 
+\begin_layout Standard
+Note that if any JSON objects have a key 
+\family typewriter
+_content
+\family default
+, then a single XML element is created, with the value of that 
+\family typewriter
+_content
+\family default
+ key as the text body, and other keys from the JSON object being attributes
+ on the resulting XML element.
+ 
+\end_layout
+
+\end_deeper
 \begin_layout Standard
 There are the following special parameters.
  They are supplied along with the normal parameters, apart from in the case
@@ -3016,12 +3036,15 @@ If XML is received then that XML is the result of this data source.
 \family typewriter
 <response>
 \family default
-, with any characters which would be illegal in XML (for example element
- name starting with a digit) replaced by 
-\family typewriter
-_xxxx_
-\family default
- containing their hex unicode character code.
+; see the 
+\begin_inset Quotes eld
+\end_inset
+
+Usage
+\begin_inset Quotes erd
+\end_inset
+
+ section in this document for more information on XML-to-JSON conversion.
  If HTML is received then it is converted to XML.
  If no content is received then 
 \family typewriter

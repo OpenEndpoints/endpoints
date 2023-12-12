@@ -6,6 +6,7 @@ import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.databasesandlife.util.jdbc.DbTransaction;
+import com.offerready.xslt.JsonXmlConverter;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.destination.BufferedHttpResponseDocumentGenerationDestination;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -283,7 +284,7 @@ public class EndpointExecutor {
     protected @Nonnull Node[] convertJsonToXml(@Nonnull String contentType, @Nonnull InputStream jsonInputStream) 
     throws InvalidRequestException {
         try {
-            var rootNode = new JsonToXmlConverter().convert(contentType, jsonInputStream, "json-request");
+            var rootNode = new JsonXmlConverter().convertJsonToXml(contentType, jsonInputStream, "json-request");
             var nodeList = rootNode.getChildNodes();
             
             var result = new Node[nodeList.getLength()];

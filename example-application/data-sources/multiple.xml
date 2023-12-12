@@ -17,6 +17,9 @@
     <post-process xslt="values.xslt"/>
     <post-process xslt="values.xslt"/>
     <post-process xslt="values.xslt"/>
+    <content>
+      This is a test of content
+    </content>
   </literal-xml>
   <md5 id="i-am-an-md5" message-string="foo">
     <post-process xslt="values.xslt"/>
