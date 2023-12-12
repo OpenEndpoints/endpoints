@@ -8,14 +8,11 @@ import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import static com.databasesandlife.util.DomParser.assertNoOtherElements;
-import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static com.databasesandlife.util.DomParser.getOptionalAttribute;
+import static com.databasesandlife.util.DomParser.*;
 
 public class StaticResponseConfiguration extends ResponseConfiguration {
 

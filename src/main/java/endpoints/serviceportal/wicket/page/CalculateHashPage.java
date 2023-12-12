@@ -10,11 +10,11 @@ import endpoints.config.ApplicationFactory.ApplicationNotFoundException;
 import endpoints.config.EndpointHierarchyNode.NodeNotFoundException;
 import endpoints.config.NodeName;
 import endpoints.config.ParameterName;
+import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.model.EndpointNamesModel;
 import endpoints.serviceportal.wicket.model.ParametersModel;
-import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
-import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.panel.NavigationPanel.NavigationItem;
+import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -29,7 +29,8 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import static java.util.Arrays.asList;
 

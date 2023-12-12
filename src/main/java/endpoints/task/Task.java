@@ -5,8 +5,8 @@ import com.databasesandlife.util.Timer;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
-import endpoints.condition.Condition;
 import endpoints.TransformationContext;
+import endpoints.condition.Condition;
 import endpoints.config.EmailSendingConfigurationFactory;
 import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
@@ -16,7 +16,10 @@ import org.w3c.dom.Element;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static com.databasesandlife.util.DomParser.getOptionalAttribute;
 

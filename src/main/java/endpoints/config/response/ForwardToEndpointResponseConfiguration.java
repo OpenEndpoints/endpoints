@@ -14,9 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import static com.databasesandlife.util.DomParser.assertNoOtherElements;
-import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static com.databasesandlife.util.DomParser.getSubElements;
+import static com.databasesandlife.util.DomParser.*;
 
 /** Execute another endpoint and return its result */
 public class ForwardToEndpointResponseConfiguration extends ResponseConfiguration {

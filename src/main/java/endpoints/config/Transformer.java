@@ -2,8 +2,11 @@ package endpoints.config;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.*;
+import com.offerready.xslt.DocumentGenerator;
+import com.offerready.xslt.DocumentOutputDefinition;
+import com.offerready.xslt.WeaklyCachedXsltTransformer;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
+import com.offerready.xslt.XsltParameters;
 import com.offerready.xslt.destination.BufferedDocumentGenerationDestination;
 import endpoints.TransformationContext;
 import endpoints.datasource.DataSource;

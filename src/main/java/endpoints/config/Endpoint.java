@@ -6,7 +6,9 @@ import endpoints.task.Task;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 // Endpoint is not serializable on purpose; because it references compiled XSLT templates
 // If you need to serialize an Endpoint, reference a NodeName instead and find it from the application when needed

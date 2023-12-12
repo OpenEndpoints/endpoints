@@ -13,9 +13,7 @@ import javax.annotation.Nonnull;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
-import static endpoints.generated.jooq.Tables.REQUEST_LOG;
-import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
+import static endpoints.generated.jooq.Tables.*;
 import static org.jooq.impl.DSL.select;
 
 public class ApplicationHomePage extends AbstractLoggedInApplicationPage {

@@ -66,7 +66,8 @@ import static com.databasesandlife.util.gwtsafe.ConfigurationException.prefixExc
 import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType.*;
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
-import static endpoints.generated.jooq.Tables.*;
+import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
+import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;

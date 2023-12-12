@@ -1,7 +1,6 @@
 package endpoints.condition;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import endpoints.condition.Condition;
 import junit.framework.TestCase;
 
 import java.util.Map;

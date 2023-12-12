@@ -12,9 +12,7 @@ import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Set;
 
-import static com.databasesandlife.util.DomParser.assertNoOtherElements;
-import static com.databasesandlife.util.DomParser.getMandatoryAttribute;
-import static com.databasesandlife.util.DomParser.getOptionalAttribute;
+import static com.databasesandlife.util.DomParser.*;
 
 public class TransformationResponseConfiguration extends ResponseConfiguration {
     

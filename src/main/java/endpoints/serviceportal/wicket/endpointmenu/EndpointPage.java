@@ -14,7 +14,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.LambdaModel;
 
 import javax.annotation.Nonnull;
-
 import java.util.Arrays;
 
 public abstract class EndpointPage extends AbstractLoggedInApplicationPage {

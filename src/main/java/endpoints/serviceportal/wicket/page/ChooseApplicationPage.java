@@ -3,9 +3,9 @@ package endpoints.serviceportal.wicket.page;
 import com.databasesandlife.util.wicket.LambdaDisplayValueChoiceRenderer;
 import endpoints.DeploymentParameters;
 import endpoints.generated.jooq.tables.records.ApplicationConfigRecord;
+import endpoints.serviceportal.wicket.ServicePortalSession;
 import endpoints.serviceportal.wicket.ServicePortalSession.LoggedInApplicationData;
 import endpoints.serviceportal.wicket.panel.ServicePortalFeedbackPanel;
-import endpoints.serviceportal.wicket.ServicePortalSession;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.wicket.RestartResponseException;
@@ -15,7 +15,7 @@ import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.request.cycle.RequestCycle;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.List;
 
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
 import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN_APPLICATION;

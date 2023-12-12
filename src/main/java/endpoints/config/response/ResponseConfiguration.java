@@ -3,9 +3,9 @@ package endpoints.config.response;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.DocumentTemplateInvalidException;
 import endpoints.LazyCachingValue;
+import endpoints.condition.Condition;
 import endpoints.config.EndpointExecutionParticipant;
 import endpoints.config.ParameterName;
-import endpoints.condition.Condition;
 import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;

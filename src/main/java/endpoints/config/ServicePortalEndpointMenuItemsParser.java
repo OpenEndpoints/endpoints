@@ -13,7 +13,10 @@ import org.w3c.dom.Element;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 public class ServicePortalEndpointMenuItemsParser extends DomParser {
 

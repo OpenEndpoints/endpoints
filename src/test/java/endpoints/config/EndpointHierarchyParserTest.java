@@ -7,7 +7,6 @@ import junit.framework.TestCase;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-
 import java.util.List;
 
 import static endpoints.config.EndpointHierarchyParser.assertEndpointForwardsExitAndNoCircularReferences;

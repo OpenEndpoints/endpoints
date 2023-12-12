@@ -2,7 +2,6 @@ package endpoints.condition;
 
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import endpoints.LazyCachingValue;
-import endpoints.LazyCachingValue.LazyParameterComputationException;
 import endpoints.PlaintextParameterReplacer;
 import endpoints.config.IntermediateValueName;
 import endpoints.config.ParameterName;

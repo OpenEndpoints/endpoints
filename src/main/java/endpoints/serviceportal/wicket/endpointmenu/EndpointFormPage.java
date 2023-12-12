@@ -2,8 +2,8 @@ package endpoints.serviceportal.wicket.endpointmenu;
 
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.DeploymentParameters;
-import endpoints.UploadedFile;
 import endpoints.PublishEnvironment;
+import endpoints.UploadedFile;
 import endpoints.config.ParameterName;
 import endpoints.config.ServicePortalEndpointMenuItem.ServicePortalEndpointFormMenuItem;
 import endpoints.serviceportal.MultiEnvironmentEndpointMenuItem.MultiEnvironmentEndpointLeafMenuItem;

@@ -1,6 +1,8 @@
 package endpoints.serviceportal;
 
-import lombok.*;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;

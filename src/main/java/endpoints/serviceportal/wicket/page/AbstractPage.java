@@ -1,8 +1,8 @@
 package endpoints.serviceportal.wicket.page;
 
+import com.databasesandlife.util.GitPropertiesBuildInfo;
 import com.databasesandlife.util.jdbc.DbTransaction;
 import endpoints.DeploymentParameters;
-import com.databasesandlife.util.GitPropertiesBuildInfo;
 import endpoints.serviceportal.wicket.ServicePortalSession;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
@@ -10,9 +10,7 @@ import org.apache.wicket.markup.html.basic.Label;
 
 import javax.annotation.Nonnull;
 
-import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
-import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN;
-import static endpoints.generated.jooq.Tables.SERVICE_PORTAL_LOGIN_APPLICATION;
+import static endpoints.generated.jooq.Tables.*;
 
 public class AbstractPage extends WebPage {
 
