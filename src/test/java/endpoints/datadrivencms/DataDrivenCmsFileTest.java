@@ -46,6 +46,11 @@ public class DataDrivenCmsFileTest extends TestCase {
                         <copy><element>prio4</element></copy>
                     </instance>
                 </content>
+                <content id="main">
+                    <instance priority="4">
+                        <copy><element>prio4</element></copy> <!-- duplicated -->
+                    </instance>
+                </content>
                 <property id="main">
                     <instance priority="4" value="prio4"/>
                 </property>
@@ -95,6 +100,9 @@ public class DataDrivenCmsFileTest extends TestCase {
         var expected = """
             <data-driven-cms>
                <content id="main">
+                  <instance>
+                     <element>prio4</element>
+                  </instance>
                   <instance>
                      <element>prio4</element>
                   </instance>

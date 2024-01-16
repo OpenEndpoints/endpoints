@@ -12,8 +12,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Function;
 
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.*;
 
 public class DataDrivenCmsFile {
     
@@ -54,7 +53,7 @@ public class DataDrivenCmsFile {
     }
 
     protected static <T extends DataDrivenCmsInstance>
-    @Nonnull Map<String, TreeMap<Integer, T>> newIdToPriorityToContent(
+    @Nonnull Map<String, TreeMap<Integer, List<T>>> newIdToPriorityToContent(
         @Nonnull String parameterMultipleValueSeparator, @Nonnull Map<String, LazyCachingValue> params,
         @Nonnull List<DataDrivenCmsFile> files, @Nonnull Function<DataDrivenCmsFile, List<T>> itemsExtractor
     ) {
@@ -65,7 +64,7 @@ public class DataDrivenCmsFile {
             .entrySet().stream()
             .collect(toMap(e -> e.getKey(), e -> e.getValue().stream()
                 .filter(c -> c.conditionFolders.evaluate(parameterMultipleValueSeparator, params))
-                .collect(toMap(c -> c.priority, c -> c, (x,y) -> x, TreeMap::new)),
+                .collect(groupingBy(c -> c.priority, TreeMap::new, toList())),
                 (a,b) -> a, // cannot happen due to previous groupingBy
                 TreeMap::new // this makes the output order predictable which is useful for unit tests
             ));
@@ -84,12 +83,14 @@ public class DataDrivenCmsFile {
             contentElement.setAttribute("id", e.getKey());
             root.appendChild(contentElement);
 
-            for (var content : e.getValue().descendingMap().entrySet()) { // from priority to object, ordered by priority desc
-                var instanceElement = document.createElement("instance");
-                contentElement.appendChild(instanceElement);
+            for (var contentList : e.getValue().descendingMap().entrySet()) {
+                for (var content : contentList.getValue()) {
+                    var instanceElement = document.createElement("instance");
+                    contentElement.appendChild(instanceElement);
 
-                for (var copyElement : DomParser.getSubElements(content.getValue().copy, "*"))
-                    instanceElement.appendChild(document.importNode(copyElement, true));
+                    for (var copyElement : DomParser.getSubElements(content.copy, "*"))
+                        instanceElement.appendChild(document.importNode(copyElement, true));
+                }
             }
         }
         
@@ -100,7 +101,7 @@ public class DataDrivenCmsFile {
 
             var propertyElement = document.createElement("property");
             propertyElement.setAttribute("id", e.getKey());
-            propertyElement.setAttribute("value", property.getValue().value);
+            propertyElement.setAttribute("value", property.getValue().get(0).value);
             root.appendChild(propertyElement);
         }
         
