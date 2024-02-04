@@ -12,7 +12,7 @@ USER root
 RUN mkdir -p -m 0777 /home/jetty
 USER jetty
 
-# Bug fix: WallStoxx: Multipart sent (only) from the browser, fields would get amalgamated included
+# Bug fix: Multipart sent (only) from the browser, fields would get amalgamated included
 # the "boundary"
 RUN echo "jetty.httpConfig.multiPartFormDataCompliance=LEGACY" >> /var/lib/jetty/start.d/server.ini
 
