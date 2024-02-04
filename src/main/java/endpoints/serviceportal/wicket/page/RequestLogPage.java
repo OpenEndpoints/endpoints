@@ -41,6 +41,7 @@ import org.w3c.dom.Element;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import java.io.Serializable;
+import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -54,7 +55,6 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.*;
 import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.wicket.ajax.AbstractAjaxTimerBehavior.onTimer;
-import static org.apache.wicket.util.time.Duration.seconds;
 import static org.jooq.impl.DSL.*;
 
 @Slf4j
@@ -397,7 +397,7 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
         });
         add(resultsTable.setOutputMarkupId(true));
         
-        add(onTimer(seconds(5), (target) -> {
+        add(onTimer(Duration.ofSeconds(5), (target) -> {
             resultsModel.refresh();
             resultsCountModel.refresh();
             target.add(resultsTable);

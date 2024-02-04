@@ -58,6 +58,9 @@ public class ServicePortalApplication extends WebApplication {
         // Avoid redirects to ?2 as they are visually ugly
         getRequestCycleSettings().setRenderStrategy(ONE_PASS_RENDER);
 
+        // Allow CSS etc. to work
+        getCspSettings().blocking().disabled();
+
         // Beautiful URLs
         mountPage("/choose-application", ChooseApplicationPage.class);
         mountPage("/admin/", AdminApplicationListPage.class);
