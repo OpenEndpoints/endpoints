@@ -2,7 +2,7 @@ package endpoints.datasource;
 
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
-import com.offerready.xslt.WeaklyCachedXsltTransformer;
+import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import endpoints.DeploymentParameters;
 import endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberType;
 import endpoints.TransformationContext;
@@ -23,8 +23,7 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
     protected final @Nonnull OnDemandIncrementingNumberType type;
 
     public OnDemandIncrementingNumberCommand(
-        @Nonnull WeaklyCachedXsltTransformer.XsltCompilationThreads threads,
-        @Nonnull File applicationDir, @Nonnull Element command
+        @Nonnull XsltCompilationThreads threads, @Nonnull File applicationDir, @Nonnull Element command
     ) throws ConfigurationException {
         super(threads, applicationDir, command);
         assertNoOtherElements(command, "post-process");
@@ -42,7 +41,7 @@ public class OnDemandIncrementingNumberCommand extends DataSourceCommand {
             throw new ConfigurationException("Endpoints is running in single application mode and <" + command.getNodeName() + "> " +
                 "was used, yet ENDPOINTS_SINGLE_APPLICATION_MODE_TIMEZONE_ID was not set");
     }
-
+    
     @Override
     public @Nonnull DataSourceCommandFetcher scheduleFetch(
         @Nonnull TransformationContext context,

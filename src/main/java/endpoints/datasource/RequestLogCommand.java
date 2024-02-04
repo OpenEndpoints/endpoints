@@ -16,7 +16,6 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 
@@ -65,9 +64,6 @@ public class RequestLogCommand extends DataSourceCommand {
         appendElementWithText(element, e->{}, "datetime-utc", r.getDatetime().atZone(UTC).format(dateTimeFormat));
         appendElementWithText(element, e->{}, "status-code", r.getStatusCode());
         appendElementWithText(element, e->{}, "exception-message", r.getExceptionMessage());
-        appendElementWithText(element, e->{}, "incremental-id-per-endpoint", ids.getIncrementalIdPerEndpoint());
-        appendElementWithText(element, e->{}, "random-id-per-application",
-            Optional.ofNullable(ids.getRandomIdPerApplication()).map(x -> x.id()).orElse(null));
         appendElementWithText(element, e->{}, "user-agent", r.getUserAgent());
         appendElementWithText(element, e->{}, "environment", ids.getEnvironment());
         appendElementWithText(element, e->{}, "http-request-failed-url", r.getHttpRequestFailedUrl());

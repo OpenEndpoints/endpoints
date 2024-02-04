@@ -1,6 +1,5 @@
 package endpoints;
 
-import com.databasesandlife.util.Timer;
 import endpoints.config.ApplicationName;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
@@ -62,46 +61,41 @@ public class OnDemandIncrementingNumber {
     
     protected @CheckForNull Integer value;
     
-    public @CheckForNull Integer getValueOrNull() { return value; }
+    public synchronized @CheckForNull Integer getValueOrNull() { return value; }
     
     @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter") 
     public int getOrFetchValue(@Nonnull ApplicationTransaction tx) {
+        synchronized (this) {
+            if (value != null) return value;
+        }
+
+        int newValue;
         synchronized (tx) {
             tx.acquireLock(environment, application);
-            
-            if (value == null) {
-                try (var ignored = new Timer("Acquire lock on '" + application.name()
-                        + "', environment '" + environment.name() + "'")) {
-                    tx.db.jooq()
-                        .selectFrom(APPLICATION_PUBLISH)
-                        .where(APPLICATION_PUBLISH.APPLICATION_NAME.eq(application))
-                        .and(APPLICATION_PUBLISH.ENVIRONMENT.eq(environment))
-                        .forUpdate()
-                        .execute();
-                }
 
-                var timezone = tx.db.jooq()
-                    .select(APPLICATION_CONFIG.TIMEZONE)
-                    .from(APPLICATION_CONFIG)
-                    .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(application))
-                    .fetchOptional().map(r -> r.value1()).orElse(DeploymentParameters.get().singleApplicationModeTimezoneId);
-                if (timezone == null) throw new RuntimeException("Unreachable: " +
-                    "Neither 'application_config' row is present, nor is environment variable set");
+            var timezone = tx.db.jooq()
+                .select(APPLICATION_CONFIG.TIMEZONE)
+                .from(APPLICATION_CONFIG)
+                .where(APPLICATION_CONFIG.APPLICATION_NAME.eq(application))
+                .fetchOptional().map(r -> r.value1()).orElse(DeploymentParameters.get().singleApplicationModeTimezoneId);
+            if (timezone == null) throw new RuntimeException("Unreachable: " +
+                "Neither 'application_config' row is present, nor is environment variable set");
 
-                var max = tx.db.jooq()
-                    .select(max(type.getRequestLogIdsField()))
-                    .from(REQUEST_LOG_IDS)
-                    .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
-                    .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
-                    .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
-                    .and(type.getRequestLogCondition(now, timezone))
-                    .fetchSingle().value1();
+            var max = tx.db.jooq()
+                .select(max(type.getRequestLogIdsField()))
+                .from(REQUEST_LOG_IDS)
+                .join(REQUEST_LOG).on(REQUEST_LOG.REQUEST_ID.eq(REQUEST_LOG_IDS.REQUEST_ID))
+                .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
+                .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
+                .and(type.getRequestLogCondition(now, timezone))
+                .fetchSingle().value1();
 
-                if (max == null) value = 1;
-                else value = max + 1;
-            }
-
-            return value;
+            if (max == null) newValue = 1;
+            else newValue = max + 1;
+        }
+        
+        synchronized (this) {
+            return value = newValue;
         }
     }
     

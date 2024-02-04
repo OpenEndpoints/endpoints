@@ -22,8 +22,6 @@ OpenEndpoints will automatically insert additional useful tags:
 * **git-revision:** if the application was published from Git via the Service Portal then this contains the Git hash for the revision. (If the application is deployed in "single application mode" then this tag is omitted.)
 * **debug-allowed:** if existing debugging is set to "allowed" in the database. Otherwise this tag will be omitted.
 * **secret-key:** one separate tag for each secret-key
-* **incremental-id-per-application:** the database request-log adds an incremental id per request per application
-* **incremental-id-per-endpoint:** the database request-log adds an incremental id per request per application per endpoint
 * **random-id-per-endpoint:** the database request-log adds a random id per request per application
 * **base-url:** The base-url of the application is taken from an environment variable.
 
@@ -61,11 +59,9 @@ OpenEndpoints will automatically insert additional useful tags:
             <debug-allowed/>
 
             <!-- only present when debug-mode enabled in service portal; otherwise missing -->
+            <!-- if you have multiple secret keys, then all of them will be listed -->
             <secret-key>foo</secret-key>
 
-            <!-- if you have multiple secret keys, then all of them will be listed -->
-            <incremental-id-per-endpoint>1345</incremental-id-per-endpoint>
-            <random-id-per-application>8764598230</random-id-per-application>
             <base-url>https://endpoints.com/</base-url>
         </input-from-application>
 

@@ -107,8 +107,6 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
         return falseCondition()
             .or(REQUEST_LOG_IDS.ENDPOINT.cast(String.class).containsIgnoreCase(filter))
             .or(REQUEST_LOG.STATUS_CODE.cast(String.class).containsIgnoreCase(filter))
-            .or(REQUEST_LOG_IDS.INCREMENTAL_ID_PER_ENDPOINT.cast(String.class).containsIgnoreCase(filter))
-            .or(REQUEST_LOG_IDS.RANDOM_ID_PER_APPLICATION.cast(String.class).containsIgnoreCase(filter))
             .or(REQUEST_LOG.REQUEST_ID.cast(String.class).containsIgnoreCase(filter))
             .or(REQUEST_LOG.USER_AGENT.cast(String.class).containsIgnoreCase(filter))
             .or(REQUEST_LOG.EXCEPTION_MESSAGE.cast(String.class).containsIgnoreCase(filter))
@@ -305,10 +303,6 @@ public class RequestLogPage extends AbstractLoggedInApplicationPage {
                 tableRow.add(new SubstringHighlightLabel("endpoint", filterText, entry.ids.getEndpoint().name));
                 tableRow.add(new SubstringHighlightLabel("statusCode", filterText, Integer.toString(rec.getStatusCode()))
                     .add(AttributeAppender.append("class", rec.getStatusCode() >= 300 ? "status-error" : "")));
-                tableRow.add(new SubstringHighlightLabel("incrementalIdPerEndpoint", filterText,
-                    Optional.ofNullable(entry.ids.getIncrementalIdPerEndpoint()).map(x -> Long.toString(x)).orElse(null)));
-                tableRow.add(new SubstringHighlightLabel("randomIdPerApplication", filterText, 
-                    Optional.ofNullable(entry.ids.getRandomIdPerApplication()).map(x -> Long.toString(x.id())).orElse(null)));
                 item.add(tableRow);
                 
                 var detailsHighlightLabels = new ArrayList<SubstringHighlightLabel>();

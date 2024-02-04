@@ -68,12 +68,10 @@ import static endpoints.OnDemandIncrementingNumber.OnDemandIncrementingNumberTyp
 import static endpoints.OnDemandIncrementingNumber.newLazyNumbers;
 import static endpoints.PlaintextParameterReplacer.replacePlainTextParameters;
 import static endpoints.generated.jooq.Tables.APPLICATION_CONFIG;
-import static endpoints.generated.jooq.Tables.REQUEST_LOG_IDS;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toMap;
 import static javax.servlet.http.HttpServletResponse.*;
-import static org.jooq.impl.DSL.max;
 
 @Slf4j
 public class EndpointExecutor {
@@ -130,27 +128,6 @@ public class EndpointExecutor {
         appendTextElement(parent, name, null, null, contents);
     }
 
-    /**
-     * Returns the next number, or 1 if this is the first request.
-     */
-    protected long getNextAutoIncrement(
-        @Nonnull ApplicationTransaction tx,
-        @Nonnull ApplicationName application, @Nonnull PublishEnvironment environment, @Nonnull NodeName endpoint
-    ) {
-        tx.acquireLock(environment, application);
-        
-        var max = tx.db.jooq()
-            .select(max(REQUEST_LOG_IDS.INCREMENTAL_ID_PER_ENDPOINT))
-            .from(REQUEST_LOG_IDS)
-            .where(REQUEST_LOG_IDS.APPLICATION.eq(application))
-            .and(REQUEST_LOG_IDS.ENVIRONMENT.eq(environment))
-            .and(REQUEST_LOG_IDS.ENDPOINT.eq(endpoint))
-            .fetchSingle().value1();
-
-        if (max == null) return 1;
-        else return max+1;
-    }
-
     @SneakyThrows
     public static void logXmlForDebugging(@Nonnull Class<?> logClass, @Nonnull String msg, @Nonnull Document x) {
         if ( ! DeploymentParameters.get().xsltDebugLog) return;
@@ -176,7 +153,7 @@ public class EndpointExecutor {
         @Nonnull Request req, boolean debugAllowed, boolean debugRequested, 
         @Nonnull ParameterTransformationLogger parameterTransformationLogger,
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
-        @Nonnull ParameterTransformation parameterTransformation, long requestAutoInc, @Nonnull RandomRequestId random,
+        @Nonnull ParameterTransformation parameterTransformation,
         @Nonnull Map<ParameterName, String> requestParameters,
         @Nonnull Consumer<Map<ParameterName, String>> consumeParameters,
         @Nonnull Node... inputFromRequestContents
@@ -214,8 +191,6 @@ public class EndpointExecutor {
         if (application.getRevision() != null) 
             appendTextElement(inputFromApplicationElement, "git-revision", application.getRevision().sha256Hex());
         appendTextElement(inputFromApplicationElement, "secret-key", application.getSecretKeys()[0]);
-        appendTextElement(inputFromApplicationElement, "incremental-id-per-endpoint", Long.toString(requestAutoInc));
-        appendTextElement(inputFromApplicationElement, "random-id-per-application", Long.toString(random.id()));
         appendTextElement(inputFromApplicationElement, "base-url", DeploymentParameters.get().baseUrl.toExternalForm());
 
         // Schedule execution of e.g. <xml-from-application>
@@ -314,8 +289,8 @@ public class EndpointExecutor {
         @Nonnull ThreadPool threads, @Nonnull Endpoint endpoint, @Nonnull RequestId requestId,
         @Nonnull Request req, boolean debugAllowed, boolean debugRequested,
         @Nonnull ParameterTransformationLogger parameterTransformationLogger, 
-        long requestAutoInc, @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
-        @Nonnull RandomRequestId random, @Nonnull Consumer<Map<ParameterName, String>> consumeParameters
+        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
+        @Nonnull Consumer<Map<ParameterName, String>> consumeParameters
     ) throws InvalidRequestException, TransformationFailedException {
         Consumer<Map<ParameterName, String>> validateThenConsumeParameters = (transformedParameters) -> {
             try {
@@ -350,7 +325,7 @@ public class EndpointExecutor {
             } else {
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                    endpoint.parameterTransformation, requestAutoInc, random, inputParameters, validateThenConsumeParameters,
+                    endpoint.parameterTransformation, inputParameters, validateThenConsumeParameters,
                     parameterElements);
             }
         }
@@ -369,7 +344,7 @@ public class EndpointExecutor {
                 else throw new RuntimeException("Unreachable; contentType='" + contentType + "'");
                 return transformXmlIntoParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
                     debugAllowed, debugRequested, parameterTransformationLogger, autoInc,
-                    endpoint.parameterTransformation, requestAutoInc, random, Map.of(), validateThenConsumeParameters, 
+                    endpoint.parameterTransformation, Map.of(), validateThenConsumeParameters, 
                     Stream.concat(Stream.of(parameterElements), Stream.of(requestDocument)).toArray(Element[]::new));
             }
             catch (ConfigurationException e) { throw new InvalidRequestException("Request is not valid XML", e); }
@@ -471,15 +446,13 @@ public class EndpointExecutor {
         protected final @Nonnull ApplicationName applicationName;
         protected final @Nonnull Application application;
         protected final @Nonnull ApplicationConfig appConfig;
-        protected final long requestAutoInc;
         protected final @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc;
-        protected final @Nonnull RandomRequestId random;
         
         public ResponseIncludingForward(
             @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName,
             @Nonnull Application application, @Nonnull TransformationContext context,
-            @Nonnull ResponseConfiguration config, int statusCode, @Nonnull ApplicationConfig appConfig, long requestAutoInc,
-            @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, @Nonnull RandomRequestId random,
+            @Nonnull ResponseConfiguration config, int statusCode, @Nonnull ApplicationConfig appConfig,
+            @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
             @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
         ) {
             super(context, config, statusCode, responseConsumer);
@@ -487,9 +460,7 @@ public class EndpointExecutor {
             this.applicationName = applicationName;
             this.application = application;
             this.appConfig = appConfig;
-            this.requestAutoInc = requestAutoInc;
             this.autoInc = autoInc;
-            this.random = random;
         }
 
         @SneakyThrows({InvalidRequestException.class, TransformationFailedException.class, NodeNotFoundException.class})
@@ -519,8 +490,8 @@ public class EndpointExecutor {
 
                 attemptSuccess(environment, applicationName, application, appConfig,
                     application.getEndpoints().findEndpointOrThrow(((ForwardToEndpointResponseConfiguration) config).endpoint),
-                    context.tx, context.threads, false, new ParameterTransformationLogger(), requestAutoInc, autoInc,
-                    context.requestLogExpressionCaptures, random, null, context.requestId, request, responseConsumer);
+                    context.tx, context.threads, false, new ParameterTransformationLogger(), autoInc,
+                    context.requestLogExpressionCaptures, null, context.requestId, request, responseConsumer);
             }
             else super.runUnconditionally();
         }
@@ -535,7 +506,7 @@ public class EndpointExecutor {
         @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc, 
         @Nonnull Map<String, String> requestLogExpressionCaptures,
         @Nonnull BufferedHttpResponseDocumentGenerationDestination response,
-        @Nonnull Consumer<RequestLogIdsRecord> alterRequestLogIds, @Nonnull Consumer<RequestLogRecord> alterRequestLog
+        @Nonnull Consumer<RequestLogRecord> alterRequestLog
     ) {
         var recordDebugInfo = (debugAllowed && debugRequested) || (verboseRequested && response.getStatusCode() >= 400);
         
@@ -547,7 +518,6 @@ public class EndpointExecutor {
         ids.setOnDemandPerpetualIncrementingNumber(autoInc.get(perpetual).getValueOrNull());
         ids.setOnDemandYearIncrementingNumber(autoInc.get(year).getValueOrNull());
         ids.setOnDemandMonthIncrementingNumber(autoInc.get(month).getValueOrNull());
-        alterRequestLogIds.accept(ids);
         tx.insert(ids);
         
         var r = new RequestLogRecord();
@@ -571,8 +541,8 @@ public class EndpointExecutor {
     protected @Nonnull Response scheduleTasksAndSuccess(
         @Nonnull PublishEnvironment environment, @Nonnull ApplicationName applicationName, @Nonnull ApplicationConfig appConfig,
         @Nonnull TransformationContext context, @Nonnull Endpoint endpoint,
-        long requestAutoInc, @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
-        @Nonnull RandomRequestId random, @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
+        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
+        @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
     ) {
         var synchronizationPointForTaskId = new HashMap<TaskId, SynchronizationPoint>();
         var synchronizationPointForOutputValue = new HashMap<IntermediateValueName, SynchronizationPoint>();
@@ -622,7 +592,7 @@ public class EndpointExecutor {
                 dependencies.add(synchronizationPointForOutputValue.get(neededInputValue));
 
             var thisResponse = new ResponseIncludingForward(environment, applicationName, context.application,
-                context, success, SC_OK, appConfig, requestAutoInc, autoInc, random, responseConsumer);
+                context, success, SC_OK, appConfig, autoInc, responseConsumer);
             context.threads.addTaskWithDependencies(dependencies, thisResponse);
             
             previousResponse = thisResponse;
@@ -637,21 +607,21 @@ public class EndpointExecutor {
         @Nonnull Application application, @Nonnull ApplicationConfig appConfig, @Nonnull Endpoint endpoint,
         @Nonnull ApplicationTransaction tx, @Nonnull ThreadPool threads,
         boolean debugRequested, @Nonnull ParameterTransformationLogger parameterTransformationLogger,
-        long requestAutoInc, @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
-        @Nonnull Map<String, String> requestLogExpressionCaptures, @Nonnull RandomRequestId random,
+        @Nonnull Map<OnDemandIncrementingNumberType, OnDemandIncrementingNumber> autoInc,
+        @Nonnull Map<String, String> requestLogExpressionCaptures,
         @CheckForNull String hashToCheck, @Nonnull RequestId requestId, @Nonnull Request req,
         @Nonnull Consumer<BufferedHttpResponseDocumentGenerationDestination> responseConsumer
     ) throws InvalidRequestException, TransformationFailedException {
         getParameters(environment, applicationName, application, tx, threads, endpoint, requestId, req,
             appConfig.debugAllowed(), debugRequested, parameterTransformationLogger,
-            requestAutoInc, autoInc, random, parameters -> {
+            autoInc, parameters -> {
                 try {
                     if (hashToCheck != null) assertHashCorrect(application, environment, endpoint, parameters, hashToCheck);
                     
                     var context = new TransformationContext(environment, applicationName, application, tx, threads, endpoint, 
                         parameters, ParameterNotFoundPolicy.error, requestId, req, autoInc, requestLogExpressionCaptures);
                     scheduleTasksAndSuccess(environment, applicationName, appConfig,
-                        context, endpoint, requestAutoInc, autoInc, random, responseConsumer);
+                        context, endpoint, autoInc, responseConsumer);
                 }
                 catch (IncorrectHashException e) { throw new RuntimeException(e); }
             }
@@ -684,10 +654,8 @@ public class EndpointExecutor {
                 
                 if (appConfig.locked()) throw new InvalidRequestException("Application is locked");
 
-                var requestAutoInc = getNextAutoIncrement(tx, applicationName, environment, endpoint.name);
                 var autoInc = newLazyNumbers(applicationName, environment, now);
                 var requestLogExpressionCaptures = new HashMap<String, String>();
-                var random = RandomRequestId.generate(tx, applicationName, environment);
 
                 var successResponse = new Consumer<BufferedHttpResponseDocumentGenerationDestination>() {
                     public BufferedHttpResponseDocumentGenerationDestination destination;
@@ -695,8 +663,8 @@ public class EndpointExecutor {
                 };
                 
                 attemptSuccess(environment, applicationName, application, appConfig, 
-                    endpoint, tx, threads, debugRequested, parameterTransformationLogger, requestAutoInc, autoInc, 
-                    requestLogExpressionCaptures, random, hashToCheck, requestId, req, successResponse);
+                    endpoint, tx, threads, debugRequested, parameterTransformationLogger, autoInc, 
+                    requestLogExpressionCaptures, hashToCheck, requestId, req, successResponse);
 
                 try { threads.execute(); }
                 catch (RuntimeException e) {
@@ -713,10 +681,8 @@ public class EndpointExecutor {
 
                 insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
                     req, appConfig.debugAllowed(), debugRequested, verboseRequested, 
-                    parameterTransformationLogger, autoInc, requestLogExpressionCaptures, successResponse.destination, r -> {
-                        r.setIncrementalIdPerEndpoint(requestAutoInc);
-                        r.setRandomIdPerApplication(random);
-                    }, r -> {});
+                    parameterTransformationLogger, autoInc, requestLogExpressionCaptures, successResponse.destination,
+                    r -> {});
                 
                 if (awsCloudWatchRequestMetricWriter != null)
                     awsCloudWatchRequestMetricWriter.scheduleWriteMetric(
@@ -769,7 +735,7 @@ public class EndpointExecutor {
                     insertRequestLog(tx.db, applicationName, environment, endpoint.name, now, requestId, 
                         req, appConfig.debugAllowed(), debugRequested, verboseRequested, 
                         parameterTransformationLogger, autoInc, context.requestLogExpressionCaptures, 
-                        errorResponse.destination, r -> {}, r -> {
+                        errorResponse.destination, r -> {
                             r.setExceptionMessage(e.getMessage());
                             r.setHttpRequestFailedUrl(e instanceof HttpRequestFailedException h ? h.url : null);
                             r.setHttpRequestFailedStatusCode(e instanceof HttpRequestFailedException h ?h.responseStatusCode : null);

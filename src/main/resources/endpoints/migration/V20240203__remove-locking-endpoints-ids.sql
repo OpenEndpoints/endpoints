@@ -1,0 +1,3 @@
+ALTER TABLE request_log_ids
+DROP incremental_id_per_endpoint,
+DROP random_id_per_application;

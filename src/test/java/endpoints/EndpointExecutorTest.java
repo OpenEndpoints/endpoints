@@ -6,9 +6,11 @@ import com.databasesandlife.util.ThreadPool.SynchronizationPoint;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import com.offerready.xslt.WeaklyCachedXsltTransformer.XsltCompilationThreads;
 import com.offerready.xslt.destination.BufferedHttpResponseDocumentGenerationDestination;
-import endpoints.EndpointExecutor.ParameterTransformationLogger;
-import endpoints.config.*;
+import endpoints.config.Application;
 import endpoints.config.ApplicationFactory.ApplicationConfig;
+import endpoints.config.ApplicationName;
+import endpoints.config.Endpoint;
+import endpoints.config.ParameterName;
 import endpoints.config.response.EmptyResponseConfiguration;
 import endpoints.config.response.RedirectResponseConfiguration;
 import endpoints.task.Task;
@@ -17,8 +19,6 @@ import junit.framework.TestCase;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.Duration;
-import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -91,8 +91,8 @@ public class EndpointExecutorTest extends TestCase {
                             @Override public void accept(BufferedHttpResponseDocumentGenerationDestination x) { this.x=x; }
                         };
                         new EndpointExecutor().scheduleTasksAndSuccess(PublishEnvironment.live, ApplicationName.newRandomForTesting(), 
-                            new ApplicationConfig(false, false), context, endpoint, 0, Map.of(),
-                            new RandomRequestId(12), consumer);
+                            new ApplicationConfig(false, false), context, endpoint, Map.of(),
+                            consumer);
                         
                         threads.execute();
                         
@@ -106,50 +106,5 @@ public class EndpointExecutorTest extends TestCase {
         }
         
         p.execute();
-    }
-    
-    public void testGetNextAutoIncrement() {
-        var applicationName = ApplicationName.newRandomForTesting();
-        var environment = PublishEnvironment.live;
-        var endpoint = new NodeName("endpoint");
-        
-        try (var tx = DeploymentParameters.get().newDbTransaction()) {
-            applicationName.insertToDbForTesting(tx, environment);
-            tx.commit();
-        }
-        
-        var pool = new ThreadPool();
-        pool.setThreadCount(10);
-        
-        // Map from the auto-increment number to the number of times it was found
-        var numbers = new HashMap<Long, Integer>();
-
-        var taskCount = 20;
-        for (int i = 0; i < taskCount; i++) {
-            pool.addTask(() -> {
-                try (var tx = new ApplicationTransaction(Application.newForTesting())) {
-                    var executor = new EndpointExecutor();
-                    var requestAutoInc = executor.getNextAutoIncrement(tx, applicationName, environment, endpoint);
-                    executor.insertRequestLog(tx.db, applicationName, environment, endpoint, 
-                        Instant.now(), RequestId.newRandom(),
-                        Request.newForTesting(), true, true, true, new ParameterTransformationLogger(),
-                        OnDemandIncrementingNumber.newLazyNumbers(applicationName, environment, Instant.now()), Map.of(), 
-                        new BufferedHttpResponseDocumentGenerationDestination(), r -> {
-                            r.setIncrementalIdPerEndpoint(requestAutoInc);
-                        }, r -> {});
-                    synchronized (numbers) {
-                        numbers.putIfAbsent(requestAutoInc, 0);
-                        numbers.put(requestAutoInc, numbers.get(requestAutoInc) + 1);
-                    }
-                    tx.commit();
-                }
-            });
-        }
-        pool.execute();
-
-        for (int i = 1; i <= taskCount; i++) {
-            // Expect each number to be found once
-            assertEquals("Number "+i, (Integer)1, numbers.get((long) i));
-        }
     }
 }
