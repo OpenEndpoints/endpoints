@@ -25,7 +25,7 @@ import java.net.URL;
 import java.time.ZoneId;
 import java.util.Optional;
 
-import static software.amazon.awssdk.regions.Region.AWS_GLOBAL;
+import static software.amazon.awssdk.regions.Region.US_EAST_1;
 
 /**
  * Represents those parameters which can change from one deployment to another. 
@@ -138,7 +138,7 @@ public class DeploymentParameters {
 
     public @Nonnull S3Client newAwsS3Client() {
         var builder = S3Client.builder();
-        if (awsS3EndpointOverride != null) builder.region(AWS_GLOBAL);  // Needed for localstack
+        if (awsS3EndpointOverride != null) builder.region(US_EAST_1);  // Needed for localstack
         setAwsEndpointOverride(builder, awsS3EndpointOverride);
         return builder.build();
     }

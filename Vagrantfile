@@ -99,7 +99,7 @@ Vagrant.configure(2) do |config|
     apt-get install -qy docker-ce
 
     echo --- Install localstack, which simulates a lot of AWS services
-    docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack
+    docker run -p 4566:4566 -p 4510-4559:4510-4559 -d --name=aws --restart unless-stopped localstack/localstack:3.1.0
     cat << '    END' >> ~vagrant/.bash_aliases
        alias list-localstack-aws-s3-files="curl http://vagrantbucket.s3.localhost.localstack.cloud:4566/ | xmllint --format -"
        alias list-localstack-aws-secrets="curl -H 'Content-Type: application/x-amz-json-1.1' -H 'X-Amz-Target: secretsmanager.ListSecrets' -d '{}' 'http://secretsmanager.us-east-1.localhost.localstack.cloud:4566/'| jq" 
