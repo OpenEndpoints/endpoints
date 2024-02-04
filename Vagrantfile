@@ -26,7 +26,7 @@ Vagrant.configure(2) do |config|
     echo --- General OS installation
     apt-get update
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -qy    # grub upgrade warnings mess with the terminal
-    apt-get -qy install vim ntp unattended-upgrades less openjdk-17-jdk libxml2-utils jq
+    apt-get -qy install vim ntp unattended-upgrades less openjdk-21-jdk libxml2-utils jq
 
     echo -- PostgreSQL
     apt-get -qy install postgresql-14

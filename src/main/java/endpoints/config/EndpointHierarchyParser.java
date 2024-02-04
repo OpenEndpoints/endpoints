@@ -248,31 +248,35 @@ public class EndpointHierarchyParser extends DomParser {
     
     protected static void assertUniqueEndpointNames(@Nonnull Set<NodeName> documentIdsFound, @Nonnull EndpointHierarchyNode n)
     throws ConfigurationException {
-        if (n instanceof Endpoint e) {
-            var id = e.name;
-            if (documentIdsFound.contains(id)) throw new ConfigurationException("More than one <document name='" + id + "'>");
-            documentIdsFound.add(id);
+        switch (n) {
+            case Endpoint e -> {
+                var id = e.name;
+                if (documentIdsFound.contains(id)) throw new ConfigurationException("More than one <document name='" + id + "'>");
+                documentIdsFound.add(id);
+            }
+            case EndpointHierarchyFolderNode f -> {
+                for (var child : f.children) assertUniqueEndpointNames(documentIdsFound, child);
+            }
+            default -> throw new RuntimeException("Unreachable: " + n.getClass());
         }
-        else if (n instanceof EndpointHierarchyFolderNode f) {
-            for (var child : f.children) assertUniqueEndpointNames(documentIdsFound, child);
-        }
-        else throw new RuntimeException("Unreachable: " + n.getClass());
     }
     
     protected static void collectEndpointForwards(@Nonnull Map<NodeName, Set<NodeName>> result, @Nonnull EndpointHierarchyNode n) {
-        if (n instanceof Endpoint endpoint) {
-            result.putIfAbsent(endpoint.name, new HashSet<>());
-            for (var s : endpoint.success)
-                if (s instanceof ForwardToEndpointResponseConfiguration successFwd)
-                    result.get(endpoint.name).add(successFwd.endpoint);
-            if (endpoint.error instanceof ForwardToEndpointResponseConfiguration errorFwd)
-                result.get(endpoint.name).add(errorFwd.endpoint);
+        switch (n) {
+            case Endpoint endpoint -> {
+                result.putIfAbsent(endpoint.name, new HashSet<>());
+                for (var s : endpoint.success)
+                    if (s instanceof ForwardToEndpointResponseConfiguration successFwd)
+                        result.get(endpoint.name).add(successFwd.endpoint);
+                if (endpoint.error instanceof ForwardToEndpointResponseConfiguration errorFwd)
+                    result.get(endpoint.name).add(errorFwd.endpoint);
+            }
+            case EndpointHierarchyFolderNode folder -> {
+                for (var child : folder.children)
+                    collectEndpointForwards(result, child);
+            }
+            default -> throw new RuntimeException("Unreachable: " + n.getClass());
         }
-        else if (n instanceof EndpointHierarchyFolderNode folder) {
-            for (var child : folder.children)
-                collectEndpointForwards(result, child);
-        }
-        else throw new RuntimeException("Unreachable: " + n.getClass());
     }
 
     protected static void assertNoCircularReferencesStartingFrom(

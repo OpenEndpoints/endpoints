@@ -286,37 +286,40 @@ public class EmailTask extends Task {
 
         for (var at : attachments) {
             if ( ! at.condition.evaluate(context.endpoint.getParameterMultipleValueSeparator(), stringParams)) continue;
-            
-            if (at instanceof AttachmentStatic s) {
-                var attachmentPart = new MimeBodyPart();
-                attachmentPart.attachFile(s.file);
-                attachmentPart.setDisposition(Part.ATTACHMENT);
-                mainPart.addBodyPart(attachmentPart);
-            }
-            else if (at instanceof AttachmentTransformation a) {
-                try {
+
+            switch (at) {
+                case AttachmentStatic s -> {
+                    var attachmentPart = new MimeBodyPart();
+                    attachmentPart.attachFile(s.file);
+                    attachmentPart.setDisposition(Part.ATTACHMENT);
+                    mainPart.addBodyPart(attachmentPart);
+                }
+                case AttachmentTransformation a -> {
+                    try {
+                        var result = new EmailPartDocumentDestination();
+                        result.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, stringParams));
+                        partTasks.add(context.scheduleTransformation(result, a.contents, inputIntermediateValues));
+                        mainPart.addBodyPart(result.getBodyPart());
+                    } catch (TransformationFailedException e) {
+                        throw new TaskExecutionFailedException("Attachment '" + a.filenamePattern + "'", e);
+                    }
+                }
+                case AttachmentOoxmlParameterExpansion o -> {
                     var result = new EmailPartDocumentDestination();
-                    result.setContentDispositionToDownload(replacePlainTextParameters(a.filenamePattern, stringParams));
-                    partTasks.add(context.scheduleTransformation(result, a.contents, inputIntermediateValues));
+                    partTasks.add(o.expander.scheduleExecution(context, result, inputIntermediateValues));
                     mainPart.addBodyPart(result.getBodyPart());
                 }
-                catch (TransformationFailedException e) { throw new TaskExecutionFailedException("Attachment '"+a.filenamePattern+"'", e); }
-            }
-            else if (at instanceof AttachmentOoxmlParameterExpansion o) {
-                var result = new EmailPartDocumentDestination();
-                partTasks.add(o.expander.scheduleExecution(context, result, inputIntermediateValues));
-                mainPart.addBodyPart(result.getBodyPart());
-            }
-            else if (at instanceof AttachmentsFromRequestFileUploads) {
-                for (var upload : context.request.getUploadedFiles()) {
-                    var filePart = new MimeBodyPart();
-                    filePart.setDataHandler(new DataHandler(new UploadedFileDataSource(upload)));
-                    filePart.setFileName(upload.getSubmittedFileName());
-                    filePart.setDisposition(Part.ATTACHMENT);
-                    mainPart.addBodyPart(filePart);
+                case AttachmentsFromRequestFileUploads attachmentsFromRequestFileUploads -> {
+                    for (var upload : context.request.getUploadedFiles()) {
+                        var filePart = new MimeBodyPart();
+                        filePart.setDataHandler(new DataHandler(new UploadedFileDataSource(upload)));
+                        filePart.setFileName(upload.getSubmittedFileName());
+                        filePart.setDisposition(Part.ATTACHMENT);
+                        mainPart.addBodyPart(filePart);
+                    }
                 }
+                default -> throw new RuntimeException(at.getClass().getName());
             }
-            else throw new RuntimeException(at.getClass().getName());
         }
 
         Runnable sendEmail = () -> {

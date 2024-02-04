@@ -110,9 +110,7 @@ public class GitApplicationRepository {
             }
         };
 
-        var t = new Thread(runnable);
-        t.setName("Delete tmp dir");
-        t.start();
+        Thread.ofVirtual().name("Delete tmp dir").start(runnable);
     }
 
     public @Nonnull GitRevision fetchLatestRevision() throws RepositoryCommandFailedException {

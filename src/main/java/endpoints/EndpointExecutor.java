@@ -405,48 +405,48 @@ public class EndpointExecutor {
             var destination = new BufferedHttpResponseDocumentGenerationDestination();
             var stringParams = context.getParametersAndIntermediateValuesAndSecrets(config.inputIntermediateValues);
 
-            if (config instanceof EmptyResponseConfiguration) {
-                destination.setStatusCode(contentStatusCode);
+            switch (config) {
+                case EmptyResponseConfiguration e -> destination.setStatusCode(contentStatusCode);
+                case StaticResponseConfiguration r -> {
+                    destination.setStatusCode(contentStatusCode);
+                    destination.setContentType(new MimetypesFileTypeMap().getContentType(r.file));
+                    try (var o = destination.getOutputStream()) { Files.copy(r.file.toPath(), o); }
+                    if (r.downloadFilenamePatternOrNull != null)
+                        destination.setContentDispositionToDownload(
+                            replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
+                }
+                case UrlResponseConfiguration r -> {
+                    destination.setStatusCode(contentStatusCode);
+                    r.spec.scheduleExecutionAndAssertNoError(context, config.inputIntermediateValues, (@CheckForNull var result) -> {
+                        if (result != null) {
+                            destination.setContentType(result.getContentType());
+                            try (var i = result.getInputStream(); var o = destination.getOutputStream()) { IOUtils.copy(i, o); }
+                            catch (IOException e) { throw new RuntimeException(e); }
+                        }
+                    });
+                    if (r.downloadFilenamePatternOrNull != null)
+                        destination.setContentDispositionToDownload(
+                            replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
+                }
+                case RedirectResponseConfiguration r -> {
+                    var url = replacePlainTextParameters(r.urlPattern, stringParams);
+                    if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
+                        throw new InvalidRequestException("Redirect URL '"+url+"' is not in whitelist");
+                    destination.setRedirectUrl(new URL(url));
+                }
+                case TransformationResponseConfiguration r -> {
+                    destination.setStatusCode(contentStatusCode);
+                    r.transformer.scheduleExecution(context, config.inputIntermediateValues, destination);
+                    if (r.downloadFilenamePatternOrNull != null)
+                        destination.setContentDispositionToDownload(
+                            replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
+                }
+                case OoxmlParameterExpansionResponseConfiguration r -> {
+                    destination.setStatusCode(contentStatusCode);
+                    r.scheduleExecution(context, destination);
+                }
+                default -> throw new IllegalStateException("Unexpected config: " + config);
             }
-            else if (config instanceof StaticResponseConfiguration r) {
-                destination.setStatusCode(contentStatusCode);
-                destination.setContentType(new MimetypesFileTypeMap().getContentType(r.file));
-                try (var o = destination.getOutputStream()) { Files.copy(r.file.toPath(), o); }
-                if (r.downloadFilenamePatternOrNull != null)
-                    destination.setContentDispositionToDownload(
-                        replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
-            }
-            else if (config instanceof UrlResponseConfiguration r) {
-                destination.setStatusCode(contentStatusCode);
-                r.spec.scheduleExecutionAndAssertNoError(context, config.inputIntermediateValues, (@CheckForNull var result) -> {
-                    if (result != null) {
-                        destination.setContentType(result.getContentType());
-                        try (var i = result.getInputStream(); var o = destination.getOutputStream()) { IOUtils.copy(i, o); }
-                        catch (IOException e) { throw new RuntimeException(e); }
-                    }
-                });
-                if (r.downloadFilenamePatternOrNull != null)
-                    destination.setContentDispositionToDownload(
-                        replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
-            }
-            else if (config instanceof RedirectResponseConfiguration r) {
-                var url = replacePlainTextParameters(r.urlPattern, stringParams);
-                if (!((RedirectResponseConfiguration)config).whitelist.isUrlInWhiteList(url))
-                    throw new InvalidRequestException("Redirect URL '"+url+"' is not in whitelist");
-                destination.setRedirectUrl(new URL(url));
-            }
-            else if (config instanceof TransformationResponseConfiguration r) {
-                destination.setStatusCode(contentStatusCode);
-                r.transformer.scheduleExecution(context, config.inputIntermediateValues, destination);
-                if (r.downloadFilenamePatternOrNull != null)
-                    destination.setContentDispositionToDownload(
-                        replacePlainTextParameters(r.downloadFilenamePatternOrNull, stringParams));
-            }
-            else if (config instanceof OoxmlParameterExpansionResponseConfiguration r) {
-                destination.setStatusCode(contentStatusCode);
-                r.scheduleExecution(context, destination);
-            }
-            else throw new IllegalStateException("Unexpected config: " + config);
             
             responseConsumer.accept(destination);
         }

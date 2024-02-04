@@ -48,12 +48,13 @@ public class HttpRequestSpecificationTest extends TestCase {
     public Element runTest(boolean ignoreErrors, @Nonnull String configXml, @Nonnull DeliverResponse deliverResponse)
     throws HttpRequestFailedException, TransformationFailedException {
         try (var xsltDir = new TemporaryFile("xslt-files", "dir")) {
-            var httpXslt = "" +
-                "<xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>" +
-                "  <xsl:template match='/'>" +
-                "    <xml-from-xslt/>" +
-                "  </xsl:template>" +
-                "</xsl:stylesheet>";
+            var httpXslt = """
+                <xsl:stylesheet version='1.0' xmlns:xsl='http://www.w3.org/1999/XSL/Transform'>
+                  <xsl:template match='/'>
+                    <xml-from-xslt/>
+                  </xsl:template>
+                </xsl:stylesheet>
+                """;
             if ( ! xsltDir.file.delete()) throw new RuntimeException();
             if ( ! xsltDir.file.mkdir()) throw new RuntimeException();
             var xsltFile = new File(xsltDir.file, "unit-test.xslt");
@@ -123,8 +124,7 @@ public class HttpRequestSpecificationTest extends TestCase {
             @Nonnull @Override public String getSubmittedFileName() { return "password.txt"; }
         };
         
-        var sourceXml = DomParser.from(IOUtils.toInputStream("<foo><upload upload-field-name='foo' encoding='base64'/></foo>", 
-            UTF_8));
+        var sourceXml = DomParser.from("<foo><upload upload-field-name='foo' encoding='base64'/></foo>");
         
         var destXml = HttpRequestSpecification.replaceXmlElementWithFileUploads(
             List.of(uploadedFile), sourceXml.getOwnerDocument());
@@ -183,7 +183,7 @@ public class HttpRequestSpecificationTest extends TestCase {
 
         // Test XML request body (fixed) incl parameter expansion
         runTestInclVariousHttpFails("<xml-body> <your-tag>${foo}</your-tag> </xml-body>", (req, resp) -> {
-            if ( ! IOUtils.toString(req.getInputStream(), UTF_8).contains("<your-tag>bar</your-tag>"))
+            if ( ! new String(req.getInputStream().readAllBytes()).contains("<your-tag>bar</your-tag>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
@@ -199,13 +199,13 @@ public class HttpRequestSpecificationTest extends TestCase {
 
         // Test XML request body (xslt)
         runTestInclVariousHttpFails("<xml-body xslt-file='unit-test.xslt'/>", (req, resp) -> {
-            if ( ! IOUtils.toString(req.getInputStream(), UTF_8).contains("<xml-from-xslt/>"))
+            if ( ! new String(req.getInputStream().readAllBytes()).contains("<xml-from-xslt/>"))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 
         // Test JSON request body incl parameter expansion
         runTestInclVariousHttpFails("<json-body>{ \"key\": \"${foo}\" }</json-body>", (req, resp) -> {
-            if ( ! IOUtils.toString(req.getInputStream(), UTF_8).contains("\"key\":\"bar\""))
+            if ( ! new String(req.getInputStream().readAllBytes()).contains("\"key\":\"bar\""))
                 resp.setStatus(HttpServletResponse.SC_CONFLICT);
         });
 

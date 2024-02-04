@@ -46,8 +46,10 @@ public abstract class EndpointPage extends AbstractLoggedInApplicationPage {
     ) {
         var i = item.itemForEnvironment.get(environment);
 
-        if (i instanceof ServicePortalEndpointContentMenuItem) return new EndpointContentPage(environment, item);
-        else if (i instanceof ServicePortalEndpointFormMenuItem) return new EndpointFormPage(environment, item);
-        else throw new RuntimeException("Unexpected class: " + i.getClass());
+        return switch (i) {
+            case ServicePortalEndpointContentMenuItem s -> new EndpointContentPage(environment, item);
+            case ServicePortalEndpointFormMenuItem s -> new EndpointFormPage(environment, item);
+            default -> throw new RuntimeException("Unexpected class: " + i.getClass());
+        };
     }
 }

@@ -1,4 +1,4 @@
-FROM jetty:9.4-jre17
+FROM jetty:9.4-jre21
 COPY target/endpoints /var/lib/jetty/webapps/ROOT
 EXPOSE 8080
 

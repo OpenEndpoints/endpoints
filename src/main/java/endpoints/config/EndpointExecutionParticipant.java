@@ -60,7 +60,7 @@ public abstract class EndpointExecutionParticipant {
         
         for (var after : toVisit.predecessors) {
             var sources = nodes.stream().filter(n -> after.equals(n.getTaskIdOrNull())).toList();
-            if (sources.size() == 0) throw new ConfigurationException(
+            if (sources.isEmpty()) throw new ConfigurationException(
                 toVisit.getHumanReadableId() + ": <after task-id='" + after.id() + "'/> but no task found with this ID");
             if (sources.size() > 1) throw new ConfigurationException(
                 "Multiple tasks with same ID '" + after.id() + "'");
@@ -71,7 +71,7 @@ public abstract class EndpointExecutionParticipant {
         
         for (var variable : toVisit.inputIntermediateValues) {
             var sources = nodes.stream().filter(n -> n.getOutputIntermediateValues().contains(variable)).toList();
-            if (sources.size() == 0) throw new ConfigurationException(
+            if (sources.isEmpty()) throw new ConfigurationException(
                 toVisit.getHumanReadableId() + ": No <task>s produce output intermediate value '" + variable.name + "'");
             if (sources.size() > 1) throw new ConfigurationException(
                 "Multiple <task>s produce output intermediate value '" + variable.name + "'");

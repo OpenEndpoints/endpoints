@@ -4,7 +4,6 @@ import com.databasesandlife.util.servlet.IpAddressDeterminer;
 import endpoints.EndpointExecutor.EndpointExecutionFailedException;
 import endpoints.config.ParameterName;
 import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -29,7 +28,7 @@ public class ServletRequest implements Request {
         this.req = req;
         
         // We have to support the body being read multiple times, firstly for processing, and secondly for the request log
-        try { requestBody = IOUtils.toByteArray(req.getInputStream()); }
+        try { requestBody = req.getInputStream().readAllBytes(); }
         catch (IOException e) { throw new EndpointExecutionFailedException(400, "I/O problem reading request", e); }
     }
 

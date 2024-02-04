@@ -54,57 +54,57 @@ public abstract class MultiEnvironmentEndpointMenuItem implements Serializable {
             for (var sourceChild : sourceFolder.children) {
                 var ourChildrenWithThisName = children.stream().filter(c -> c.menuItemName.equals(sourceChild.menuItemName));
 
-                if (sourceChild instanceof ServicePortalEndpointMenuFolder sourceFolderChild) {
-                    var existingChild = ourChildrenWithThisName
-                        .filter(c -> c instanceof MultiEnvironmentEndpointMenuFolder)
-                        .map(c -> (MultiEnvironmentEndpointMenuFolder) c)
-                        .findAny();
-                    
-                    final MultiEnvironmentEndpointMenuFolder ourChild;
-                    if (existingChild.isPresent()) {
-                        ourChild = existingChild.get();
-                    }
-                    else { 
-                        ourChild = new MultiEnvironmentEndpointMenuFolder(sourceChild.menuItemName); 
-                        children.add(ourChild);
-                    }
-                    
-                    ourChild.mergeChildren(environment, sourceFolderChild);
-                } 
-                else if (sourceChild instanceof ServicePortalEndpointLeafMenuItem sourceLeafChild) {
-                    var existingChild = ourChildrenWithThisName
-                        .filter(c -> c instanceof MultiEnvironmentEndpointLeafMenuItem)
-                        .map(c -> (MultiEnvironmentEndpointLeafMenuItem) c)
-                        .findAny();
+                switch (sourceChild) {
+                    case ServicePortalEndpointMenuFolder sourceFolderChild -> {
+                        var existingChild = ourChildrenWithThisName
+                            .filter(c -> c instanceof MultiEnvironmentEndpointMenuFolder)
+                            .map(c -> (MultiEnvironmentEndpointMenuFolder) c)
+                            .findAny();
 
-                    final MultiEnvironmentEndpointLeafMenuItem ourChild;
-                    if (existingChild.isPresent()) {
-                        ourChild = existingChild.get();
-                    }
-                    else {
-                        ourChild = new MultiEnvironmentEndpointLeafMenuItem(sourceChild.menuItemName);
-                        children.add(ourChild);
-                    }
+                        final MultiEnvironmentEndpointMenuFolder ourChild;
+                        if (existingChild.isPresent()) {
+                            ourChild = existingChild.get();
+                        } else {
+                            ourChild = new MultiEnvironmentEndpointMenuFolder(sourceChild.menuItemName);
+                            children.add(ourChild);
+                        }
 
-                    if (sourceChild.environments.contains(environment))
-                        ourChild.itemForEnvironment.put(environment, sourceLeafChild);
-                } 
-                else {
-                    throw new RuntimeException(sourceChild.getClass().getName());
+                        ourChild.mergeChildren(environment, sourceFolderChild);
+                    }
+                    case ServicePortalEndpointLeafMenuItem sourceLeafChild -> {
+                        var existingChild = ourChildrenWithThisName
+                            .filter(c -> c instanceof MultiEnvironmentEndpointLeafMenuItem)
+                            .map(c -> (MultiEnvironmentEndpointLeafMenuItem) c)
+                            .findAny();
+
+                        final MultiEnvironmentEndpointLeafMenuItem ourChild;
+                        if (existingChild.isPresent()) {
+                            ourChild = existingChild.get();
+                        } else {
+                            ourChild = new MultiEnvironmentEndpointLeafMenuItem(sourceChild.menuItemName);
+                            children.add(ourChild);
+                        }
+
+                        if (sourceChild.environments.contains(environment))
+                            ourChild.itemForEnvironment.put(environment, sourceLeafChild);
+                    }
+                    default -> throw new RuntimeException(sourceChild.getClass().getName());
                 }
             }
         }
         
         public void prune() {
             children.removeIf(e -> {
-               if (e instanceof MultiEnvironmentEndpointMenuFolder folder) {
-                   folder.prune();
-                   return folder.children.isEmpty();
-               }
-               else if (e instanceof MultiEnvironmentEndpointLeafMenuItem leaf) {
-                   return leaf.itemForEnvironment.isEmpty();
-               }
-               else throw new RuntimeException(e.getClass().getName());
+                switch (e) {
+                    case MultiEnvironmentEndpointMenuFolder folder -> {
+                        folder.prune();
+                        return folder.children.isEmpty();
+                    }
+                    case MultiEnvironmentEndpointLeafMenuItem leaf -> {
+                        return leaf.itemForEnvironment.isEmpty();
+                    }
+                    default -> throw new RuntimeException(e.getClass().getName());
+                }
             });
         }
         

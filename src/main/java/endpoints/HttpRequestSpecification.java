@@ -103,23 +103,27 @@ public class HttpRequestSpecification {
 
     protected static @Nonnull JsonNode expandJson(@Nonnull Map<String, LazyCachingValue> parameters, @Nonnull JsonNode input)
     throws VariableNotFoundException {
-        if (input instanceof ArrayNode arrayNode) {
-            var result = arrayNode.arrayNode();
-            for (int i = 0; i < input.size(); i++) result.add(expandJson(parameters, input.get(i)));
-            return result;
-        }
-        else if (input instanceof ObjectNode objectNode) {
-            var result = objectNode.objectNode();
-            for (Iterator<Map.Entry<String, JsonNode>> i = input.fields(); i.hasNext(); ) {
-                var e = i.next();
-                result.set(e.getKey(), expandJson(parameters, e.getValue()));
+        switch (input) {
+            case ArrayNode arrayNode -> {
+                var result = arrayNode.arrayNode();
+                for (int i = 0; i < input.size(); i++) result.add(expandJson(parameters, input.get(i)));
+                return result;
             }
-            return result;
+            case ObjectNode objectNode -> {
+                var result = objectNode.objectNode();
+                for (Iterator<Map.Entry<String, JsonNode>> i = input.fields(); i.hasNext(); ) {
+                    var e = i.next();
+                    result.set(e.getKey(), expandJson(parameters, e.getValue()));
+                }
+                return result;
+            }
+            case TextNode jsonNodes -> {
+                return new TextNode(replacePlainTextParameters(input.asText(), parameters));
+            }
+            default -> {
+                return input;
+            }
         }
-        else if (input instanceof TextNode) {
-            return new TextNode(replacePlainTextParameters(input.asText(), parameters));
-        }
-        else return input;
     }
     
     @SneakyThrows(TransformerException.class)

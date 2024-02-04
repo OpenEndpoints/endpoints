@@ -16,6 +16,7 @@ import junit.framework.TestCase;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
@@ -30,7 +31,7 @@ public class EndpointExecutorTest extends TestCase {
     
     @SuppressWarnings("SameParameterValue") 
     protected static void sleep() {
-        try { Thread.sleep(100); }
+        try { Thread.sleep(Duration.ofMillis(100)); }
         catch (InterruptedException ignored) { }
     }
 

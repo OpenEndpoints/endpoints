@@ -76,16 +76,18 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
         @CheckForNull EmailSendingConfigurationFactory config, @Nonnull EndpointHierarchyFolderNode node
     ) throws ConfigurationException {
         for (var child : node.children) {
-            if (child instanceof Endpoint e) {
-                try {
-                    for (var t : e.tasks)
-                        try { t.assertCompatibleWithEmailConfig(config, e.aggregateParametersOverParents().keySet()); }
-                        catch (ConfigurationException ex) { throw new ConfigurationException(t.getHumanReadableId(), ex); }
+            switch (child) {
+                case Endpoint e -> {
+                    try {
+                        for (var t : e.tasks)
+                            try { t.assertCompatibleWithEmailConfig(config, e.aggregateParametersOverParents().keySet()); }
+                            catch (ConfigurationException ex) { throw new ConfigurationException(t.getHumanReadableId(), ex); }
+                    }
+                    catch (ConfigurationException ex) { throw new ConfigurationException("Endpoint '" + e.name.name + "'", ex); }
                 }
-                catch (ConfigurationException ex) { throw new ConfigurationException("Endpoint '" + e.name.name + "'", ex); }
+                case EndpointHierarchyFolderNode f -> assertCompatibleWithEmailConfig(config, f);
+                default -> throw new RuntimeException("Unexpected child: " + child.getClass());
             }
-            else if (child instanceof EndpointHierarchyFolderNode f) assertCompatibleWithEmailConfig(config, f);
-            else throw new RuntimeException("Unexpected child: "+child.getClass()); 
         }
     }
 
@@ -100,15 +102,17 @@ public abstract class ApplicationFactory extends DocumentOutputDefinitionParser 
     protected static void assertNoEndpointAwsS3ConfigurationNeeded(@Nonnull EndpointHierarchyFolderNode node) 
     throws ConfigurationException {
         for (var child : node.children) {
-            if (child instanceof Endpoint e) {
-                if (e.parameterTransformation != null)
-                    for (var ds : e.parameterTransformation.dataSourceCommands)
-                        if (ds.requiresAwsS3Configuration())
-                            throw new ConfigurationException("A data source for parameter transformation for endpoint " +
-                                "'" + e.name + "' requires 'aws-s3-configuration.xml' but no such configuration was found");
+            switch (child) {
+                case Endpoint e -> {
+                    if (e.parameterTransformation != null)
+                        for (var ds : e.parameterTransformation.dataSourceCommands)
+                            if (ds.requiresAwsS3Configuration())
+                                throw new ConfigurationException("A data source for parameter transformation for endpoint " +
+                                    "'" + e.name + "' requires 'aws-s3-configuration.xml' but no such configuration was found");
+                }
+                case EndpointHierarchyFolderNode f -> assertNoEndpointAwsS3ConfigurationNeeded(f);
+                default -> throw new RuntimeException("Unexpected child: " + child.getClass());
             }
-            else if (child instanceof EndpointHierarchyFolderNode f) assertNoEndpointAwsS3ConfigurationNeeded(f);
-            else throw new RuntimeException("Unexpected child: "+child.getClass());
         }
     }
 

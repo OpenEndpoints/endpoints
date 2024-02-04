@@ -26,7 +26,7 @@ public class AwsCloudWatchRequestMetricWriter {
         @Nonnull ApplicationName application, @Nonnull NodeName endpoint, @Nonnull PublishEnvironment environment,
         @Nonnull Instant now, int statusCode, @Nonnull Duration duration
     ) {
-        new Thread(() -> {
+        Thread.startVirtualThread(() -> {
             try (var ignored = new Timer("AwsCloudWatchRequestMetricWriter")) {
                 MetricDatum datum = MetricDatum.builder()
                     .metricName("RequestDuration")
@@ -49,6 +49,6 @@ public class AwsCloudWatchRequestMetricWriter {
     
                 client.putMetricData(request);
             }
-        }).start();
+        });
     }
 }

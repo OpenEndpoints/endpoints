@@ -3,7 +3,6 @@ package endpoints;
 import com.databasesandlife.util.DomParser;
 import com.databasesandlife.util.gwtsafe.ConfigurationException;
 import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Element;
 
 import javax.annotation.CheckForNull;
@@ -36,7 +35,7 @@ public abstract class UploadedFile {
      */
     @SneakyThrows(IOException.class)
     public @Nonnull byte[] toByteArray() {
-        return IOUtils.toByteArray(getInputStream());
+        return getInputStream().readAllBytes();
     }
     
     public synchronized @CheckForNull Element getXmlDocumentOrNull() {
